@@ -147,6 +147,49 @@ python sbwaa.py /ui
 
 ---
 
+## Configuração guiada (Setup Wizard)
+
+Após clonar e instalar as dependências, cole o prompt abaixo no chat do Claude Code com a pasta do projeto aberta. Ele mapeia tudo que precisa ser configurado manualmente e conduz um formulário interativo — uma pergunta por vez.
+
+Para o IPS especificamente, o fluxo é mais cuidadoso: explica cada métrica com benchmarks de mercado brasileiro, faz perguntas qualitativas sobre o seu perfil e só sugere números depois de entender suas respostas.
+
+```
+Quero configurar o SBWAA do zero.
+
+Antes de começar, leia os arquivos de configuração do sistema
+(.env.template, knowledge/sources/sources.json,
+scripts/alerts/check_alerts.py e CLAUDE.md) para mapear tudo
+que pode ser configurado manualmente.
+
+Depois conduza um formulário interativo comigo — uma pergunta
+por vez, aguardando minha resposta antes de avançar — cobrindo
+nesta ordem:
+
+1. API Key — modo Claude Code (padrão, sem key) vs modo API
+   (agentes autônomos via subprocess, precisa de ANTHROPIC_API_KEY)
+
+2. Feeds RSS — fontes de notícias da base de conhecimento:
+   quais manter, quais adicionar, volume por coleta e idioma
+
+3. Thresholds de alerta — revise comigo os valores atuais de
+   queda/alta de ativo e correlação, explicando o que cada um
+   dispara antes de perguntar se quero ajustar
+
+4. IPS completo — para este item seja mais cuidadoso:
+   explique cada métrica com contexto e benchmarks de mercado
+   brasileiro (IBOV histórico, CDI, volatilidade típica por
+   classe), faça perguntas qualitativas sobre meu perfil antes
+   de sugerir qualquer número. Cubra em sequência: horizonte de
+   investimento, alocação alvo por classe (% alvo + mín + máx),
+   VaR máximo diário 95%, drawdown máximo tolerado e
+   concentração máxima por ativo.
+
+Ao final de cada etapa, salve as configurações nos arquivos
+corretos. Para o IPS, gere o vault/00-portfolio/ips.md completo.
+```
+
+---
+
 ## Estrutura do projeto
 
 ```
