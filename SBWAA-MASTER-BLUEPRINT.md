@@ -1,0 +1,1860 @@
+# SBWAA — MASTER BLUEPRINT
+## Guia Completo de Reconstrução do Sistema do Zero
+
+**Versão de referência:** v2.2.1  
+**Data de geração:** 2026-05-16  
+**Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
+
+---
+
+## O QUE É O SBWAA
+
+**Second Brain Wealth + Asset + Assessor Individual** — sistema multi-agente de análise financeira pessoal que roda 100% local no seu computador. Nenhum dado privado (patrimônio, posições, custo médio) sai da máquina. APIs externas recebem apenas tickers públicos.
+
+**Arquitetura:**
+- 7 agentes de IA especializados em pipeline sequencial
+- Pipeline de dados (Brapi + Yahoo Finance) com cache local de 4h
+- Base de conhecimento RAG (ChromaDB + sentence-transformers)
+- Interface desktop (customtkinter) + terminal (slash commands)
+- Vault Obsidian como banco de dados em markdown
+
+**Stack principal:** Python 3.11+, Claude API (claude-sonnet-4-6 / claude-opus-4-6), ChromaDB, customtkinter, yfinance, Brapi
+
+---
+
+## ÍNDICE
+
+1. [Pré-requisitos e Setup](#1-pré-requisitos-e-setup)
+2. [CLAUDE.md — Configuração Global](#2-claudemd--configuração-global)
+3. [Estrutura de Pastas Completa](#3-estrutura-de-pastas-completa)
+4. [Fase 0 — Base do Sistema](#4-fase-0--base-do-sistema)
+5. [Fase 1 — Pipeline de Dados](#5-fase-1--pipeline-de-dados)
+6. [Fase 2 — Market Researcher + Earnings Reviewer](#6-fase-2--market-researcher--earnings-reviewer)
+7. [Fase 3 — Model Builder + Valuation Reviewer](#7-fase-3--model-builder--valuation-reviewer)
+8. [Fase 4 — Quant/Data Engineer + Risk Engineer](#8-fase-4--quantdata-engineer--risk-engineer)
+9. [Fase 5 — Portfolio Manager + /analisar](#9-fase-5--portfolio-manager--analisar)
+10. [Fase 6 — Comandos + Heartbeat + Alertas](#10-fase-6--comandos--heartbeat--alertas)
+11. [Fase 7 — RAG Knowledge Base](#11-fase-7--rag-knowledge-base)
+12. [Fase 8 — Interface Visual (customtkinter)](#12-fase-8--interface-visual-customtkinter)
+13. [sbwaa.py — Ponto de Entrada Atual](#13-sbwaapy--ponto-de-entrada-atual)
+14. [Correções Críticas Aplicadas](#14-correções-críticas-aplicadas)
+15. [Rotina de Testes](#15-rotina-de-testes)
+16. [Estado Atual e Versões](#16-estado-atual-e-versões)
+
+---
+
+## 1. PRÉ-REQUISITOS E SETUP
+
+### Sistema operacional
+- Windows 10/11 (testado), Linux/Mac compatível
+- **Windows:** usar PowerShell, não Git Bash (Git Bash expande `/cmd` → `C:/Program Files/Git/cmd`)
+- Definir `$env:PYTHONUTF8 = "1"` no início de cada sessão PowerShell
+
+### Python e pip
+```bash
+python --version    # 3.11+ recomendado
+pip --version
+```
+
+### Dependências completas — `requirements.txt`
+```
+# SBWAA — Requirements
+# pip install -r requirements.txt
+
+# Dados de mercado
+requests==2.31.0
+yfinance==0.2.38
+pandas==2.2.2
+numpy==1.26.4
+scipy==1.13.1
+
+# Documentos
+PyPDF2==3.0.1
+python-docx==1.1.0
+openpyxl==3.1.2
+
+# RAG / Knowledge Base
+chromadb==0.5.0
+sentence-transformers==3.0.1
+beautifulsoup4==4.12.3
+feedparser==6.0.11
+
+# Interface desktop
+customtkinter==5.2.2
+
+# Anthropic
+anthropic==0.28.0
+
+# Utilitários
+python-dotenv==1.0.1
+```
+
+Instalar:
+```bash
+pip install -r requirements.txt
+```
+
+### Variável de ambiente
+Criar `/sbwaa/.env` (nunca commitar):
+```
+ANTHROPIC_API_KEY=sua_chave_aqui
+```
+
+Adicionar ao `.gitignore`:
+```
+.env
+knowledge/.chromadb/
+knowledge/raw/
+scripts/data/cache/
+logs/
+__pycache__/
+*.pyc
+vault/assets/agents-pixel/*.png
+```
+
+### UTF-8 no Windows
+Adicionar ao topo de **todos** os scripts Python:
+```python
+import os, sys
+os.environ["PYTHONUTF8"] = "1"
+os.environ["PYTHONIOENCODING"] = "utf-8"
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+```
+
+---
+
+## 2. CLAUDE.md — CONFIGURAÇÃO GLOBAL
+
+Criar `/sbwaa/CLAUDE.md` — lido por todos os agentes no Claude Code:
+
+```markdown
+# SBWAA — CLAUDE.md
+# Second Brain Wealth + Asset + Assessor Individual
+# Configuração global do sistema — lida por todos os agentes
+
+---
+
+## ⚠️ SECURITY POLICY — CONFIDENCIAL
+
+- Todos os dados deste vault são estritamente privados
+- Nenhuma informação de portfólio, posições, patrimônio, custo médio
+  ou dados pessoais pode ser transmitida para qualquer serviço externo
+- APIs externas recebem APENAS: tickers públicos, datas e parâmetros
+  de mercado — nunca valores investidos ou dados pessoais
+- Logs ficam exclusivamente em /sbwaa/logs/ local
+- Em caso de dúvida sobre o que é dado privado, considerar privado
+
+---
+
+## MODEL ROUTING POLICY
+
+| Agente                  | Modelo              | Effort |
+|-------------------------|---------------------|--------|
+| Portfolio Manager       | claude-opus-4-6     | medium |
+| Model Builder (DCF)     | claude-opus-4-6     | medium |
+| Risk Engineer           | claude-opus-4-6     | medium |
+| Market Researcher       | claude-sonnet-4-6   | medium |
+| Earnings Reviewer       | claude-sonnet-4-6   | medium |
+| Valuation Reviewer      | claude-sonnet-4-6   | medium |
+| Quant / Data Engineer   | claude-sonnet-4-6   | medium |
+| Heartbeat / Alertas     | claude-sonnet-4-6   | medium |
+| Comandos diários        | claude-sonnet-4-6   | medium |
+
+---
+
+## WIKILINKS — REGRA GLOBAL
+
+Todo output gerado por qualquer agente deve criar wikilinks automáticos:
+- Nota de ativo → linka setor, macro, relatórios, tese, DCF
+- Relatório → linka todos os ativos mencionados
+- Tese de ativo → linka DCF, earnings, valuation, risk snapshot
+- Usar sempre formato [[nome-do-arquivo]] sem extensão
+
+---
+
+## TIPOS DE ATIVO — LABELS
+
+| Label        | Tipo                  |
+|--------------|-----------------------|
+| 🟦 AÇÃO ON   | Ação Ordinária        |
+| 🟦 AÇÃO PN   | Ação Preferencial     |
+| 🟩 FII       | Fundo Imobiliário     |
+| 🟨 ETF BR    | ETF Brasileiro        |
+| 🟥 ETF INTL  | ETF Internacional     |
+| ⬜ RF        | Renda Fixa            |
+| 🟪 TD        | Tesouro Direto        |
+| 🟫 DEB       | Debênture             |
+| 🟧 CRI/CRA   | CRI ou CRA            |
+
+---
+
+## VERSIONAMENTO — REGRA GLOBAL
+
+- Padrão semântico: MAJOR.MINOR.PATCH
+  - MAJOR: mudança estrutural (novo agente, nova arquitetura)
+  - MINOR: nova funcionalidade ou melhoria
+  - PATCH: ajuste, correção, refinamento
+
+---
+
+## ATUALIZAÇÃO OBRIGATÓRIA DE DOCS — REGRA GLOBAL
+
+A cada modificação no sistema, ANTES de encerrar qualquer sessão:
+
+| Arquivo       | Quando atualizar                                       |
+|---------------|--------------------------------------------------------|
+| VERSION.md    | Sempre — bumpar versão global e módulo afetado         |
+| CHANGELOG.md  | Sempre — entrada com data, versão, Added/Fixed/Changed |
+| README.md     | Quando mudar comandos, dependências ou estrutura       |
+| sbwaa.py /help| Quando adicionar, remover ou renomear qualquer comando |
+
+---
+
+## IDIOMA E TOM
+
+- Português brasileiro em todos os outputs ao usuário
+- Tom técnico e direto
+- Sem explicações desnecessárias
+- Dados sempre com formatação clara (tabelas, blocos de código)
+```
+
+---
+
+## 3. ESTRUTURA DE PASTAS COMPLETA
+
+```
+sbwaa/
+├── sbwaa.py                          ← ponto de entrada único
+├── ui.py                             ← interface customtkinter
+├── CLAUDE.md                         ← config global (lida pelos agentes)
+├── VERSION.md                        ← versionamento semântico
+├── CHANGELOG.md                      ← histórico de mudanças
+├── README.md                         ← documentação principal
+├── requirements.txt                  ← dependências
+├── .env                              ← ANTHROPIC_API_KEY (não commitar)
+├── .gitignore
+│
+├── .claude/
+│   ├── agents/
+│   │   ├── market-researcher/
+│   │   │   ├── SKILL.md
+│   │   │   └── run_market_researcher.py
+│   │   ├── earnings-reviewer/
+│   │   │   ├── SKILL.md
+│   │   │   └── run_earnings_reviewer.py
+│   │   ├── model-builder/
+│   │   │   ├── SKILL.md
+│   │   │   └── run_model_builder.py
+│   │   ├── valuation-reviewer/
+│   │   │   ├── SKILL.md
+│   │   │   └── run_valuation_reviewer.py
+│   │   ├── quant-data-engineer/
+│   │   │   ├── SKILL.md
+│   │   │   ├── run_quant.py
+│   │   │   └── calculators/
+│   │   │       ├── returns.py
+│   │   │       ├── portfolio_metrics.py
+│   │   │       └── correlation.py
+│   │   ├── risk-engineer/
+│   │   │   ├── SKILL.md
+│   │   │   ├── run_risk_engineer.py
+│   │   │   └── calculators/
+│   │   │       ├── var.py
+│   │   │       └── stress_test.py
+│   │   └── portfolio-manager/
+│   │       ├── SKILL.md
+│   │       ├── run_pm.py
+│   │       └── run_analisar.py
+│   └── commands/
+│       ├── carteira.py
+│       ├── dividendos.py
+│       ├── stress_test.py
+│       ├── ips.py
+│       ├── risco_carteira.py
+│       ├── morning_call.py
+│       ├── mundo_economico.py
+│       ├── investimento_do_dia.py
+│       ├── relatorio_semanal.py
+│       ├── relatorio_mensal.py
+│       ├── rebalancear.py
+│       ├── tese.py
+│       └── comparar.py
+│
+├── scripts/
+│   ├── data/
+│   │   ├── fetch_brapi.py            ← cotações BR (Brapi API)
+│   │   ├── fetch_yahoo.py            ← dados globais (Yahoo Finance)
+│   │   ├── update_carteira.py        ← atualiza cotações na carteira.md
+│   │   ├── add_ativo.py              ← adiciona ativo ao vault
+│   │   ├── market_snapshot.py        ← snapshot diário macro
+│   │   └── cache/                    ← JSONs com cache de 4h
+│   ├── heartbeat/
+│   │   ├── heartbeat.py
+│   │   └── schedule_heartbeat.py
+│   └── alerts/
+│       └── check_alerts.py
+│
+├── knowledge/
+│   ├── .chromadb/                    ← banco de vetores (no .gitignore)
+│   ├── raw/                          ← docs brutos (no .gitignore)
+│   │   ├── books/
+│   │   ├── research/
+│   │   ├── gestoras/
+│   │   └── macro/
+│   ├── indexed/
+│   │   └── index_log.json
+│   ├── sources/
+│   │   └── sources.json
+│   ├── indexer.py
+│   ├── retriever.py
+│   ├── rss_collector.py
+│   ├── knowledge_cmd.py
+│   └── save_synthesis.py
+│
+├── vault/
+│   ├── 00-portfolio/
+│   │   ├── carteira.md               ← posições + cotações
+│   │   ├── ips.md                    ← Investment Policy Statement
+│   │   ├── historico-trades.md       ← log de operações
+│   │   └── decisoes.md               ← decisões do PM
+│   ├── 01-ativos/
+│   │   └── {TICKER}/
+│   │       ├── tese.md
+│   │       ├── dcf-{TICKER}-v1.xlsx
+│   │       ├── earnings-{TICKER}-{DATA}.md
+│   │       ├── equity-research-{TICKER}-{DATA}-curta.md
+│   │       └── equity-research-{TICKER}-{DATA}-curta.docx
+│   ├── 02-relatorios/
+│   │   ├── diarios/
+│   │   │   ├── snapshot-{DATA}.md
+│   │   │   └── morning-call-{DATA}.md
+│   │   ├── semanais/
+│   │   │   └── semana-{ANO}-W{N}.md
+│   │   └── mensais/
+│   │       └── relatorio-{ANO}-{MES}.md
+│   ├── 03-macro/
+│   │   └── market-researcher-{DATA}.md
+│   ├── 04-knowledge/
+│   │   └── sintese-*.md
+│   ├── 05-risk/
+│   │   └── snapshots/
+│   │       └── risk-{DATA}.md
+│   └── assets/
+│       └── agents-pixel/             ← PNGs 64x64 dos agentes (opcional)
+│
+└── logs/
+    ├── heartbeat.log
+    └── alerts.log
+```
+
+---
+
+## 4. FASE 0 — BASE DO SISTEMA
+
+### Prompt de execução no Claude Code:
+> Crie a estrutura base do SBWAA. Crie todas as pastas listadas na estrutura acima. Crie os arquivos base: CLAUDE.md (conteúdo da Seção 2 deste blueprint), VERSION.md, CHANGELOG.md, README.md esqueleto, .gitignore e a estrutura inicial do vault.
+
+### Arquivos vault base
+
+**`vault/00-portfolio/carteira.md`:**
+```markdown
+---
+tags: [portfolio, carteira]
+cssclasses: [node-portfolio]
+---
+
+# Carteira
+
+| Ticker | Tipo | Qtd | Preço Médio | Preço Atual | Valor R$ | P&L R$ | P&L % | Aloc% | Setor |
+|--------|------|-----|-------------|-------------|----------|--------|-------|-------|-------|
+
+**Patrimônio Total:** R$ 0,00
+**Total Investido:** R$ 0,00
+**P&L Total:** R$ 0,00 (0,00%)
+**Última atualização:** (nunca)
+```
+
+**`vault/00-portfolio/ips.md`:**
+```markdown
+---
+tags: [portfolio, ips]
+cssclasses: [node-portfolio]
+---
+
+# Investment Policy Statement (IPS)
+
+## Perfil do Investidor
+- **Horizonte:** 10-30 anos
+- **Perfil:** Moderado-Agressivo
+- **Objetivo:** Crescimento + Renda passiva via dividendos
+
+## Alocação Alvo
+| Classe       | Alvo % | Mín % | Máx % |
+|--------------|--------|-------|-------|
+| Ações BR     | 40%    | 30%   | 55%   |
+| FIIs         | 35%    | 25%   | 45%   |
+| ETFs Intl    | 15%    | 10%   | 25%   |
+| Renda Fixa   | 10%    | 5%    | 20%   |
+
+## Limites de Risco (Circuit Breakers)
+- VaR 95% (1 dia): máx 2,5%
+- Drawdown máximo tolerado: 18%
+- Concentração máxima por ativo: 20%
+- Stop loss individual: -25%
+
+## Regras de Rebalanceamento
+- Rebalancear quando desvio > 5% da alocação alvo
+- Preferir compras para rebalancear (evitar venda com imposto)
+- Revisar IPS anualmente ou após mudança significativa de vida
+```
+
+**`vault/00-portfolio/historico-trades.md`:**
+```markdown
+---
+tags: [portfolio, historico]
+cssclasses: [node-portfolio]
+---
+
+# Histórico de Operações
+
+| Data | Ticker | Tipo | Operação | Qtd | Preço | Total R$ |
+|------|--------|------|----------|-----|-------|----------|
+```
+
+**`vault/00-portfolio/decisoes.md`:**
+```markdown
+---
+tags: [portfolio, decisoes]
+cssclasses: [node-portfolio]
+---
+
+# Decisões do Portfolio Manager
+
+| Data | Ticker | Veredicto | Confiança | Preço Alvo | Stop | Observações |
+|------|--------|-----------|-----------|------------|------|-------------|
+```
+
+### CSS para Obsidian
+Criar `vault/.obsidian/snippets/sbwaa.css`:
+```css
+.node-portfolio { --node-color: 40, 120, 200; }
+.node-ativo     { --node-color: 80, 180, 80;  }
+.node-relatorio { --node-color: 200, 140, 40; }
+.node-macro     { --node-color: 180, 60, 60;  }
+.node-knowledge { --node-color: 140, 80, 200; }
+.node-risk      { --node-color: 220, 80, 80;  }
+```
+
+### VERSION.md inicial
+```markdown
+# SBWAA — VERSION CONTROL
+
+## Global
+**v1.0.0** — Base do sistema criada
+
+## Módulos
+| Módulo          | Versão  | Status       |
+|-----------------|---------|--------------|
+| investments     | v1.0.0  | ✅ Criado    |
+| heartbeat       | —       | ⏳ Pendente  |
+| knowledge-base  | —       | ⏳ Pendente  |
+| interface       | —       | ⏳ Pendente  |
+```
+
+---
+
+## 5. FASE 1 — PIPELINE DE DADOS
+
+### Prompt de execução no Claude Code:
+> Crie o pipeline de dados do SBWAA. São 5 scripts na pasta scripts/data/: fetch_brapi.py, fetch_yahoo.py, update_carteira.py, add_ativo.py e market_snapshot.py. Todos devem usar cache JSON local com TTL de 4 horas. fetch_brapi.py busca cotações de ativos BR via Brapi (sem API key pública, header Accept: application/json). fetch_yahoo.py busca dados macro globais (IBOV=^BVSP, S&P500=^GSPC, DXY=DX-Y.NYB, ouro=GC=F, petróleo=CL=F, BRL/USD=USDBRL=X). update_carteira.py lê carteira.md e atualiza cotações. add_ativo.py adiciona ativo com flags --ticker, --tipo, --quantidade, --preco-medio, --setor. market_snapshot.py gera snapshot markdown em vault/02-relatorios/diarios/.
+
+### Especificações críticas
+
+**`fetch_brapi.py`** — busca cotações BR:
+- URL: `https://brapi.dev/api/quote/{TICKER}`
+- Headers: `{"Accept": "application/json", "User-Agent": "SBWAA/1.0"}`
+- Cache: `scripts/data/cache/brapi_{TICKER}_{DATA}.json` com TTL 4h
+- **CRÍTICO:** erros HTTP devem lançar `ValueError`, não `SystemExit` — assim o fallback funciona
+- Fallback automático para Yahoo Finance com sufixo `.SA` se Brapi retornar 401/403
+
+```python
+# Padrão correto para tratamento de erros (não usar SystemExit):
+try:
+    response = requests.get(url, headers=headers, timeout=10)
+    response.raise_for_status()
+except requests.exceptions.HTTPError as e:
+    raise ValueError(f"Erro HTTP ao buscar {ticker}: {e}")
+except requests.exceptions.ConnectionError:
+    raise ValueError(f"Erro de conexão ao buscar {ticker}.")
+except requests.exceptions.Timeout:
+    raise ValueError(f"Timeout ao buscar {ticker}.")
+```
+
+**`add_ativo.py`** — adiciona ativo à carteira:
+- Valida ticker na Brapi (com flag `--skip-validacao` para pular)
+- Atualiza `vault/00-portfolio/carteira.md` inserindo linha na tabela
+- Atualiza `vault/00-portfolio/historico-trades.md`
+- Cria pasta `vault/01-ativos/{TICKER}/` com `tese.md` inicial
+- Tipos aceitos: `acao-on | acao-pn | fii | etf-br | etf-intl | renda-fixa | tesouro | debenture | cri-cra`
+
+**`update_carteira.py`** — atualiza cotações:
+- Lê todas as linhas da tabela em `carteira.md`
+- Para cada ticker: busca cotação atual via `fetch_brapi` (com fallback para Yahoo)
+- Recalcula: Valor R$ = Qtd × Preço Atual; P&L R$ = Valor − (Qtd × Preço Médio); P&L % = P&L R$ / (Qtd × Preço Médio) × 100
+- Recalcula Patrimônio Total, P&L Total
+- Atualiza "Última atualização" com data e hora atuais
+
+**`market_snapshot.py`** — snapshot diário:
+- Chama `fetch_yahoo.py` para dados macro
+- Gera markdown em `vault/02-relatorios/diarios/snapshot-{DATA}.md`
+- Salva JSON em `scripts/data/cache/snapshot_{DATA}.json`
+- Inclui: IBOV, S&P500, NASDAQ, DXY, BRL/USD, ouro, petróleo, juros 10Y US
+
+### Estrutura de cache JSON (fetch_brapi)
+```json
+{
+  "ticker": "PETR4",
+  "nome": "Petrobras PN",
+  "cotacao_atual": 38.50,
+  "variacao_dia_pct": 1.2,
+  "volume": 45000000,
+  "timestamp": "2026-05-16T10:30:00",
+  "fonte": "brapi"
+}
+```
+
+---
+
+## 6. FASE 2 — MARKET RESEARCHER + EARNINGS REVIEWER
+
+### Prompt de execução no Claude Code:
+> Crie os dois primeiros agentes do SBWAA: Market Researcher e Earnings Reviewer. Cada agente tem uma pasta em .claude/agents/, com SKILL.md (prompt do agente) e run_{agente}.py (script que monta o contexto, chama a API e salva o output no vault). Market Researcher: analisa macro BR e global, usa snapshot do dia, gera nota em vault/03-macro/. Earnings Reviewer: analisa último resultado trimestral de um ticker, usa dados da Brapi, gera nota em vault/01-ativos/{TICKER}/. Modelo: claude-sonnet-4-6.
+
+### SKILL.md — Market Researcher
+
+```markdown
+# Market Researcher — SBWAA
+
+## Identidade
+Você é o Market Researcher do SBWAA. Especialista em análise macroeconômica
+e de mercados. Seu trabalho é processar dados do dia e produzir análise
+concisa e acionável para o Portfolio Manager.
+
+## Inputs que você receberá
+- Snapshot macro do dia (IBOV, S&P500, DXY, commodities, câmbio, juros)
+- Data e contexto econômico
+
+## Outputs que você deve gerar
+
+### 1. Contexto Macro Global
+- 3-5 drivers principais do dia (o que está movendo os mercados)
+- Posição de risco global (risk-on ou risk-off e por quê)
+- Dólar e commodities: tendência e impacto para Brasil
+
+### 2. Contexto Macro Brasil
+- IBOV: nível técnico e sentimento
+- Juros (SELIC, DI futuro): posição e expectativas
+- BRL/USD: tendência e pressões
+- Agenda econômica relevante (COPOM, IPCA, PIB, resultados)
+
+### 3. Impacto Setorial
+- Quais setores BR são favorecidos/prejudicados hoje
+- Destaque 2-3 temas que o PM deve monitorar
+
+## Regras
+- Dados sempre têm prioridade sobre opinião
+- Se dado não disponível, indicar "dado indisponível" — não inventar
+- Citar variação % sempre que disponível
+- Output máximo: 600 palavras
+- Salvar em vault com wikilinks para ativos afetados da carteira
+
+## BASE DE CONHECIMENTO (RAG)
+Quando contexto RAG for fornecido no prompt:
+- Priorizar informações da base sobre conhecimento geral
+- Citar a fonte: (Fonte: nome_do_documento)
+- Se base contradiz dados atuais, usar dados atuais e registrar contradição
+```
+
+### run_market_researcher.py — estrutura
+```python
+#!/usr/bin/env python3
+"""SBWAA — Market Researcher"""
+import sys, os, json
+from pathlib import Path
+from datetime import datetime
+
+# Setup paths e UTF-8
+os.environ["PYTHONUTF8"] = "1"
+ROOT = Path(__file__).resolve().parent.parent.parent.parent
+import anthropic
+from dotenv import load_dotenv
+load_dotenv(ROOT / ".env")
+
+CACHE = ROOT / "scripts" / "data" / "cache"
+VAULT_MACRO = ROOT / "vault" / "03-macro"
+hoje = datetime.now().strftime("%Y-%m-%d")
+
+def montar_contexto():
+    """Carrega snapshot do cache e formata para o agente."""
+    snapshots = sorted(CACHE.glob("snapshot_*.json"), reverse=True)
+    if not snapshots:
+        return "Snapshot não disponível. Execute /snapshot primeiro."
+    return snapshots[0].read_text(encoding="utf-8")
+
+def main():
+    skill = (Path(__file__).parent / "SKILL.md").read_text(encoding="utf-8")
+    contexto = montar_contexto()
+
+    client = anthropic.Anthropic()
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1500,
+        system=skill,
+        messages=[{"role": "user", "content": f"DATA: {hoje}\n\nSNAPSHOT:\n{contexto}"}]
+    )
+
+    output = response.content[0].text
+
+    # Salvar no vault
+    saida = VAULT_MACRO / f"market-researcher-{hoje}.md"
+    VAULT_MACRO.mkdir(parents=True, exist_ok=True)
+    saida.write_text(
+        f"---\ntags: [macro, market-researcher]\ncssclasses: [node-macro]\ndata: {hoje}\n---\n\n"
+        f"# Market Research — {hoje}\n\n{output}\n\n"
+        f"## Links\n- [[carteira]]\n- [[ips]]\n- [[snapshot-{hoje}]]\n",
+        encoding="utf-8"
+    )
+    print(output)
+
+if __name__ == "__main__":
+    main()
+```
+
+### SKILL.md — Earnings Reviewer
+
+```markdown
+# Earnings Reviewer — SBWAA
+
+## Identidade
+Você é o Earnings Reviewer do SBWAA. Especialista em análise de resultados
+trimestrais de empresas listadas na B3.
+
+## Inputs que você receberá
+- Ticker e dados básicos do ativo (via Brapi)
+- Contexto macro do dia
+- Dados históricos disponíveis no cache
+
+## O que analisar
+
+### Resultado do Trimestre
+- Receita líquida: realizado vs esperado vs trimestre anterior
+- EBITDA e margem EBITDA: expansão ou contração?
+- Lucro líquido e EPS
+- Dívida líquida/EBITDA: leverage subindo ou caindo?
+
+### Qualidade do Resultado
+- Resultado recorrente vs não-recorrente
+- Geração de caixa (FCF) vs lucro contábil
+- Guidance revisado? Para cima ou para baixo?
+
+### Veredicto do Resultado
+- POSITIVO / NEGATIVO / NEUTRO
+- 2-3 linhas de justificativa
+- Impacto estimado no valuation (múltiplo P/L, EV/EBITDA)
+
+## Regras
+- Para FIIs: focar em DY, vacância, FFO por cota, portfólio
+- Se não houver dados de earnings recentes (< 6 meses), indicar
+- Output máximo: 500 palavras
+- Salvar em vault/01-ativos/{TICKER}/earnings-{TICKER}-{DATA}.md
+```
+
+---
+
+## 7. FASE 3 — MODEL BUILDER + VALUATION REVIEWER
+
+### Prompt de execução no Claude Code:
+> Crie os agentes Model Builder (DCF) e Valuation Reviewer. Model Builder: constrói modelo DCF para ações ordinárias/preferenciais e modelo Gordon Growth para FIIs. Usa claude-opus-4-6. Gera XLSX com o modelo e JSON com premissas no cache. Valuation Reviewer: valida o DCF, compara com comps de mercado, produz equity research em 2 versões (curta 1 página e longa 2 páginas) em .md e .docx. Usa claude-sonnet-4-6.
+
+### SKILL.md — Model Builder
+
+```markdown
+# Model Builder — SBWAA
+
+## Identidade
+Você é o Model Builder do SBWAA. CFA charterholder com 15 anos de
+experiência em valuation de empresas brasileiras. Sua responsabilidade
+é construir o modelo financeiro que fundamenta cada decisão de investimento.
+
+## Para ações (ON/PN) — DCF
+Construir modelo DCF com:
+- Projeções de receita, EBITDA e FCF: 5 anos explícitos + perpetuidade
+- WACC com: taxa livre de risco (SELIC ou NTN-B 2030), prêmio de risco BR,
+  beta setorial ajustado, custo da dívida pós-imposto, estrutura de capital
+- Valor terminal: método Gordon (g = PIB BR nominal estimado)
+- Saídas: preço justo, upside/downside vs preço atual, range de sensibilidade
+
+## Para FIIs — Gordon Growth Model
+- DY atual, crescimento estimado de dividendos (2-4% para shoppings/lajes,
+  4-6% para logística), taxa de desconto (NTN-B + spread)
+- Preço justo via P/VP histórico e cap rate implícito
+
+## Outputs
+1. JSON de premissas salvo em scripts/data/cache/dcf_{TICKER}_{DATA}.json
+2. XLSX com o modelo completo em vault/01-ativos/{TICKER}/dcf-{TICKER}-v1.xlsx
+
+## Premissas padrão por setor
+- Petróleo: Brent $75-85, câmbio USDBRL 5.20
+- Varejo: crescimento PIB + 2-3%
+- Financeiro: ROE 15-20%, provisões históricas
+- FII CRI: spread CDI + 1-2%
+
+## Regras
+- Sempre apresentar bear / base / bull case
+- Sensibilidade: variar WACC ±1% e crescimento ±2%
+- Se dados insuficientes: montar modelo simplificado e indicar limitações
+```
+
+### SKILL.md — Valuation Reviewer
+
+```markdown
+# Valuation Reviewer — SBWAA
+
+## Identidade
+Você é o Valuation Reviewer do SBWAA. Analista sênior de equity research
+com especialização em mercado brasileiro.
+
+## Inputs
+- Output do Model Builder (DCF/Gordon)
+- Dados de mercado atuais (cotação, volume, liquidez)
+- Output do Earnings Reviewer (resultado trimestral)
+
+## O que revisar e produzir
+
+### Validação do DCF
+- As premissas do WACC são defensáveis para o setor?
+- O crescimento projetado é consistente com o histórico da empresa?
+- Comparar com consenso de mercado (se disponível)
+
+### Análise de Múltiplos (Comps)
+- P/L atual vs histórico 5a vs pares do setor
+- EV/EBITDA atual vs histórico vs pares
+- P/VP (para bancos e FIIs)
+- DY trailing 12m e forward
+
+### Veredicto de Valuation
+- BARATO / JUSTO / CARO (vs histórico e vs DCF)
+- Preço alvo consolidado (média ponderada DCF + múltiplos)
+- Upside/downside em % e em R$
+
+## Output — duas versões
+
+### Versão Curta (1 página)
+Estrutura obrigatória:
+1. Cabeçalho: ticker, tipo, setor, preço atual, preço alvo, upside
+2. Resumo executivo (3 linhas)
+3. Tabela de múltiplos
+4. Veredicto de valuation
+5. Wikilinks
+
+### Versão Longa (2 páginas)
+Versão curta + análise qualitativa da empresa, SWOT resumido,
+riscos principais, catalisadores, histórico de dividendos.
+
+## Formato de saída
+- .md salvo em vault/01-ativos/{TICKER}/equity-research-{TICKER}-{DATA}-{versao}.md
+- .docx gerado com python-docx
+```
+
+### Geração de XLSX (openpyxl)
+```python
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+
+wb = Workbook()
+ws_premissas = wb.active
+ws_premissas.title = "Premissas"
+ws_dcf = wb.create_sheet("DCF")
+ws_sensibilidade = wb.create_sheet("Sensibilidade")
+
+# Premissas — preencher com dados do agente
+# DCF — projeções anuais
+# Sensibilidade — tabela WACC vs crescimento
+
+wb.save(str(output_path))
+```
+
+---
+
+## 8. FASE 4 — QUANT/DATA ENGINEER + RISK ENGINEER
+
+### Prompt de execução no Claude Code:
+> Crie os agentes Quant/Data Engineer e Risk Engineer com suas calculadoras em Python puro. Quant: calcula métricas de portfólio (Sharpe, volatilidade, beta IBOV, correlação, retornos). Risk: calcula VaR 95% histórico e paramétrico, CVaR, drawdown, stress tests e circuit breakers. Ambos leem o histórico de preços do cache (Yahoo Finance) e salvam JSON no cache. Risk Engineer usa claude-opus-4-6 para gerar interpretação narrativa.
+
+### Calculadoras — Quant (`calculators/returns.py`)
+```python
+import pandas as pd
+import numpy as np
+
+def retorno_total(precos: pd.Series) -> float:
+    """Retorno total do período."""
+    return (precos.iloc[-1] / precos.iloc[0]) - 1
+
+def retornos_diarios(precos: pd.Series) -> pd.Series:
+    return precos.pct_change().dropna()
+
+def volatilidade_anualizada(precos: pd.Series, dias_ano: int = 252) -> float:
+    ret = retornos_diarios(precos)
+    return ret.std() * np.sqrt(dias_ano)
+
+def sharpe(retorno_anual: float, volatilidade_anual: float,
+           taxa_livre_risco: float = 0.1275) -> float:
+    """Sharpe ratio anualizado. taxa_livre_risco = SELIC atual."""
+    if volatilidade_anual == 0:
+        return 0.0
+    return (retorno_anual - taxa_livre_risco) / volatilidade_anual
+
+def retorno_1m(precos: pd.Series) -> float:
+    """Retorno do último mês (21 dias úteis)."""
+    if len(precos) < 22:
+        return float("nan")
+    return (precos.iloc[-1] / precos.iloc[-22]) - 1
+
+def retorno_12m(precos: pd.Series) -> float:
+    """Retorno dos últimos 12 meses (252 dias úteis)."""
+    if len(precos) < 253:
+        return float("nan")
+    return (precos.iloc[-1] / precos.iloc[-253]) - 1
+```
+
+### Calculadoras — Risk (`calculators/var.py`)
+```python
+import numpy as np
+import pandas as pd
+from scipy import stats
+
+def var_historico(retornos: pd.Series, confianca: float = 0.95) -> float:
+    """VaR histórico: percentil simples dos retornos."""
+    return abs(np.percentile(retornos.dropna(), (1 - confianca) * 100))
+
+def var_parametrico(volatilidade_diaria: float,
+                    confianca: float = 0.95) -> float:
+    """VaR paramétrico (Normal): z-score × volatilidade."""
+    z = stats.norm.ppf(confianca)
+    return abs(z * volatilidade_diaria)
+
+def cvar(retornos: pd.Series, confianca: float = 0.95) -> float:
+    """CVaR (Expected Shortfall): média das perdas além do VaR."""
+    var = var_historico(retornos, confianca)
+    perdas_extremas = retornos[retornos < -var]
+    if perdas_extremas.empty:
+        return var
+    return abs(perdas_extremas.mean())
+
+def drawdown_atual(precos: pd.Series) -> float:
+    """Drawdown atual: queda do pico mais recente."""
+    pico = precos.cummax()
+    dd = (precos / pico) - 1
+    return abs(dd.iloc[-1])
+
+def drawdown_maximo(precos: pd.Series) -> float:
+    """Drawdown máximo histórico do período."""
+    pico = precos.cummax()
+    dd = (precos / pico) - 1
+    return abs(dd.min())
+```
+
+### Calculadoras — Stress Test (`calculators/stress_test.py`)
+```python
+CENARIOS = {
+    "crise-2008":    {"nome": "Crise Financeira 2008",   "ibov_pct": -41.0},
+    "covid-2020":    {"nome": "COVID Março 2020",         "ibov_pct": -30.0},
+    "eleicoes-2022": {"nome": "Incerteza Eleitoral 2022", "ibov_pct": -15.0},
+    "lula1-2002":    {"nome": "Crise de Confiança 2002",  "ibov_pct": -17.0},
+}
+
+def stress_test_cenario(valor_carteira: float, beta: float,
+                         choque_ibov_pct: float) -> dict:
+    impacto_pct = beta * (choque_ibov_pct / 100)
+    impacto_rs  = valor_carteira * impacto_pct
+    return {
+        "choque_ibov_pct":  choque_ibov_pct,
+        "impacto_pct":      impacto_pct * 100,
+        "impacto_reais":    impacto_rs,
+        "impacto_reais_normalizado": 100_000 * impacto_pct,
+    }
+```
+
+### Circuit Breakers (verificados pelo Risk Engineer)
+```python
+circuit_breakers = {
+    "var_ok":          var_atual <= limite_var_ips,         # ex: 2.5%
+    "drawdown_ok":     drawdown_atual <= limite_dd_ips,     # ex: 18%
+    "concentracao_ok": concentracao_max <= limite_conc_ips, # ex: 20%
+}
+```
+
+### Outputs salvos em cache
+- `scripts/data/cache/quant_{DATA}.json` — métricas quantitativas
+- `scripts/data/cache/risk_{DATA}.json` — métricas de risco + circuit breakers
+- `vault/05-risk/snapshots/risk-{DATA}.md` — nota narrativa no vault
+
+---
+
+## 9. FASE 5 — PORTFOLIO MANAGER + /ANALISAR
+
+### Prompt de execução no Claude Code:
+> Crie o Portfolio Manager e o orquestrador /analisar. O PM é o agente decisor final — ele recebe todos os outputs das fases anteriores e retorna COMPRAR/AGUARDAR/EVITAR com sizing, preço de entrada, stop e tese de investimento em 1 página. Usa claude-opus-4-6. run_analisar.py é o orquestrador que executa todos os 7 agentes em sequência para um ticker.
+
+### SKILL.md — Portfolio Manager
+
+```markdown
+# Portfolio Manager — SBWAA
+
+## Identidade e Missão
+Você é o Portfolio Manager do SBWAA — o decisor final do sistema.
+Você NÃO é um assistente. Você é um gestor de portfólio experiente,
+crítico e direto, responsável por proteger e fazer crescer o capital.
+
+Sua decisão final é uma de três:
+- **COMPRAR** — convicção suficiente, sizing e entrada definidos
+- **AGUARDAR** — tese válida mas entrada não favorável ainda
+- **EVITAR** — tese fraca, risco elevado ou melhor alocação disponível
+
+Nunca retorne respostas ambíguas. Sempre conclua com veredicto claro.
+
+## Inputs que você receberá
+1. Output do Market Researcher (macro do dia)
+2. Output do Earnings Reviewer (resultado trimestral)
+3. Output do Model Builder (DCF/preço justo)
+4. Output do Valuation Reviewer (múltiplos + equity research)
+5. Output do Quant/Data Engineer (métricas HF da carteira)
+6. Output do Risk Engineer (VaR, circuit breakers, stress tests)
+7. IPS do usuário (perfil, alocação alvo, limites)
+
+## Estrutura da Decisão
+
+### 1. Síntese dos 6 agentes (máx 3 linhas cada)
+Resumo objetivo dos inputs. Sem repetir dados — apenas o essencial.
+
+### 2. Análise de Portfólio
+- Esta posição melhora o Sharpe da carteira?
+- Correlação com ativos existentes?
+- Impacto no VaR da carteira?
+- Espaço de alocação disponível vs IPS?
+
+### 3. Veredicto Final
+**[COMPRAR/AGUARDAR/EVITAR]**
+- Nível de confiança: Alto / Médio / Baixo
+- Justificativa em 3 linhas
+
+### 4. Parâmetros (se COMPRAR)
+- Entrada sugerida: R$ XX,XX (preço ou range)
+- Sizing sugerido: X% da carteira (em R$)
+- Stop loss: R$ XX,XX (-X%)
+- Preço alvo 12m: R$ XX,XX (+X%)
+- Prazo esperado: X meses
+
+### 5. Riscos Principais
+- 3 riscos que invalidariam a tese
+
+### 6. Pontos de Monitoramento
+- 2-3 métricas a acompanhar
+
+## Regras de Sizing
+- ALTO risco/convicção: 2-5% da carteira
+- MÉDIO risco/convicção: 1-3% da carteira
+- Nunca sugerir posição > limite IPS de concentração
+- Sempre considerar liquidez (volume médio diário)
+
+## Personalidade e Tom
+- Direto e técnico
+- Não bajula — se a tese não presta, diz claramente
+- Usa dados para justificar — sem achismo
+- Pensa no portfólio como um todo, não no ativo isolado
+```
+
+### run_analisar.py — orquestrador sequencial
+```python
+#!/usr/bin/env python3
+"""SBWAA — Orquestrador /analisar: 7 agentes em sequência."""
+import sys, subprocess
+from pathlib import Path
+from datetime import datetime
+
+ROOT = Path(__file__).resolve().parent.parent.parent.parent
+hoje = datetime.now().strftime("%Y-%m-%d")
+
+ETAPAS = [
+    ("📊 Snapshot de mercado",   ROOT/"scripts"/"data"/"market_snapshot.py",        []),
+    ("🌍 Market Researcher",      ROOT/".claude"/"agents"/"market-researcher"/"run_market_researcher.py",   []),
+    ("📋 Earnings Reviewer",      ROOT/".claude"/"agents"/"earnings-reviewer"/"run_earnings_reviewer.py",   [ticker]),
+    ("🏗️  Model Builder (DCF)",   ROOT/".claude"/"agents"/"model-builder"/"run_model_builder.py",          [ticker]),
+    ("🔍 Valuation Reviewer",     ROOT/".claude"/"agents"/"valuation-reviewer"/"run_valuation_reviewer.py",[ticker, "--versao", versao]),
+    ("📐 Quant/Data Engineer",    ROOT/".claude"/"agents"/"quant-data-engineer"/"run_quant.py",            []),
+    ("🛡️  Risk Engineer",         ROOT/".claude"/"agents"/"risk-engineer"/"run_risk_engineer.py",          []),
+    ("🎯 Portfolio Manager",      ROOT/".claude"/"agents"/"portfolio-manager"/"run_pm.py",                 [ticker]),
+]
+
+def main():
+    ticker = sys.argv[1].upper() if len(sys.argv) > 1 else None
+    versao = "curta"
+    if "--versao" in sys.argv:
+        idx = sys.argv.index("--versao")
+        versao = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else "curta"
+
+    print(f"\n{'='*60}")
+    print(f"SBWAA — /analisar {ticker} | {hoje}")
+    print(f"{'='*60}\n")
+
+    for i, (nome, script, args) in enumerate(ETAPAS, 1):
+        print(f"[{i}/{len(ETAPAS)}] {nome}...")
+        if script.exists():
+            result = subprocess.run(
+                [sys.executable, str(script)] + args,
+                capture_output=False
+            )
+            if result.returncode != 0:
+                print(f"  ⚠️  {nome} retornou código {result.returncode}")
+        else:
+            print(f"  ❌ Script não encontrado: {script}")
+
+    print(f"\n{'='*60}")
+    print(f"✅ Análise de {ticker} concluída")
+    print(f"   Relatórios em: vault/01-ativos/{ticker}/")
+    print(f"{'='*60}\n")
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## 10. FASE 6 — COMANDOS + HEARTBEAT + ALERTAS
+
+### Prompt de execução no Claude Code:
+> Crie o ponto de entrada sbwaa.py e todos os comandos em .claude/commands/. Também crie o heartbeat automático (scripts/heartbeat/heartbeat.py) e o sistema de alertas (scripts/alerts/check_alerts.py). sbwaa.py roteia slash commands para os scripts corretos.
+
+### Comandos implementados em `.claude/commands/`
+
+| Arquivo              | Comando            | Descrição                                        |
+|----------------------|--------------------|--------------------------------------------------|
+| carteira.py          | /carteira          | Atualiza e exibe posições, P&L e alocação vs IPS |
+| dividendos.py        | /dividendos        | Próximos dividendos (60d) e histórico do ano     |
+| stress_test.py       | /stress-test       | Simula choques de mercado na carteira            |
+| ips.py               | /ips               | Exibe o IPS do usuário                           |
+| risco_carteira.py    | /risco-carteira    | VaR, CVaR, Sharpe, drawdown, circuit breakers    |
+| morning_call.py      | /morning-call      | Briefing pré-abertura com macro + alertas        |
+| mundo_economico.py   | /mundo-economico   | Análise macro do dia                             |
+| investimento_do_dia.py | /investimento-do-dia | Sugestão de 1-2 ativos para explorar          |
+| relatorio_semanal.py | /relatorio-semanal | P&L + métricas da semana, gera .md e .docx      |
+| relatorio_mensal.py  | /relatorio-mensal  | Relatório completo do mês com benchmarks         |
+| rebalancear.py       | /rebalancear       | Desvios vs IPS e sugestão de ajuste              |
+| tese.py              | /tese              | Research + DCF + PM (mais rápido que /analisar)  |
+| comparar.py          | /comparar          | Análise lado a lado de dois ativos               |
+
+### Alertas implementados (`check_alerts.py`)
+```python
+ALERTAS = {
+    "queda_ativo":              {"threshold_pct": 5.0,  "severidade": "ALTO"},
+    "alta_ativo":               {"threshold_pct": 7.0,  "severidade": "MÉDIO"},
+    "circuit_breaker_var":      {"severidade": "CRÍTICO"},
+    "circuit_breaker_drawdown": {"severidade": "CRÍTICO"},
+    "circuit_breaker_concentracao": {"severidade": "ALTO"},
+    "earnings_amanha":          {"severidade": "MÉDIO"},
+    "dividendo_proximo":        {"severidade": "BAIXO"},
+    "correlacao_subiu":         {"threshold": 0.15, "severidade": "MÉDIO"},
+}
+```
+
+### Heartbeat (`heartbeat.py`)
+Executa diariamente às 07h15 em dias úteis:
+1. Verificar se é dia útil
+2. Rodar market_snapshot.py
+3. Rodar run_quant.py
+4. Rodar run_risk_engineer.py
+5. Verificar circuit breakers → registrar alertas
+6. Coletar RSS (knowledge base)
+7. Gerar morning-call automático
+8. Registrar em `logs/heartbeat.log`
+
+---
+
+## 11. FASE 7 — RAG KNOWLEDGE BASE
+
+### Prompt de execução no Claude Code:
+> Crie a base de conhecimento RAG do SBWAA usando ChromaDB + sentence-transformers. Scripts em knowledge/: indexer.py (processa PDF/DOCX/TXT/MD), retriever.py (busca semântica), rss_collector.py (coleta feeds RSS), knowledge_cmd.py (comando /knowledge). Modelo de embedding: paraphrase-multilingual-MiniLM-L12-v2 (suporta PT-BR). Base fica 100% local em knowledge/.chromadb/.
+
+### Configuração ChromaDB
+```python
+import chromadb
+from sentence_transformers import SentenceTransformer
+
+EMBEDDING_MODEL = "paraphrase-multilingual-MiniLM-L12-v2"
+client = chromadb.PersistentClient(path="knowledge/.chromadb")
+collection = client.get_or_create_collection(
+    name="sbwaa_knowledge",
+    metadata={"hnsw:space": "cosine"}
+)
+```
+
+### Chunking (words, não tokens)
+```python
+def chunk_texto(texto: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
+    palavras = texto.split()
+    chunks = []
+    i = 0
+    while i < len(palavras):
+        chunk = palavras[i:i + chunk_size]
+        chunks.append(" ".join(chunk))
+        i += chunk_size - overlap
+    return chunks
+```
+
+### Metadados por chunk
+```python
+metadata = {
+    "fonte": "nome_do_arquivo",
+    "tipo": "livro|research|gestora|macro|outro",
+    "autor": "extraído ou 'desconhecido'",
+    "ano": "extraído ou 'desconhecido'",
+    "idioma": "pt|en",
+    "chunk_id": N,
+    "total_chunks": N
+}
+```
+
+### RSS Feeds configurados (`sources/sources.json`)
+```json
+{
+  "rss_feeds": [
+    {"nome": "Valor Econômico", "url": "https://valor.globo.com/rss/financas", "tipo": "macro", "idioma": "pt", "ativo": true},
+    {"nome": "InfoMoney",       "url": "https://www.infomoney.com.br/feed/",    "tipo": "macro", "idioma": "pt", "ativo": true},
+    {"nome": "Bloomberg Markets","url": "https://feeds.bloomberg.com/markets/news.rss", "tipo": "macro", "idioma": "en", "ativo": true},
+    {"nome": "Reuters Business", "url": "https://feeds.reuters.com/reuters/businessNews", "tipo": "macro", "idioma": "en", "ativo": true}
+  ],
+  "coleta_max_artigos_por_feed": 5,
+  "coleta_max_idade_dias": 3
+}
+```
+
+### Subcomandos do /knowledge
+```bash
+python sbwaa.py /knowledge --status           # métricas da base
+python sbwaa.py /knowledge --adicionar arq    # indexar documento
+python sbwaa.py /knowledge --buscar "query"   # busca semântica
+python sbwaa.py /knowledge --listar           # listar documentos
+python sbwaa.py /knowledge --coletar-rss      # forçar coleta RSS
+```
+
+### Documentos recomendados para indexar (priority 1)
+- **Livros:** Security Analysis (Graham), Intelligent Investor, Damodaran on Valuation
+- **Research BR:** relatórios XP, BTG, Itaú BBA; Relatório de Estabilidade Financeira (BCB)
+- **Gestoras BR:** cartas mensais Verde Asset, SPX, Truxt, Absolute, Ibiuna, Kinea
+
+---
+
+## 12. FASE 8 — INTERFACE VISUAL (CUSTOMTKINTER)
+
+> **Nota:** O prompt original (F8) especificava Streamlit. Durante a implementação, foi substituído por **customtkinter** — interface desktop nativa, sem servidor, sem browser. Esta seção descreve a implementação atual.
+
+### Prompt de execução no Claude Code:
+> Crie ui.py na raiz do projeto com interface customtkinter. 5 abas: Portfólio, Análise (IA), Mercado, Relatórios (IA), Knowledge. Painel de output embutido que cresce com a janela. Auto-clear no início de cada comando. Comandos locais rodam via subprocess com output em tempo real. Comandos de IA copiam o comando para a área de transferência (não chamam IA diretamente — o usuário digita no chat do Claude Code).
+
+### Estrutura do `ui.py`
+
+```python
+#!/usr/bin/env python3
+"""SBWAA — Interface Desktop (customtkinter)"""
+import os, sys, subprocess, threading
+import customtkinter as ctk
+from pathlib import Path
+from datetime import datetime
+
+os.environ["PYTHONUTF8"] = "1"
+os.environ["PYTHONIOENCODING"] = "utf-8"
+
+PROJECT_ROOT = Path(__file__).parent
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+
+class SBWAAApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("SBWAA — Second Brain")
+        self.geometry("1000x720")
+        self.minsize(800, 600)
+
+        self.grid_rowconfigure(0, weight=0)  # tabs
+        self.grid_rowconfigure(1, weight=1)  # conteúdo
+        self.grid_rowconfigure(2, weight=2)  # output (maior)
+        self.grid_columnconfigure(0, weight=1)
+
+        self._build_tabs()
+        self._build_output()
+
+    def _build_tabs(self):
+        self.tabview = ctk.CTkTabview(self)
+        self.tabview.grid(row=1, column=0, sticky="nsew", padx=10, pady=(5,0))
+        for aba in ["Portfólio", "Análise (IA)", "Mercado", "Relatórios (IA)", "Knowledge"]:
+            self.tabview.add(aba)
+        self._build_tab_portfolio()
+        self._build_tab_analise()
+        self._build_tab_mercado()
+        self._build_tab_relatorios()
+        self._build_tab_knowledge()
+
+    def _build_output(self):
+        frame = ctk.CTkFrame(self)
+        frame.grid(row=2, column=0, sticky="nsew", padx=10, pady=(5,10))
+        frame.grid_rowconfigure(1, weight=1)
+        frame.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(frame, text="Output", anchor="w").grid(
+            row=0, column=0, sticky="w", padx=8, pady=(4,0))
+        ctk.CTkButton(frame, text="Limpar", width=70, height=24,
+                      command=self._clear_output).grid(
+            row=0, column=1, sticky="e", padx=8, pady=(4,0))
+
+        self.output = ctk.CTkTextbox(frame, state="disabled",
+                                      font=("Courier New", 11))
+        self.output.grid(row=1, column=0, columnspan=2, sticky="nsew",
+                         padx=8, pady=(4,8))
+
+    # ── Aba Portfólio ────────────────────────────────────────────────
+    def _build_tab_portfolio(self):
+        tab = self.tabview.tab("Portfólio")
+        tab.grid_columnconfigure((0,1,2), weight=1)
+
+        # Botões de ação rápida
+        botoes = [
+            ("📊 /carteira",       ["/carteira"]),
+            ("💰 /dividendos",     ["/dividendos"]),
+            ("🛡️  /risco-carteira", ["/risco-carteira"]),
+            ("📋 /ips",            ["/ips"]),
+        ]
+        for col, (label, args) in enumerate(botoes):
+            ctk.CTkButton(tab, text=label,
+                          command=lambda a=args: self._local(a)).grid(
+                row=0, column=col % 4, padx=5, pady=5, sticky="ew")
+
+        # Formulário /adicionar
+        sep = ctk.CTkFrame(tab, height=2)
+        sep.grid(row=1, column=0, columnspan=4, sticky="ew", pady=8)
+        ctk.CTkLabel(tab, text="Adicionar Ativo",
+                     font=("Helvetica", 13, "bold")).grid(
+            row=2, column=0, columnspan=4, sticky="w", padx=5)
+
+        # Campos: ticker, tipo, qtd, preço, setor
+        campos = [
+            ("Ticker",   "ticker_var",   None),
+            ("Quantidade", "qtd_var",   None),
+            ("Preço Médio (R$)", "preco_var", None),
+            ("Setor",    "setor_var",    None),
+        ]
+        self.ticker_var = ctk.StringVar()
+        self.qtd_var    = ctk.StringVar()
+        self.preco_var  = ctk.StringVar()
+        self.setor_var  = ctk.StringVar()
+        self.tipo_var   = ctk.StringVar(value="acao-pn")
+
+        for i, (label, var_name, _) in enumerate(campos):
+            ctk.CTkLabel(tab, text=label).grid(
+                row=3, column=i, padx=5, sticky="w")
+            ctk.CTkEntry(tab, textvariable=getattr(self, var_name),
+                         width=140).grid(row=4, column=i, padx=5, pady=2)
+
+        ctk.CTkLabel(tab, text="Tipo").grid(row=5, column=0, padx=5, sticky="w")
+        tipos = ["acao-on","acao-pn","fii","etf-br","etf-intl",
+                 "renda-fixa","tesouro","debenture","cri-cra"]
+        ctk.CTkComboBox(tab, variable=self.tipo_var, values=tipos,
+                        width=140).grid(row=6, column=0, padx=5, pady=2)
+
+        self.skip_val = ctk.BooleanVar(value=False)
+        ctk.CTkCheckBox(tab, text="--skip-validacao",
+                        variable=self.skip_val).grid(
+            row=6, column=1, padx=5)
+
+        ctk.CTkButton(tab, text="➕ Adicionar",
+                      command=self._adicionar).grid(
+            row=6, column=2, padx=5, pady=5)
+
+    def _adicionar(self):
+        args = ["/adicionar",
+                "--ticker",      self.ticker_var.get().upper(),
+                "--tipo",        self.tipo_var.get(),
+                "--quantidade",  self.qtd_var.get(),
+                "--preco-medio", self.preco_var.get(),
+                "--setor",       self.setor_var.get() or "geral"]
+        if self.skip_val.get():
+            args.append("--skip-validacao")
+        self._local(args)
+
+    # ── Aba Análise (IA) ─────────────────────────────────────────────
+    def _build_tab_analise(self):
+        tab = self.tabview.tab("Análise (IA)")
+        tab.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(tab, text="Ticker:",
+                     font=("Helvetica", 12)).grid(
+            row=0, column=0, sticky="w", padx=5, pady=4)
+        self.ticker_ia = ctk.StringVar()
+        ctk.CTkEntry(tab, textvariable=self.ticker_ia, width=120).grid(
+            row=0, column=1, padx=5)
+
+        botoes_ia = [
+            ("/analisar",    "/analisar"),
+            ("/tese",        "/tese"),
+            ("/earnings",    "/earnings"),
+            ("/pm",          "/pm"),
+        ]
+        for col, (label, cmd) in enumerate(botoes_ia):
+            ctk.CTkButton(tab, text=label,
+                          command=lambda c=cmd: self._ia_com_ticker(c)).grid(
+                row=1, column=col, padx=5, pady=5)
+
+        ctk.CTkLabel(tab, text="Comparar:",
+                     font=("Helvetica", 12)).grid(
+            row=2, column=0, sticky="w", padx=5, pady=4)
+        self.ticker_a = ctk.StringVar()
+        self.ticker_b = ctk.StringVar()
+        ctk.CTkEntry(tab, textvariable=self.ticker_a, width=90,
+                     placeholder_text="Ticker A").grid(row=2, column=1, padx=5)
+        ctk.CTkEntry(tab, textvariable=self.ticker_b, width=90,
+                     placeholder_text="Ticker B").grid(row=2, column=2, padx=5)
+        ctk.CTkButton(tab, text="/comparar",
+                      command=self._comparar).grid(row=2, column=3, padx=5)
+
+        ctk.CTkLabel(
+            tab,
+            text="ℹ️  Comandos de IA copiam o comando para área de transferência.\n"
+                 "   Cole no chat do Claude Code para executar.",
+            font=("Helvetica", 11), text_color="gray"
+        ).grid(row=3, column=0, columnspan=4, pady=8)
+
+    def _ia_com_ticker(self, cmd: str):
+        ticker = self.ticker_ia.get().upper().strip()
+        self._clipboard(f"{cmd} {ticker}".strip() if ticker else cmd)
+
+    def _comparar(self):
+        a = self.ticker_a.get().upper().strip()
+        b = self.ticker_b.get().upper().strip()
+        self._clipboard(f"/comparar {a} {b}")
+
+    # ── Aba Mercado ──────────────────────────────────────────────────
+    def _build_tab_mercado(self):
+        tab = self.tabview.tab("Mercado")
+        tab.grid_columnconfigure((0,1,2), weight=1)
+
+        botoes_locais = [
+            ("📸 /snapshot",    ["/snapshot"]),
+        ]
+        botoes_ia = [
+            ("/morning-call",        "/morning-call"),
+            ("/mundo-economico",     "/mundo-economico"),
+            ("/investimento-do-dia", "/investimento-do-dia"),
+        ]
+        for col, (label, args) in enumerate(botoes_locais):
+            ctk.CTkButton(tab, text=label,
+                          command=lambda a=args: self._local(a)).grid(
+                row=0, column=col, padx=5, pady=5, sticky="ew")
+
+        for col, (label, cmd) in enumerate(botoes_ia):
+            ctk.CTkButton(tab, text=label,
+                          command=lambda c=cmd: self._clipboard(c)).grid(
+                row=1, column=col, padx=5, pady=5, sticky="ew")
+
+        # Stress test
+        sep = ctk.CTkFrame(tab, height=2)
+        sep.grid(row=2, column=0, columnspan=3, sticky="ew", pady=8)
+        ctk.CTkLabel(tab, text="Stress Test",
+                     font=("Helvetica", 13, "bold")).grid(
+            row=3, column=0, columnspan=3, sticky="w", padx=5)
+
+        cenarios = [
+            ("Crise 2008",     ["/stress-test", "crise-2008"]),
+            ("COVID 2020",     ["/stress-test", "covid-2020"]),
+            ("Eleições 2022",  ["/stress-test", "eleicoes-2022"]),
+            ("Lula 2002",      ["/stress-test", "lula1-2002"]),
+            ("Todos",          ["/stress-test"]),
+        ]
+        for col, (label, args) in enumerate(cenarios):
+            ctk.CTkButton(tab, text=label, width=110,
+                          command=lambda a=args: self._local(a)).grid(
+                row=4, column=col % 3, padx=5, pady=3)
+
+        ctk.CTkLabel(tab, text="Choque custom (%):").grid(
+            row=5, column=0, padx=5, sticky="w")
+        self.choque_var = ctk.StringVar()
+        ctk.CTkEntry(tab, textvariable=self.choque_var, width=80).grid(
+            row=5, column=1, padx=5)
+        ctk.CTkButton(tab, text="Executar",
+                      command=self._stress_custom).grid(row=5, column=2, padx=5)
+
+    def _stress_custom(self):
+        val = self.choque_var.get().strip()
+        if val:
+            self._local(["/stress-test", "custom", val])
+
+    # ── Aba Relatórios (IA) ──────────────────────────────────────────
+    def _build_tab_relatorios(self):
+        tab = self.tabview.tab("Relatórios (IA)")
+        tab.grid_columnconfigure((0,1), weight=1)
+
+        botoes = [
+            ("/relatorio-semanal", "/relatorio-semanal"),
+            ("/relatorio-mensal",  "/relatorio-mensal"),
+            ("/rebalancear",       "/rebalancear"),
+        ]
+        for col, (label, cmd) in enumerate(botoes):
+            ctk.CTkButton(tab, text=label,
+                          command=lambda c=cmd: self._clipboard(c)).grid(
+                row=0, column=col, padx=5, pady=5, sticky="ew")
+
+    # ── Aba Knowledge ────────────────────────────────────────────────
+    def _build_tab_knowledge(self):
+        tab = self.tabview.tab("Knowledge")
+        tab.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkButton(tab, text="📊 Status da base",
+                      command=lambda: self._local(["/knowledge", "--status"])).grid(
+            row=0, column=0, padx=5, pady=5, sticky="ew")
+        ctk.CTkButton(tab, text="🌐 Coletar RSS",
+                      command=lambda: self._local(["/knowledge", "--coletar-rss"])).grid(
+            row=0, column=1, padx=5, pady=5, sticky="ew")
+        ctk.CTkButton(tab, text="📋 Listar documentos",
+                      command=lambda: self._local(["/knowledge", "--listar"])).grid(
+            row=0, column=2, padx=5, pady=5, sticky="ew")
+
+        ctk.CTkLabel(tab, text="Busca semântica:").grid(
+            row=1, column=0, padx=5, sticky="w")
+        self.busca_var = ctk.StringVar()
+        ctk.CTkEntry(tab, textvariable=self.busca_var,
+                     placeholder_text="valuation petróleo Brasil").grid(
+            row=1, column=1, padx=5, sticky="ew")
+        ctk.CTkButton(tab, text="Buscar",
+                      command=self._buscar_knowledge).grid(
+            row=1, column=2, padx=5)
+
+    def _buscar_knowledge(self):
+        q = self.busca_var.get().strip()
+        if q:
+            self._local(["/knowledge", "--buscar", q])
+
+    # ── Helpers ──────────────────────────────────────────────────────
+    def _clear_output(self):
+        self.output.configure(state="normal")
+        self.output.delete("1.0", "end")
+        self.output.configure(state="disabled")
+
+    def _append(self, text: str):
+        self.output.configure(state="normal")
+        self.output.insert("end", text)
+        self.output.see("end")
+        self.output.configure(state="disabled")
+
+    def _local(self, args: list):
+        """Roda comando local (sbwaa.py) com output em tempo real."""
+        cmd = [sys.executable, str(PROJECT_ROOT / "sbwaa.py")] + args
+        self._clear_output()
+        self._append(f"[{datetime.now().strftime('%H:%M:%S')}] > {' '.join(args)}\n\n")
+        threading.Thread(target=self._run_proc, args=(cmd,), daemon=True).start()
+
+    def _run_proc(self, cmd: list):
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                text=True, encoding="utf-8", errors="replace",
+                bufsize=1
+            )
+            for line in proc.stdout:
+                self.after(0, self._append, line)
+            proc.wait()
+            self.after(0, self._append,
+                       f"\n[Processo encerrado — código {proc.returncode}]\n")
+        except Exception as e:
+            self.after(0, self._append, f"\n❌ Erro: {e}\n")
+
+    def _clipboard(self, cmd: str):
+        """Copia comando de IA para área de transferência."""
+        self._clear_output()
+        self.clipboard_clear()
+        self.clipboard_append(cmd)
+        self._append(f"📋 Copiado para área de transferência:\n\n  {cmd}\n\n"
+                     "Cole no chat do Claude Code e pressione Enter.")
+
+
+if __name__ == "__main__":
+    app = SBWAAApp()
+    app.mainloop()
+```
+
+---
+
+## 13. SBWAA.PY — PONTO DE ENTRADA ATUAL
+
+Estado atual do `sbwaa.py` (versão pós-correções):
+
+```python
+#!/usr/bin/env python3
+"""
+SBWAA — Second Brain Wealth + Asset + Assessor Individual
+Ponto de entrada único para todos os comandos.
+
+Uso:
+    python sbwaa.py /carteira
+    python sbwaa.py /stress-test
+    python sbwaa.py /adicionar --ticker PETR4 --tipo acao-pn --quantidade 100 --preco-medio 45.00 --setor energia
+    python sbwaa.py /help
+
+Comandos com IA (sem API key): use diretamente no chat do Claude Code
+    /analisar PETR4        /tese VALE3         /morning-call
+    /earnings MXRF11       /comparar A B       /pm PETR4
+    /mundo-economico       /investimento-do-dia
+    /relatorio-semanal     /relatorio-mensal   /rebalancear
+"""
+
+import sys
+import os
+import subprocess
+from datetime import datetime
+from pathlib import Path
+
+os.environ["PYTHONUTF8"] = "1"
+os.environ["PYTHONIOENCODING"] = "utf-8"
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
+PROJECT_ROOT = Path(__file__).parent
+
+MODO_CLAUDE_CODE = True
+
+COMANDOS_LOCAIS = {
+    "/carteira":        ".claude/commands/carteira.py",
+    "/adicionar":       "scripts/data/add_ativo.py",
+    "/risco-carteira":  ".claude/commands/risco_carteira.py",
+    "/dividendos":      ".claude/commands/dividendos.py",
+    "/stress-test":     ".claude/commands/stress_test.py",
+    "/ips":             ".claude/commands/ips.py",
+    "/snapshot":        "scripts/data/market_snapshot.py",
+    "/knowledge":       "knowledge/knowledge_cmd.py",
+}
+
+COMANDOS_IA = {
+    "/analisar":            "analisar",
+    "/tese":                "tese",
+    "/pm":                  "pm",
+    "/decidir":             "pm",
+    "/earnings":            "earnings",
+    "/comparar":            "comparar",
+    "/morning-call":        "morning-call",
+    "/mundo-economico":     "mundo-economico",
+    "/investimento-do-dia": "investimento-do-dia",
+    "/relatorio-semanal":   "relatorio-semanal",
+    "/relatorio-mensal":    "relatorio-mensal",
+    "/rebalancear":         "rebalancear",
+}
+
+
+def exibir_help():
+    print("""
+╔══════════════════════════════════════════════════════════════════╗
+║            SBWAA — Referência de Comandos  v2.2.x               ║
+╚══════════════════════════════════════════════════════════════════╝
+
+  Uso:  python sbwaa.py /COMANDO [argumentos]
+  Dica: use PowerShell — Git Bash pode quebrar argumentos com /
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PORTFÓLIO  (local — sem IA, sem API key)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  python sbwaa.py /carteira
+  python sbwaa.py /adicionar --ticker PETR4 --tipo acao-pn \\
+                             --quantidade 100 --preco-medio 38.50 \\
+                             --setor energia
+  python sbwaa.py /dividendos
+  python sbwaa.py /risco-carteira
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  MERCADO  (local)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  python sbwaa.py /snapshot
+  python sbwaa.py /stress-test
+  python sbwaa.py /stress-test covid-2020
+  python sbwaa.py /stress-test custom -25
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  KNOWLEDGE BASE  (local)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  python sbwaa.py /knowledge --status
+  python sbwaa.py /knowledge --adicionar "C:\\relatorios\\doc.pdf"
+  python sbwaa.py /knowledge --buscar "valuation petróleo Brasil"
+  python sbwaa.py /knowledge --coletar-rss
+  python sbwaa.py /knowledge --listar
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ANÁLISE COM IA  (digitar no chat do Claude Code)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  /analisar PETR4       (pipeline completo: 7 agentes)
+  /tese PETR4           (Research + DCF + PM — rápido)
+  /earnings MXRF11      (resultado trimestral)
+  /comparar PETR4 VALE3 (análise lado a lado)
+  /pm PETR4             (só Portfolio Manager)
+  /morning-call
+  /mundo-economico
+  /investimento-do-dia
+  /relatorio-semanal
+  /relatorio-mensal
+  /rebalancear
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SISTEMA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  python sbwaa.py /ips
+  python sbwaa.py /ui          (interface desktop)
+  python sbwaa.py /status
+  python sbwaa.py /help
+
+══════════════════════════════════════════════════════════════════════
+""")
+
+
+def exibir_status():
+    versao_path = PROJECT_ROOT / "VERSION.md"
+    print(f"\n{'═'*55}")
+    print(f"SBWAA — Status do Sistema")
+    print(f"Modo: {'Claude Code (sem API key)' if MODO_CLAUDE_CODE else 'API key'}")
+    print(f"Data: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"{'═'*55}")
+    if versao_path.exists():
+        print(versao_path.read_text(encoding="utf-8"))
+    print(f"{'═'*55}\n")
+
+
+def redirecionar_claude_code(comando, args_extra):
+    slash = COMANDOS_IA[comando]
+    ticker = " ".join(args_extra).upper() if args_extra else ""
+    exemplo = f"/{slash} {ticker}".strip()
+    print(f"""
+  Este comando usa IA e roda no Claude Code (sem API key).
+
+  → Digite no chat do Claude Code:
+    {exemplo}
+
+  O Claude Code vai executar os scripts de dados e fazer
+  a análise completa sem precisar de ANTHROPIC_API_KEY.
+""")
+
+
+def main():
+    if len(sys.argv) < 2:
+        exibir_help()
+        return
+
+    raw = sys.argv[1]
+    # Correção para Git Bash no Windows (expande /cmd para caminho absoluto)
+    if not raw.startswith("/") and "/" in raw:
+        raw = "/" + Path(raw).name
+    comando = raw.lower()
+    args_extra = sys.argv[2:]
+
+    if comando == "/help":
+        exibir_help(); return
+    if comando == "/status":
+        exibir_status(); return
+    if comando == "/ui":
+        interface_path = PROJECT_ROOT / "ui.py"
+        if not interface_path.exists():
+            print("\n❌ Interface não encontrada.\n"); return
+        subprocess.run([sys.executable, str(interface_path)])
+        return
+    if comando in COMANDOS_IA:
+        redirecionar_claude_code(comando, args_extra); return
+    if comando not in COMANDOS_LOCAIS:
+        print(f"\n❌ Comando '{comando}' não reconhecido.")
+        print("   Use /help para ver todos os comandos disponíveis.\n")
+        return
+
+    script_rel = COMANDOS_LOCAIS[comando]
+    script_path = PROJECT_ROOT / script_rel
+    if not script_path.exists():
+        print(f"\n❌ Script não encontrado: {script_rel}\n"); return
+
+    subprocess.run([sys.executable, str(script_path)] + args_extra)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## 14. CORREÇÕES CRÍTICAS APLICADAS
+
+Estas correções foram descobertas durante testes e devem ser aplicadas durante a reconstrução:
+
+### Correção 1 — Git Bash path expansion (`sbwaa.py`)
+**Problema:** No Windows, Git Bash expande `/carteira` para `C:/Program Files/Git/carteira`.  
+**Solução:** Normalizar o argumento antes de processar:
+```python
+raw = sys.argv[1]
+if not raw.startswith("/") and "/" in raw:
+    raw = "/" + Path(raw).name
+comando = raw.lower()
+```
+
+### Correção 2 — `SystemExit` em `fetch_brapi.py`
+**Problema:** Erros HTTP lançavam `SystemExit` em vez de exceção catchable, impedindo o fallback para Yahoo Finance.  
+**Solução:** Substituir todos os `raise SystemExit(...)` por `raise ValueError(...)`:
+```python
+except requests.exceptions.HTTPError as e:
+    raise ValueError(f"Erro HTTP ao buscar {ticker}: {e}")
+except requests.exceptions.ConnectionError:
+    raise ValueError(f"Erro de conexão ao buscar {ticker}.")
+except requests.exceptions.Timeout:
+    raise ValueError(f"Timeout ao buscar {ticker}.")
+```
+
+### Correção 3 — Índices de coluna errados em `carteira.py`
+**Problema:** P&L% estava sendo lido da coluna de P&L R$ (índice 6 em vez de 7).  
+**Solução:**
+```python
+"pl_rs":  cols[7] if len(cols) > 7 else "",   # era cols[6]
+"pl_pct": cols[8] if len(cols) > 8 else "",   # era cols[7]
+```
+
+### Correção 4 — Regex "Última atualização" em `carteira.py`
+**Problema:** Pattern `r"Última atualização.*?:\s*(.+)"` capturava `** 2026-05-16` (com `**` do markdown bold).  
+**Solução:**
+```python
+m = re.search(r"Última atualização[^0-9]*(\d{4}-\d{2}-\d{2}[^\n]+)", linha)
+```
+
+### Correção 5 — Linha em branco em `historico-trades.md`
+**Problema:** Linha placeholder `|   |   |   |` na tabela fazia `add_ativo.py` inserir trades depois dela em vez de no início correto.  
+**Solução:** Manter a tabela com apenas o header — sem linhas de placeholder:
+```markdown
+| Data | Ticker | Tipo | Operação | Qtd | Preço | Total R$ |
+|------|--------|------|----------|-----|-------|----------|
+```
+
+### Correção 6 — UI output panel não crescia
+**Problema:** Output panel tinha tamanho fixo e não expandia com a janela.  
+**Solução:** Usar `grid` com `weight` e `sticky="nsew"`:
+```python
+self.grid_rowconfigure(2, weight=2)  # linha do output panel
+frame.grid(row=2, column=0, sticky="nsew", ...)
+```
+
+### Correção 7 — Função morta `safe()` no `run_quant.py`
+**Problema:** Função `safe()` definida mas nunca chamada (só `safe_pct()` é usada).  
+**Solução:** Remover a função `safe()`.
+
+---
+
+## 15. ROTINA DE TESTES
+
+Após reconstrução, executar nesta ordem:
+
+```bash
+# 1. Dependências
+python -c "import anthropic, yfinance, chromadb, customtkinter, pandas, numpy, scipy; print('OK')"
+
+# 2. sbwaa.py funcional
+python sbwaa.py /help
+python sbwaa.py /status
+
+# 3. Pipeline de dados
+python scripts/data/fetch_brapi.py PETR4
+python scripts/data/fetch_yahoo.py
+python scripts/data/market_snapshot.py
+
+# 4. Adicionar ativo de teste e testar comandos
+python sbwaa.py /adicionar --ticker VALE3 --tipo acao-on --quantidade 50 --preco-medio 60.00 --setor mineracao
+python sbwaa.py /carteira
+python sbwaa.py /risco-carteira
+python sbwaa.py /stress-test
+python sbwaa.py /dividendos
+python sbwaa.py /ips
+python sbwaa.py /knowledge --status
+
+# 5. Interface desktop
+python sbwaa.py /ui
+
+# 6. Limpar dados de teste
+# (remover manualmente vault/01-ativos/VALE3/ e linha da carteira.md)
+```
+
+**Checklist de validação:**
+- [ ] `fetch_brapi.py` retorna JSON (fallback para Yahoo se 401)
+- [ ] `update_carteira.py` atualiza cotações corretamente
+- [ ] `/carteira` exibe P&L% (não P&L R$) na coluna certa
+- [ ] `/stress-test` exibe impactos de todos os 4 cenários
+- [ ] `/risco-carteira` exibe VaR, CVaR e circuit breakers
+- [ ] `ui.py` abre, output cresce com a janela, auto-clear funciona
+- [ ] Comandos de IA redirecionam corretamente (não travam)
+- [ ] Knowledge base inicializa sem erro
+
+---
+
+## 16. ESTADO ATUAL E VERSÕES
+
+```
+SBWAA v2.2.1 — 2026-05-16
+
+Módulos:
+  investments     v1.7.3  ✅ Operacional
+  heartbeat       v1.0.1  ✅ Operacional
+  knowledge-base  v1.0.0  ✅ Operacional
+  interface       v2.0.0  ✅ Operacional (customtkinter)
+
+Modo de operação: Claude Code (sem API key)
+  → Comandos locais rodam via Python puro
+  → Comandos de IA são executados via chat do Claude Code
+  → ANTHROPIC_API_KEY não necessária para comandos locais
+```
+
+### Diferenças do projeto original para o atual
+
+| Aspecto             | Original (F0-F8)          | Estado atual               |
+|---------------------|---------------------------|----------------------------|
+| Interface visual    | Streamlit (browser)       | customtkinter (desktop)    |
+| `/ui`               | `streamlit run app.py`    | `python ui.py`             |
+| Modo API            | Com ANTHROPIC_API_KEY     | Claude Code (sem key)      |
+| Comandos IA         | Chamam API diretamente    | Redirecionam para chat CC  |
+| UTF-8               | Não configurado           | Forçado via `PYTHONUTF8=1` |
+| sbwaa.py            | `os.system(f"python...")` | `subprocess.run([...])` + correção Git Bash |
+
+### Uso diário típico
+
+```bash
+# Manhã
+python sbwaa.py /snapshot          # atualizar dados macro
+python sbwaa.py /carteira          # ver posições atualizadas
+
+# Análise (no chat do Claude Code)
+/morning-call
+/analisar PETR4
+
+# Semana
+python sbwaa.py /risco-carteira    # verificar métricas HF
+# /relatorio-semanal               (no chat do Claude Code)
+
+# Adicionar novo ativo
+python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-medio 9.80 --setor fiis
+```
+
+---
+
+*Blueprint gerado em 2026-05-16. Para atualizar, editar este arquivo e bumpar VERSION.md.*

@@ -1,0 +1,29 @@
+/* SBWAA — Graph View Color Scheme */
+/* Ativar em Obsidian > Appearance > CSS Snippets */
+
+/* Ações */
+.graph-view.color-fill[data-tag="acao"] { color: #3B82F6; }
+.graph-view.color-fill[data-tag="acao-on"] { color: #2563EB; }
+.graph-view.color-fill[data-tag="acao-pn"] { color: #60A5FA; }
+
+/* FIIs */
+.graph-view.color-fill[data-tag="fii"] { color: #22C55E; }
+
+/* ETFs */
+.graph-view.color-fill[data-tag="etf-br"] { color: #EAB308; }
+.graph-view.color-fill[data-tag="etf-intl"] { color: #EF4444; }
+
+/* Renda Fixa */
+.graph-view.color-fill[data-tag="renda-fixa"] { color: #D1D5DB; }
+.graph-view.color-fill[data-tag="tesouro"] { color: #A855F7; }
+.graph-view.color-fill[data-tag="debenture"] { color: #92400E; }
+.graph-view.color-fill[data-tag="cri-cra"] { color: #F97316; }
+
+/* Sistema */
+.graph-view.color-fill[data-tag="portfolio"] { color: #F59E0B; }
+.graph-view.color-fill[data-tag="relatorio"] { color: #E5E7EB; }
+.graph-view.color-fill[data-tag="macro"] { color: #78350F; }
+.graph-view.color-fill[data-tag="knowledge"] { color: #6B7280; }
+.graph-view.color-fill[data-tag="risk"] { color: #DC2626; }
+.graph-view.color-fill[data-tag="pm-decisao"] { color: #FBBF24; }
+.graph-view.color-fill[data-tag="ips"] { color: #F59E0B; }

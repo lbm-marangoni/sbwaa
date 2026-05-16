@@ -1,0 +1,4 @@
+# SBWAA — line endings
+* text=auto eol=lf
+*.bat text eol=crlf
+*.vbs text eol=crlf

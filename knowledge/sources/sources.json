@@ -1,0 +1,41 @@
+{
+  "rss_feeds": [
+    {
+      "nome": "Valor Econômico",
+      "url": "https://valor.globo.com/rss/financas",
+      "tipo": "macro",
+      "idioma": "pt",
+      "ativo": true
+    },
+    {
+      "nome": "InfoMoney",
+      "url": "https://www.infomoney.com.br/feed/",
+      "tipo": "macro",
+      "idioma": "pt",
+      "ativo": true
+    },
+    {
+      "nome": "Banco Central — Notas de Política Monetária",
+      "url": "https://www.bcb.gov.br/api/feed/sitebcb/noticias/pt-br",
+      "tipo": "macro",
+      "idioma": "pt",
+      "ativo": true
+    },
+    {
+      "nome": "Bloomberg Markets",
+      "url": "https://feeds.bloomberg.com/markets/news.rss",
+      "tipo": "macro",
+      "idioma": "en",
+      "ativo": true
+    },
+    {
+      "nome": "Reuters Business",
+      "url": "https://feeds.reuters.com/reuters/businessNews",
+      "tipo": "macro",
+      "idioma": "en",
+      "ativo": true
+    }
+  ],
+  "coleta_max_artigos_por_feed": 5,
+  "coleta_max_idade_dias": 3
+}

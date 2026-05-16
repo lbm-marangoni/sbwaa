@@ -1,0 +1,72 @@
+/* SBWAA — Interface Visual */
+
+/* Fundo escuro sutil */
+[data-testid="stAppViewContainer"] {
+    background-color: #0f0f0f;
+}
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background-color: #1a1a1a;
+    border-right: 1px solid #2a2a2a;
+}
+
+/* Cards de métricas */
+[data-testid="metric-container"] {
+    background-color: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+/* Títulos */
+h1, h2, h3 {
+    color: #f5f5f5;
+}
+
+/* Botão primário */
+[data-testid="stButton"] button[kind="primary"] {
+    background-color: #B7791F;
+    border: none;
+    color: white;
+    font-weight: 600;
+}
+
+[data-testid="stButton"] button[kind="primary"]:hover {
+    background-color: #92400E;
+}
+
+/* Divider */
+hr {
+    border-color: #2a2a2a;
+}
+
+/* Code blocks */
+[data-testid="stCode"] {
+    background-color: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+/* Caption/subtextos */
+[data-testid="stCaptionContainer"] {
+    color: #888;
+}
+
+/* Alertas */
+[data-testid="stAlert"] {
+    border-radius: 6px;
+}
+
+/* Tabelas */
+[data-testid="stDataFrame"] {
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+}
+
+/* Expanders */
+[data-testid="stExpander"] {
+    border: 1px solid #2a2a2a;
+    border-radius: 6px;
+}

@@ -1,0 +1,48 @@
+# ============================================================
+# SBWAA — .gitignore
+# Dados privados e artefatos de build — nunca versionar
+# ============================================================
+
+# === DADOS PESSOAIS DO PORTFÓLIO ===
+vault/00-portfolio/carteira.md
+vault/00-portfolio/ips.md
+vault/00-portfolio/historico-trades.md
+vault/00-portfolio/decisoes.md
+vault/05-risk/snapshots/
+vault/02-relatorios/
+vault/01-ativos/
+
+# === CONFIGURAÇÕES LOCAIS (paths de máquina) ===
+.claude/settings.local.json
+
+# === VARIÁVEIS DE AMBIENTE E SEGREDOS ===
+*.env
+.env
+secrets.json
+
+# === LOGS ===
+logs/
+
+# === CACHES E DADOS TEMPORÁRIOS ===
+scripts/data/cache/
+knowledge/.chromadb/
+knowledge/raw/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# === AMBIENTES VIRTUAIS ===
+.venv/
+venv/
+env/
+
+# === OBSIDIAN — ESTADO DE WORKSPACE (específico de máquina) ===
+vault/.obsidian/workspace.json
+
+# === OUTROS ARTEFATOS ===
+*.egg-info/
+dist/
+build/
+.DS_Store
+Thumbs.db
