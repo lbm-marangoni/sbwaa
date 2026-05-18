@@ -1,7 +1,7 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.2.8** — 2026-05-18 — Fix iniciar.vbs + botão IPS na UI + regras ui.py no CLAUDE.md
+**v2.2.9** — 2026-05-18 — Splash screen no terminal ao iniciar o sistema
 
 ## Módulos
 | Módulo          | Versão  | Status        |

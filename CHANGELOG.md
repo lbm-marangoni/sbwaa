@@ -2,6 +2,17 @@
 
 ---
 
+## [2.2.9] — 2026-05-18 — SPLASH SCREEN NO TERMINAL
+
+### Added
+- `splash.py`: tela de boas-vindas exibida no terminal a cada abertura pelo `iniciar.vbs` — mostra SBWAA em ASCII block art, versão lida dinamicamente do VERSION.md, data e hora atuais, lista de módulos iniciando, e fecha sozinho após 4 segundos com countdown
+- `iniciar.vbs`: chama `splash.py` como primeiro passo antes de abrir Obsidian, VS Code e painel (overlapping — splash fecha enquanto os apps carregam)
+
+### Changed
+- Global → **v2.2.9**
+
+---
+
 ## [2.2.8] — 2026-05-18 — FIX INICIAR.VBS + BOTÃO IPS + REGRAS UI.PY
 
 ### Fixed
