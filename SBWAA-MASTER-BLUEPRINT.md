@@ -1,7 +1,7 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.2.10  
+**Versão de referência:** v2.2.11  
 **Data de geração:** 2026-05-18  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
@@ -1830,7 +1830,7 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.2.10 — 2026-05-18
+SBWAA v2.2.11 — 2026-05-18
 
 Módulos:
   investments     v1.7.3  ✅ Operacional
@@ -1856,7 +1856,8 @@ Modo de operação: Claude Code (sem API key)
 | v2.2.7  | 2026-05-18 | Protocolo de sessão + Stop hook de compliance + catch-up de docs |
 | v2.2.8  | 2026-05-18 | Fix iniciar.vbs (sem CMD), botão IPS na UI, CLAUDE.md completo   |
 | v2.2.9  | 2026-05-18 | Splash screen no terminal (splash.py) ao abrir pelo iniciar.vbs  |
-| v2.2.10 | 2026-05-18 | SBWAA-LOGO.md para preview VS Code; Blueprint sincronizado       |
+| v2.2.10 | 2026-05-18 | SBWAA-LOGO.md para preview VS Code; Blueprint sincronizado        |
+| v2.2.11 | 2026-05-18 | Gitignore para temp Windows (GUIDs); compliance script mais claro |
 
 ### Diferenças do projeto original para o atual
 
@@ -1890,4 +1891,4 @@ python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-m
 
 ---
 
-*Blueprint atualizado em 2026-05-18 (v2.2.10). Para atualizar, editar este arquivo e bumpar VERSION.md.*
+*Blueprint atualizado em 2026-05-18 (v2.2.11). Para atualizar, editar este arquivo e bumpar VERSION.md.*

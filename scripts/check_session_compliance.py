@@ -56,14 +56,24 @@ def main():
             ["git", "status", "--short"],
             capture_output=True, text=True, cwd=ROOT, timeout=10
         )
+        import re as _re
         linhas_git = [l for l in r.stdout.strip().splitlines() if l.strip()]
-        if linhas_git:
-            print(f"  [WARN] Git -- {len(linhas_git)} arquivo(s) com mudancas nao commitadas:")
-            for l in linhas_git[:10]:
+        # Separar arquivos temporarios (GUIDs, ~$, .tmp) dos arquivos reais
+        _guid = _re.compile(r"\{[0-9A-Fa-f\-]{30,}\}")
+        temporarios = [l for l in linhas_git if _guid.search(l) or "~$" in l or l.strip().endswith(".tmp")]
+        reais = [l for l in linhas_git if l not in temporarios]
+
+        if temporarios:
+            print(f"  [WARN] Arquivos temporarios do Windows detectados ({len(temporarios)}) -- apagar e ignorar via .gitignore:")
+            for l in temporarios:
+                print(f"     {l.strip()}")
+        if reais:
+            print(f"  [WARN] Git -- {len(reais)} arquivo(s) com mudancas nao commitadas:")
+            for l in reais[:10]:
                 print(f"     {l}")
-            if len(linhas_git) > 10:
-                print(f"     ... e mais {len(linhas_git) - 10}")
-        else:
+            if len(reais) > 10:
+                print(f"     ... e mais {len(reais) - 10}")
+        if not reais and not temporarios:
             print("  [OK] Git -- working tree limpo")
     except Exception as e:
         print(f"  ⚠️  Git check falhou: {e}")

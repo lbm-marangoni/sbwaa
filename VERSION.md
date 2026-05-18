@@ -1,7 +1,7 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.2.10** — 2026-05-18 — SBWAA-LOGO.md + Blueprint sincronizado
+**v2.2.11** — 2026-05-18 — Gitignore para temp Windows + compliance script mais inteligente
 
 ## Módulos
 | Módulo          | Versão  | Status        |

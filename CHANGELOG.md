@@ -2,6 +2,17 @@
 
 ---
 
+## [2.2.11] — 2026-05-18 — GITIGNORE TEMP WINDOWS + COMPLIANCE INTELIGENTE
+
+### Fixed
+- `.gitignore`: adicionadas regras para arquivos temporários do Windows — GUIDs colados do clipboard (`{*}.*`), arquivos Office temporários (`~$*`) e `.tmp`
+- `scripts/check_session_compliance.py`: detecta e separa arquivos temporários (GUIDs, `~$`, `.tmp`) dos arquivos reais no aviso de git status — exibe mensagem específica orientando apagar e ignorar
+
+### Changed
+- Global → **v2.2.11**
+
+---
+
 ## [2.2.10] — 2026-05-18 — SBWAA-LOGO.MD + BLUEPRINT SINCRONIZADO
 
 ### Added

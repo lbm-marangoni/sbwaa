@@ -46,3 +46,10 @@ dist/
 build/
 .DS_Store
 Thumbs.db
+
+# === ARQUIVOS TEMPORÁRIOS DO WINDOWS ===
+# GUIDs colados do clipboard (ex: {0697CE70-...}.png)
+{*}.*
+# Arquivos Office temporários
+~$*
+*.tmp
