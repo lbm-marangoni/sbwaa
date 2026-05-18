@@ -2,6 +2,18 @@
 
 ---
 
+## [2.2.12] — 2026-05-18 — SINCRONIZAÇÃO DE VERSÕES DE MÓDULOS
+
+### Fixed
+- `VERSION.md`: versões de módulos corrigidas para refletir alterações reais das sessões anteriores
+  - `investments` v1.7.3 → **v1.9.0** — RAG integrado nos agentes (v2.2.4) + injeção automática de tipo-tag nos runners (v2.2.6) — dois recursos MINOR que não foram contados
+  - `interface` v2.0.1 → **v2.0.3** — `splash.py` (v2.2.9) e `SBWAA-LOGO.md` (v2.2.10) adicionados mas módulo não foi incrementado
+
+### Changed
+- Global → **v2.2.12**
+
+---
+
 ## [2.2.11] — 2026-05-18 — GITIGNORE TEMP WINDOWS + COMPLIANCE INTELIGENTE
 
 ### Fixed
