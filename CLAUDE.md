@@ -134,6 +134,38 @@ Regras de segurança:
 
 ---
 
+## PROTOCOLO DE SESSÃO — CHECKLIST OBRIGATÓRIO
+
+Este arquivo é lido automaticamente pelo Claude Code em toda sessão.
+As etapas abaixo são obrigatórias — não opcionais, não delegáveis.
+
+### AO INICIAR UMA SESSÃO DE TRABALHO
+
+1. Ler VERSION.md e verificar versão atual do sistema
+2. Verificar se README.md e GUIA-COMANDOS.md têm a mesma versão que VERSION.md
+3. Se divergentes → registrar e corrigir antes de encerrar a sessão
+4. Aplicar TODAS as regras deste arquivo durante a sessão
+
+### AO ENCERRAR UMA SESSÃO QUE TEVE MUDANÇAS
+
+Execute nesta ordem (sem pular nenhuma):
+
+1. **VERSION.md** — bumpar versão global e módulo afetado
+2. **CHANGELOG.md** — entrada com data absoluta, versão e seções Added/Fixed/Changed/Removed
+3. **README.md** — atualizar versão no topo; refletir mudanças estruturais se houver
+4. **GUIA-COMANDOS.md** — atualizar versão no topo; refletir novos/alterados comandos se houver
+5. **sbwaa.py /help** — atualizar se adicionou, removeu ou renomeou qualquer comando
+6. `git status` — confirmar que nenhum arquivo privado será commitado
+7. `git add <arquivos>` — somente arquivos do projeto, nunca vault/00-portfolio/ nem knowledge/raw/
+8. `git commit -m "tipo: descrição"` + `git push origin master`
+9. `gh release create vX.Y.Z --title "..." --notes "..." --latest --target master`
+   — obrigatório para MINOR/MAJOR; para PATCHes, avaliar criticidade
+
+> O script `scripts/check_session_compliance.py` roda automaticamente ao final de cada sessão
+> (via Claude Code Stop hook) e exibe quais etapas estão pendentes.
+
+---
+
 ## IDIOMA E TOM
 
 - Português brasileiro em todos os outputs ao usuário

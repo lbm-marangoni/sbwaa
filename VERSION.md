@@ -1,7 +1,7 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.2.6** — 2026-05-17 — Coloração automática do graph view Obsidian
+**v2.2.7** — 2026-05-17 — Protocolo de sessão + compliance hook + catch-up de docs
 
 ## Módulos
 | Módulo          | Versão  | Status        |

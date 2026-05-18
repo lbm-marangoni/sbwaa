@@ -1,32 +1,152 @@
 {
   "collapse-filter": false,
   "search": "",
-  "showTags": true,
+  "showTags": false,
   "showAttachments": false,
   "hideUnresolved": true,
   "showOrphans": true,
   "collapse-color-groups": false,
   "colorGroups": [
-    { "query": "tag:#pm-decisao",     "color": { "a": 1, "rgb": 16498468 } },
-    { "query": "tag:#risk",           "color": { "a": 1, "rgb": 14427686 } },
-    { "query": "tag:#macro",          "color": { "a": 1, "rgb": 11817737 } },
-    { "query": "tag:#earnings",       "color": { "a": 1, "rgb": 889992   } },
-    { "query": "tag:#equity-research","color": { "a": 1, "rgb": 6514417  } },
-    { "query": "tag:#valuation",      "color": { "a": 1, "rgb": 6514417  } },
-    { "query": "tag:#knowledge",      "color": { "a": 1, "rgb": 7041664  } },
-    { "query": "tag:#acao-on",        "color": { "a": 1, "rgb": 2450411  } },
-    { "query": "tag:#acao-pn",        "color": { "a": 1, "rgb": 6333946  } },
-    { "query": "tag:#acao",           "color": { "a": 1, "rgb": 3900150  } },
-    { "query": "tag:#fii",            "color": { "a": 1, "rgb": 2278750  } },
-    { "query": "tag:#etf-br",         "color": { "a": 1, "rgb": 15381256 } },
-    { "query": "tag:#etf-intl",       "color": { "a": 1, "rgb": 15680580 } },
-    { "query": "tag:#tesouro",        "color": { "a": 1, "rgb": 11032055 } },
-    { "query": "tag:#debenture",      "color": { "a": 1, "rgb": 9584654  } },
-    { "query": "tag:#cri-cra",        "color": { "a": 1, "rgb": 16347926 } },
-    { "query": "tag:#renda-fixa",     "color": { "a": 1, "rgb": 13751771 } },
-    { "query": "tag:#ips",            "color": { "a": 1, "rgb": 16096779 } },
-    { "query": "tag:#portfolio",      "color": { "a": 1, "rgb": 16096779 } },
-    { "query": "tag:#relatorio",      "color": { "a": 1, "rgb": 9741240  } }
+    {
+      "query": "tag:#pm-decisao",
+      "color": {
+        "a": 1,
+        "rgb": 16498468
+      }
+    },
+    {
+      "query": "tag:#risk",
+      "color": {
+        "a": 1,
+        "rgb": 14427686
+      }
+    },
+    {
+      "query": "tag:#macro",
+      "color": {
+        "a": 1,
+        "rgb": 11817737
+      }
+    },
+    {
+      "query": "tag:#earnings",
+      "color": {
+        "a": 1,
+        "rgb": 889992
+      }
+    },
+    {
+      "query": "tag:#equity-research",
+      "color": {
+        "a": 1,
+        "rgb": 6514417
+      }
+    },
+    {
+      "query": "tag:#valuation",
+      "color": {
+        "a": 1,
+        "rgb": 6514417
+      }
+    },
+    {
+      "query": "tag:#knowledge",
+      "color": {
+        "a": 1,
+        "rgb": 7041664
+      }
+    },
+    {
+      "query": "tag:#acao-on",
+      "color": {
+        "a": 1,
+        "rgb": 2450411
+      }
+    },
+    {
+      "query": "tag:#acao-pn",
+      "color": {
+        "a": 1,
+        "rgb": 6333946
+      }
+    },
+    {
+      "query": "tag:#acao",
+      "color": {
+        "a": 1,
+        "rgb": 3900150
+      }
+    },
+    {
+      "query": "tag:#fii",
+      "color": {
+        "a": 1,
+        "rgb": 2278750
+      }
+    },
+    {
+      "query": "tag:#etf-br",
+      "color": {
+        "a": 1,
+        "rgb": 15381256
+      }
+    },
+    {
+      "query": "tag:#etf-intl",
+      "color": {
+        "a": 1,
+        "rgb": 15680580
+      }
+    },
+    {
+      "query": "tag:#tesouro",
+      "color": {
+        "a": 1,
+        "rgb": 11032055
+      }
+    },
+    {
+      "query": "tag:#debenture",
+      "color": {
+        "a": 1,
+        "rgb": 9584654
+      }
+    },
+    {
+      "query": "tag:#cri-cra",
+      "color": {
+        "a": 1,
+        "rgb": 16347926
+      }
+    },
+    {
+      "query": "tag:#renda-fixa",
+      "color": {
+        "a": 1,
+        "rgb": 13751771
+      }
+    },
+    {
+      "query": "tag:#ips",
+      "color": {
+        "a": 1,
+        "rgb": 16096779
+      }
+    },
+    {
+      "query": "tag:#portfolio",
+      "color": {
+        "a": 1,
+        "rgb": 16096779
+      }
+    },
+    {
+      "query": "tag:#relatorio",
+      "color": {
+        "a": 1,
+        "rgb": 9741240
+      }
+    }
   ],
   "collapse-display": true,
   "showArrow": false,
@@ -38,6 +158,6 @@
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 0.5087618855792576,
+  "scale": 0.7132754626224396,
   "close": false
 }

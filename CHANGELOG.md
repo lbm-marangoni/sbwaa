@@ -2,6 +2,22 @@
 
 ---
 
+## [2.2.7] — 2026-05-17 — PROTOCOLO DE SESSÃO + COMPLIANCE HOOK + CATCH-UP DE DOCS
+
+### Added
+- `CLAUDE.md`: seção **PROTOCOLO DE SESSÃO — CHECKLIST OBRIGATÓRIO** com passos explícitos para início e encerramento de sessão — garante que versionamento, git e releases nunca sejam esquecidos
+- `.claude/settings.json`: Stop hook que executa `scripts/check_session_compliance.py` automaticamente ao final de cada sessão Claude Code
+- `scripts/check_session_compliance.py`: script de auditoria que compara versões em VERSION.md, README.md e GUIA-COMANDOS.md, verifica presença do CHANGELOG para a versão atual e exibe git status de arquivos não commitados
+
+### Fixed
+- `README.md`: versão atualizada de v2.2.4 → v2.2.7 (estava 3 versões atrás)
+- `GUIA-COMANDOS.md`: versão atualizada de v2.2.4 → v2.2.7 (estava 3 versões atrás)
+
+### Changed
+- Global → **v2.2.7**
+
+---
+
 ## [2.2.6] — 2026-05-17 — COLORAÇÃO AUTOMÁTICA DO GRAPH VIEW OBSIDIAN
 
 ### Fixed
