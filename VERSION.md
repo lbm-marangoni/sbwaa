@@ -1,7 +1,7 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.2.4** — 2026-05-17 — RAG integrado em todos os agentes
+**v2.2.5** — 2026-05-17 — Política de git + GitHub releases
 
 ## Módulos
 | Módulo          | Versão  | Status        |

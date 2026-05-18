@@ -2,6 +2,17 @@
 
 ---
 
+## [2.2.5] — 2026-05-17 — POLÍTICA DE GIT + GITHUB RELEASES
+
+### Added
+- `CLAUDE.md`: seção **GIT + GITHUB RELEASES — REGRA GLOBAL** — define quando commitar, quando criar release (MINOR/MAJOR obrigatório, PATCHes críticos), formato padrão de tag/título/notas e checklist de segurança para não expor dados privados
+- `SBWAA-MASTER-BLUEPRINT.md`: mesma regra adicionada à seção de políticas globais; tabela de docs atualizável expandida com `GUIA-COMANDOS.md`
+
+### Changed
+- Global → **v2.2.5**
+
+---
+
 ## [2.2.4] — 2026-05-17 — RAG INTEGRADO EM TODOS OS AGENTES
 
 ### Added
