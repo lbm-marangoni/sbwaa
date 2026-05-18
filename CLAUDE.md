@@ -156,11 +156,11 @@ Execute nesta ordem (sem pular nenhuma):
 3. **README.md** — atualizar versão no topo; refletir mudanças estruturais se houver
 4. **GUIA-COMANDOS.md** — atualizar versão no topo; refletir novos/alterados comandos se houver
 5. **sbwaa.py /help** — atualizar se adicionou, removeu ou renomeou qualquer comando
-   **ui.py** — atualizar se adicionou, removeu ou renomeou qualquer comando na tela do painel
-6. `git status` — confirmar que nenhum arquivo privado será commitado
-7. `git add <arquivos>` — somente arquivos do projeto, nunca vault/00-portfolio/ nem knowledge/raw/
-8. `git commit -m "tipo: descrição"` + `git push origin master`
-9. `gh release create vX.Y.Z --title "..." --notes "..." --latest --target master`
+6. **ui.py** — atualizar se adicionou, removeu ou renomeou qualquer comando no painel
+7. `git status` — confirmar que nenhum arquivo privado será commitado
+8. `git add <arquivos>` — somente arquivos do projeto, nunca vault/00-portfolio/ nem knowledge/raw/
+9. `git commit -m "tipo: descrição"` + `git push origin master`
+10. `gh release create vX.Y.Z --title "..." --notes "..." --latest --target master`
    — obrigatório para MINOR/MAJOR; para PATCHes, avaliar criticidade
 
 > O script `scripts/check_session_compliance.py` roda automaticamente ao final de cada sessão
