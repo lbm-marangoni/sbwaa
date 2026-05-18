@@ -78,6 +78,14 @@ Sempre identificar e exibir o tipo de cada ativo em todos os outputs:
   - MINOR: nova funcionalidade ou melhoria
   - PATCH: ajuste, correção, refinamento de prompt
 - Nunca pular etapas de versionamento
+- **Versões de módulos:** sempre bumpar o módulo afetado junto com a versão global
+
+| Módulo          | Cobre                                                        |
+|-----------------|--------------------------------------------------------------|
+| `investments`   | Agentes (.claude/agents/), pipeline de dados, comandos de portfólio |
+| `heartbeat`     | scripts/heartbeat/, scripts/alerts/                          |
+| `knowledge-base`| knowledge/                                                   |
+| `interface`     | ui.py, splash.py, iniciar.vbs, iniciar.bat, SBWAA-LOGO.md   |
 
 ## ATUALIZAÇÃO OBRIGATÓRIA DE DOCS — REGRA GLOBAL
 
@@ -152,7 +160,7 @@ As etapas abaixo são obrigatórias — não opcionais, não delegáveis.
 
 Execute nesta ordem (sem pular nenhuma):
 
-1. **VERSION.md** — bumpar versão global e módulo afetado
+1. **VERSION.md** — bumpar versão global E o módulo afetado (investments / heartbeat / knowledge-base / interface)
 2. **CHANGELOG.md** — entrada com data absoluta, versão e seções Added/Fixed/Changed/Removed
 3. **README.md** — atualizar versão no topo; refletir mudanças estruturais se houver
 4. **GUIA-COMANDOS.md** — atualizar versão no topo; refletir novos/alterados comandos se houver
