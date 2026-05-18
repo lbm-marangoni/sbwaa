@@ -2,6 +2,22 @@
 
 ---
 
+## [2.2.6] — 2026-05-17 — COLORAÇÃO AUTOMÁTICA DO GRAPH VIEW OBSIDIAN
+
+### Fixed
+- `vault/.obsidian/graph.json`: colorGroups agora usa as tags que os agentes realmente escrevem (`macro`, `risk`, `earnings`, `equity-research`, `pm-decisao`, `relatorio`) — antes consultava só tags de tipo de ativo que nunca existiam nas notas, causando tudo verde (cor default)
+
+### Added
+- `run_earnings_reviewer.py`: injeta tag de tipo do ativo (ex: `acao-on`, `fii`) no frontmatter da nota ao salvar, lendo a carteira.md
+- `run_valuation_reviewer.py`: mesma injeção automática de tipo
+- `run_pm.py`: adiciona tag de tipo do ativo ao frontmatter da decisão do PM (lido do `carteira_completa` já disponível no script)
+- Hierarquia de colorização no graph: tipos de nota têm prioridade (pm-decisao → risk → macro → earnings → valuation), tipos de ativo como fallback para notas raiz (tese.md já recebia o tag via `add_ativo.py`)
+
+### Changed
+- Global → **v2.2.6**
+
+---
+
 ## [2.2.5] — 2026-05-17 — POLÍTICA DE GIT + GITHUB RELEASES
 
 ### Added

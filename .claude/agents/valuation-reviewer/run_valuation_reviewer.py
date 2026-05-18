@@ -3,6 +3,7 @@ run_valuation_reviewer.py — Executa o agente Valuation Reviewer do SBWAA.
 Uso: python run_valuation_reviewer.py PETR4 [--versao curta|longa]
 """
 
+import re
 import sys
 import json
 import argparse
@@ -16,6 +17,43 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 VAULT_ROOT = PROJECT_ROOT / "vault"
+CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
+
+_TIPO_TAG_MAP = {
+    "AÇÃO ON": "acao-on", "ACAO ON": "acao-on",
+    "AÇÃO PN": "acao-pn", "ACAO PN": "acao-pn",
+    "FII": "fii", "ETF BR": "etf-br", "ETF INTL": "etf-intl",
+    "RF": "renda-fixa", "TD": "tesouro", "DEB": "debenture", "CRI/CRA": "cri-cra",
+}
+
+
+def lookup_tipo_tag(ticker: str) -> str:
+    if not CARTEIRA_PATH.exists():
+        return ""
+    dentro = False
+    for linha in CARTEIRA_PATH.read_text(encoding="utf-8").splitlines():
+        s = linha.strip()
+        if s.startswith("| Ticker"):
+            dentro = True
+        elif dentro and s.startswith("|---"):
+            pass
+        elif dentro and s.startswith("|"):
+            cols = [c.strip() for c in s.split("|")[1:-1]]
+            if len(cols) >= 2 and cols[0] == ticker:
+                limpo = re.sub(r"[^\w\s/]", "", cols[1]).strip().upper()
+                return _TIPO_TAG_MAP.get(limpo, "")
+        elif dentro:
+            break
+    return ""
+
+
+def injetar_tipo_frontmatter(md: str, tipo_tag: str) -> str:
+    if not tipo_tag or not md.startswith("---"):
+        return md
+    def _add(m):
+        tags = m.group(1)
+        return m.group(0) if tipo_tag in tags else f"tags: [{tags}, {tipo_tag}]"
+    return re.sub(r"tags: \[([^\]]+)\]", _add, md, count=1)
 SCRIPTS_DATA = PROJECT_ROOT / "scripts" / "data"
 AGENTS_DIR = PROJECT_ROOT / ".claude" / "agents"
 SKILL_PATH = Path(__file__).parent / "SKILL.md"
@@ -326,6 +364,7 @@ Gere o relatório na versão {versao.upper()}, com o formato exato definido no S
     )
 
     output_md = response.content[0].text
+    output_md = injetar_tipo_frontmatter(output_md, lookup_tipo_tag(ticker))
 
     ativo_dir = VAULT_ROOT / "01-ativos" / ticker
     ativo_dir.mkdir(parents=True, exist_ok=True)

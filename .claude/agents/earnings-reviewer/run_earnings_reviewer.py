@@ -3,6 +3,7 @@ run_earnings_reviewer.py — Executa o agente Earnings Reviewer do SBWAA.
 Uso: python run_earnings_reviewer.py PETR4
 """
 
+import re
 import sys
 import json
 import datetime
@@ -12,8 +13,45 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 VAULT_ROOT = PROJECT_ROOT / "vault"
 SCRIPTS_DATA = PROJECT_ROOT / "scripts" / "data"
 SKILL_PATH = Path(__file__).parent / "SKILL.md"
+CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
 
 sys.path.insert(0, str(SCRIPTS_DATA))
+
+_TIPO_TAG_MAP = {
+    "AÇÃO ON": "acao-on", "ACAO ON": "acao-on",
+    "AÇÃO PN": "acao-pn", "ACAO PN": "acao-pn",
+    "FII": "fii", "ETF BR": "etf-br", "ETF INTL": "etf-intl",
+    "RF": "renda-fixa", "TD": "tesouro", "DEB": "debenture", "CRI/CRA": "cri-cra",
+}
+
+
+def lookup_tipo_tag(ticker: str) -> str:
+    if not CARTEIRA_PATH.exists():
+        return ""
+    dentro = False
+    for linha in CARTEIRA_PATH.read_text(encoding="utf-8").splitlines():
+        s = linha.strip()
+        if s.startswith("| Ticker"):
+            dentro = True
+        elif dentro and s.startswith("|---"):
+            pass
+        elif dentro and s.startswith("|"):
+            cols = [c.strip() for c in s.split("|")[1:-1]]
+            if len(cols) >= 2 and cols[0] == ticker:
+                limpo = re.sub(r"[^\w\s/]", "", cols[1]).strip().upper()
+                return _TIPO_TAG_MAP.get(limpo, "")
+        elif dentro:
+            break
+    return ""
+
+
+def injetar_tipo_frontmatter(md: str, tipo_tag: str) -> str:
+    if not tipo_tag or not md.startswith("---"):
+        return md
+    def _add(m):
+        tags = m.group(1)
+        return m.group(0) if tipo_tag in tags else f"tags: [{tags}, {tipo_tag}]"
+    return re.sub(r"tags: \[([^\]]+)\]", _add, md, count=1)
 
 
 def get_trimestre(data=None) -> str:
@@ -160,6 +198,7 @@ Gere a análise de earnings conforme o formato definido no seu SKILL.
     )
 
     output = response.content[0].text
+    output = injetar_tipo_frontmatter(output, lookup_tipo_tag(ticker))
 
     ativo_dir = VAULT_ROOT / "01-ativos" / ticker
     ativo_dir.mkdir(parents=True, exist_ok=True)

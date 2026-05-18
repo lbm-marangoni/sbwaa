@@ -1,7 +1,7 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.2.5** — 2026-05-17 — Política de git + GitHub releases
+**v2.2.6** — 2026-05-17 — Coloração automática do graph view Obsidian
 
 ## Módulos
 | Módulo          | Versão  | Status        |

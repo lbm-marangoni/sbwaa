@@ -26,6 +26,19 @@ IPS_PATH = PORTFOLIO_DIR / "ips.md"
 DECISOES_PATH = PORTFOLIO_DIR / "decisoes.md"
 PATRIMONIO_NORMALIZADO = 100_000.0
 
+_TIPO_TAG_MAP = {
+    "AÇÃO ON": "acao-on", "ACAO ON": "acao-on",
+    "AÇÃO PN": "acao-pn", "ACAO PN": "acao-pn",
+    "FII": "fii", "ETF BR": "etf-br", "ETF INTL": "etf-intl",
+    "RF": "renda-fixa", "TD": "tesouro", "DEB": "debenture", "CRI/CRA": "cri-cra",
+}
+
+
+def tipo_para_tag(tipo_raw: str) -> str:
+    limpo = re.sub(r"[^\w\s/]", "", tipo_raw).strip().upper()
+    return _TIPO_TAG_MAP.get(limpo, "")
+
+
 IPS_DEFAULTS = {
     "var_maximo_pct": 0.03,
     "drawdown_maximo_pct": 0.15,
@@ -539,8 +552,11 @@ def main():
         print(f"\n{'─'*55}\n")
 
     # ── Salvar decisão no vault ───────────────────────────────────────────────
+    tipo_raw = carteira_completa.get(ticker, {}).get("tipo", "")
+    tipo_tag = tipo_para_tag(tipo_raw)
+    tags_list = f"relatorio, pm-decisao, {ticker.lower()}" + (f", {tipo_tag}" if tipo_tag else "")
     conteudo_md = f"""---
-tags: [relatorio, pm-decisao, {ticker.lower()}]
+tags: [{tags_list}]
 cssclasses: [node-pm-decisao]
 data: {hoje}
 ticker: {ticker}
