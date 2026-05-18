@@ -2,6 +2,22 @@
 
 ---
 
+## [2.2.8] — 2026-05-18 — FIX INICIAR.VBS + BOTÃO IPS + REGRAS UI.PY
+
+### Fixed
+- `iniciar.vbs`: eliminado o CMD que ficava aberto ao iniciar o sistema — VBS agora chama cada processo diretamente via `WScript.Shell.Run` sem passar por `cmd /c iniciar.bat`
+- `ui.py`: versão do painel atualizada de v2.1.3 para v2.2.8
+
+### Added
+- `ui.py`: botão **IPS** adicionado na aba Portfólio (único comando local que faltava no painel)
+- `CLAUDE.md`: `ui.py` adicionado à tabela de "ATUALIZAÇÃO OBRIGATÓRIA DE DOCS" e como passo 6 explícito no checklist de encerramento de sessão
+
+### Changed
+- `interface` → v2.0.1
+- Global → **v2.2.8**
+
+---
+
 ## [2.2.7] — 2026-05-17 — PROTOCOLO DE SESSÃO + COMPLIANCE HOOK + CATCH-UP DE DOCS
 
 ### Added
