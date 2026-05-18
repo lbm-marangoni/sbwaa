@@ -2,6 +2,17 @@
 
 ---
 
+## [2.2.14] — 2026-05-18 — SBWAA-LOGO.MD VERSIONADO + REGRA NO CLAUDE.MD
+
+### Fixed
+- `SBWAA-LOGO.md`: versão corrigida de v2.2.9 para v2.2.13 (estava desatualizada desde a criação)
+
+### Changed
+- `CLAUDE.md`: adicionada `SBWAA-LOGO.md` à tabela de docs obrigatórios e ao checklist de encerramento de sessão (passo 7) — versão deve ser atualizada a cada bump
+- Global → **v2.2.14** | interface → **v2.0.4**
+
+---
+
 ## [2.2.13] — 2026-05-18 — REGRA DE MÓDULOS NO CLAUDE.MD
 
 ### Added
