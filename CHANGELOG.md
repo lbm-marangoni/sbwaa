@@ -2,9 +2,13 @@
 
 ---
 
-## [2.2.9] — 2026-05-18 — SPLASH SCREEN NO TERMINAL
+## [2.2.9] — 2026-05-18 — SPLASH SCREEN + LOGO MD
 
 ### Added
+- `SBWAA-LOGO.md`: logo com ASCII block art centralizado para abrir como preview no VS Code — fixar como aba pinada para ter o logo visível enquanto trabalha no terminal
+
+### Added
+- `splash.py`: tela de boas-vindas exibida no terminal a cada abertura pelo `iniciar.vbs` — mostra SBWAA em ASCII block art, versão lida dinamicamente do VERSION.md, data e hora atuais, lista de módulos iniciando, e fecha sozinho após 4 segundos com countdown
 - `splash.py`: tela de boas-vindas exibida no terminal a cada abertura pelo `iniciar.vbs` — mostra SBWAA em ASCII block art, versão lida dinamicamente do VERSION.md, data e hora atuais, lista de módulos iniciando, e fecha sozinho após 4 segundos com countdown
 - `iniciar.vbs`: chama `splash.py` como primeiro passo antes de abrir Obsidian, VS Code e painel (overlapping — splash fecha enquanto os apps carregam)
 
