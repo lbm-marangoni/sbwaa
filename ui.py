@@ -103,6 +103,7 @@ class App(ctk.CTk):
             ("Risco Carteira", "/risco-carteira"),
             ("Dividendos", "/dividendos"),
             ("Snapshot Mercado", "/snapshot"),
+            ("IPS", "/ips"),
         ]:
             ctk.CTkButton(row0, text=label, width=140,
                           command=lambda s=slug: self._local([s])

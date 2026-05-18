@@ -91,6 +91,7 @@ DEVEM ser atualizados antes de encerrar qualquer sessão de trabalho:
 | `README.md`         | Quando mudar pré-requisitos, estrutura geral ou versão        |
 | `GUIA-COMANDOS.md`  | Quando mudar sintaxe de comandos, flags ou exemplos de uso   |
 | `sbwaa.py` `/help`  | Quando adicionar, remover ou renomear qualquer comando        |
+| `ui.py`             | Quando adicionar, remover ou renomear qualquer comando que deva aparecer na tela do painel |
 
 Regras de execução:
 - Atualizar na mesma sessão em que a mudança foi feita — nunca deixar para depois
@@ -155,6 +156,7 @@ Execute nesta ordem (sem pular nenhuma):
 3. **README.md** — atualizar versão no topo; refletir mudanças estruturais se houver
 4. **GUIA-COMANDOS.md** — atualizar versão no topo; refletir novos/alterados comandos se houver
 5. **sbwaa.py /help** — atualizar se adicionou, removeu ou renomeou qualquer comando
+   **ui.py** — atualizar se adicionou, removeu ou renomeou qualquer comando na tela do painel
 6. `git status` — confirmar que nenhum arquivo privado será commitado
 7. `git add <arquivos>` — somente arquivos do projeto, nunca vault/00-portfolio/ nem knowledge/raw/
 8. `git commit -m "tipo: descrição"` + `git push origin master`
