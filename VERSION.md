@@ -1,7 +1,7 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.2.12** — 2026-05-18 — Versões de módulos sincronizadas
+**v2.2.13** — 2026-05-18 — Regra de módulos no CLAUDE.md
 
 ## Módulos
 | Módulo          | Versão  | Última alteração                                  |

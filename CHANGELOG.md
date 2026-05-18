@@ -2,6 +2,16 @@
 
 ---
 
+## [2.2.13] — 2026-05-18 — REGRA DE MÓDULOS NO CLAUDE.MD
+
+### Added
+- `CLAUDE.md`: tabela de módulos com escopo explícito de cada um (investments / heartbeat / knowledge-base / interface) e regra obrigatória de bumpar o módulo afetado junto com a versão global a cada alteração
+
+### Changed
+- Global → **v2.2.13**
+
+---
+
 ## [2.2.12] — 2026-05-18 — SINCRONIZAÇÃO DE VERSÕES DE MÓDULOS
 
 ### Fixed
