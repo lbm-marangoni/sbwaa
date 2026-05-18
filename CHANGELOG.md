@@ -2,6 +2,17 @@
 
 ---
 
+## [2.2.15] — 2026-05-18 — COMPLIANCE SCRIPT VERIFICA SBWAA-LOGO.MD
+
+### Fixed
+- `SBWAA-LOGO.md`: versão corrigida para v2.2.14 (desajuste detectado manualmente pois o script ainda não verificava o arquivo)
+
+### Changed
+- `scripts/check_session_compliance.py`: adicionada verificação de `SBWAA-LOGO.md` — agora o script detecta automaticamente quando a string de versão está desatualizada
+- Global → **v2.2.15** | interface → **v2.0.5**
+
+---
+
 ## [2.2.14] — 2026-05-18 — SBWAA-LOGO.MD VERSIONADO + REGRA NO CLAUDE.MD
 
 ### Fixed

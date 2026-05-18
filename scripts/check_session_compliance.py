@@ -49,7 +49,13 @@ def main():
     status_cl = "[OK]" if tem_changelog else f"[FAIL] faltando entrada para {versao_atual}"
     print(f"  CHANGELOG.md:      {status_cl}")
 
-    # 5. Git status
+    # 5. SBWAA-LOGO.md versão sincronizada
+    logo_txt = _ler(ROOT / "SBWAA-LOGO.md")
+    versao_logo = _extrair_versao(logo_txt)
+    status_logo = "[OK]" if versao_logo == versao_atual else f"[FAIL] desatualizado ({versao_logo})"
+    print(f"  SBWAA-LOGO.md:     {status_logo}")
+
+    # 6. Git status
     print()
     try:
         r = subprocess.run(
@@ -78,11 +84,12 @@ def main():
     except Exception as e:
         print(f"  ⚠️  Git check falhou: {e}")
 
-    # 6. Resumo
+    # 7. Resumo
     ok = all([
         versao_readme == versao_atual,
         versao_guia == versao_atual,
         tem_changelog,
+        versao_logo == versao_atual,
     ])
     print()
     if ok:
