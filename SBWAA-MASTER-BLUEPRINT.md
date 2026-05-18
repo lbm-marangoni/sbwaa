@@ -1,8 +1,8 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.2.1  
-**Data de geração:** 2026-05-16  
+**Versão de referência:** v2.2.7  
+**Data de geração:** 2026-05-18  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
 ---
@@ -1830,12 +1830,12 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.2.1 — 2026-05-16
+SBWAA v2.2.7 — 2026-05-18
 
 Módulos:
   investments     v1.7.3  ✅ Operacional
   heartbeat       v1.0.1  ✅ Operacional
-  knowledge-base  v1.0.0  ✅ Operacional
+  knowledge-base  v1.1.0  ✅ Operacional (RAG ativo em todos os agentes LLM)
   interface       v2.0.0  ✅ Operacional (customtkinter)
 
 Modo de operação: Claude Code (sem API key)
@@ -1843,6 +1843,17 @@ Modo de operação: Claude Code (sem API key)
   → Comandos de IA são executados via chat do Claude Code
   → ANTHROPIC_API_KEY não necessária para comandos locais
 ```
+
+### Histórico de versões (v2.2.2 → v2.2.7)
+
+| Versão | Data       | Descrição                                                       |
+|--------|------------|-----------------------------------------------------------------|
+| v2.2.2 | 2026-05-16 | Master Blueprint criado                                         |
+| v2.2.3 | 2026-05-16 | Repositório GitHub + GUIA-COMANDOS.md separado do README        |
+| v2.2.4 | 2026-05-17 | RAG integrado em todos os agentes LLM; livros corrigidos no log |
+| v2.2.5 | 2026-05-17 | Política de Git + GitHub Releases adicionada ao CLAUDE.md       |
+| v2.2.6 | 2026-05-17 | Graph view Obsidian com hierarquia de cores; injeção de tipo-tag nos runners |
+| v2.2.7 | 2026-05-18 | Protocolo de sessão + Stop hook de compliance + README/GUIA atualizados |
 
 ### Diferenças do projeto original para o atual
 
@@ -1876,4 +1887,4 @@ python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-m
 
 ---
 
-*Blueprint gerado em 2026-05-16. Para atualizar, editar este arquivo e bumpar VERSION.md.*
+*Blueprint atualizado em 2026-05-18 (v2.2.7). Para atualizar, editar este arquivo e bumpar VERSION.md.*
