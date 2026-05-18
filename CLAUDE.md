@@ -99,6 +99,39 @@ Regras de execução:
 - O README deve refletir o estado atual do sistema — não o histórico
 - Nunca incrementar versão sem entrada correspondente no CHANGELOG
 
+## GIT + GITHUB RELEASES — REGRA GLOBAL
+
+Ao encerrar qualquer sessão que contenha mudanças prontas no sistema:
+
+1. **Commitar e fazer push** para `origin/master` com mensagem descritiva
+2. **Criar GitHub Release** apenas para versões significativas — não para
+   todo PATCH, mas obrigatório para:
+   - Qualquer versão MINOR (x.Y.0) ou MAJOR (X.0.0)
+   - PATCHes que corrijam bugs críticos ou completem uma feature importante
+   - Critério prático: se a mudança vale ser destacada no histórico público,
+     ela merece um release
+
+Formato do release:
+- **Tag:** `vX.Y.Z` (igual ao VERSION.md)
+- **Título:** `vX.Y.Z — <descrição curta da mudança principal>`
+- **Notas:** copiar a entrada correspondente do CHANGELOG.md, com seções
+  Added / Fixed / Changed / Removed. Para o release mais recente, adicionar
+  `--latest` ao criar via `gh release create`.
+
+Comando padrão:
+```bash
+git add <arquivos>
+git commit -m "tipo: descrição"
+git push origin master
+gh release create vX.Y.Z --title "vX.Y.Z — Título" --notes "..." --latest --target master
+```
+
+Regras de segurança:
+- Nunca commitar `.env`, `vault/00-portfolio/`, `scripts/data/cache/`,
+  `knowledge/.chromadb/`, `knowledge/raw/` — todos já estão no `.gitignore`
+- Confirmar com `git status` antes de qualquer `git add` para evitar
+  expor dados privados acidentalmente
+
 ---
 
 ## IDIOMA E TOM

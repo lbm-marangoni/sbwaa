@@ -204,12 +204,31 @@ Todo output gerado por qualquer agente deve criar wikilinks automáticos:
 
 A cada modificação no sistema, ANTES de encerrar qualquer sessão:
 
-| Arquivo       | Quando atualizar                                       |
-|---------------|--------------------------------------------------------|
-| VERSION.md    | Sempre — bumpar versão global e módulo afetado         |
-| CHANGELOG.md  | Sempre — entrada com data, versão, Added/Fixed/Changed |
-| README.md     | Quando mudar comandos, dependências ou estrutura       |
-| sbwaa.py /help| Quando adicionar, remover ou renomear qualquer comando |
+| Arquivo           | Quando atualizar                                       |
+|-------------------|--------------------------------------------------------|
+| VERSION.md        | Sempre — bumpar versão global e módulo afetado         |
+| CHANGELOG.md      | Sempre — entrada com data, versão, Added/Fixed/Changed |
+| README.md         | Quando mudar comandos, dependências ou estrutura       |
+| GUIA-COMANDOS.md  | Quando mudar sintaxe de comandos, flags ou uso         |
+| sbwaa.py /help    | Quando adicionar, remover ou renomear qualquer comando |
+
+---
+
+## GIT + GITHUB RELEASES — REGRA GLOBAL
+
+Ao encerrar qualquer sessão com mudanças prontas:
+
+1. Commitar e fazer push para `origin/master`
+2. Criar GitHub Release para versões significativas:
+   - Obrigatório: qualquer MINOR (x.Y.0) ou MAJOR (X.0.0)
+   - Obrigatório: PATCHes que corrijam bugs críticos ou completem features
+   - Opcional: PATCHes menores de ajuste/refinamento
+3. Formato do release:
+   - Tag: `vX.Y.Z` | Título: `vX.Y.Z — <descrição curta>`
+   - Notas: entrada correspondente do CHANGELOG (Added/Fixed/Changed/Removed)
+   - Release mais recente sempre com flag `--latest`
+4. Verificar `git status` antes de qualquer `git add` — nunca expor
+   `.env`, `vault/00-portfolio/`, `cache/`, `.chromadb/`, `knowledge/raw/`
 
 ---
 
