@@ -2,6 +2,16 @@
 
 ---
 
+## [2.2.16] — 2026-05-18 — UI.PY LABEL SINCRONIZADO
+
+### Fixed
+- `ui.py`: label de versão corrigido de v2.2.13 para v2.2.16 (estava desatualizado desde a sessão anterior)
+
+### Changed
+- Global → **v2.2.16** | interface → **v2.0.6**
+
+---
+
 ## [2.2.15] — 2026-05-18 — COMPLIANCE SCRIPT VERIFICA SBWAA-LOGO.MD
 
 ### Fixed
