@@ -92,6 +92,7 @@ DEVEM ser atualizados antes de encerrar qualquer sessão de trabalho:
 | `GUIA-COMANDOS.md`  | Quando mudar sintaxe de comandos, flags ou exemplos de uso   |
 | `sbwaa.py` `/help`  | Quando adicionar, remover ou renomear qualquer comando        |
 | `ui.py`             | Quando adicionar, remover ou renomear qualquer comando que deva aparecer na tela do painel |
+| `SBWAA-MASTER-BLUEPRINT.md` | Quando mudar arquitetura, adicionar agente, alterar fluxo de dados ou bumpar versão MINOR/MAJOR — atualizar cabeçalho, tabela de histórico e seção Estado Atual |
 
 Regras de execução:
 - Atualizar na mesma sessão em que a mudança foi feita — nunca deixar para depois
@@ -157,10 +158,11 @@ Execute nesta ordem (sem pular nenhuma):
 4. **GUIA-COMANDOS.md** — atualizar versão no topo; refletir novos/alterados comandos se houver
 5. **sbwaa.py /help** — atualizar se adicionou, removeu ou renomeou qualquer comando
 6. **ui.py** — atualizar se adicionou, removeu ou renomeou qualquer comando no painel
-7. `git status` — confirmar que nenhum arquivo privado será commitado
-8. `git add <arquivos>` — somente arquivos do projeto, nunca vault/00-portfolio/ nem knowledge/raw/
-9. `git commit -m "tipo: descrição"` + `git push origin master`
-10. `gh release create vX.Y.Z --title "..." --notes "..." --latest --target master`
+7. **SBWAA-MASTER-BLUEPRINT.md** — atualizar cabeçalho (versão + data), tabela de histórico e seção Estado Atual a cada MINOR/MAJOR ou mudança estrutural
+8. `git status` — confirmar que nenhum arquivo privado será commitado
+9. `git add <arquivos>` — somente arquivos do projeto, nunca vault/00-portfolio/ nem knowledge/raw/
+10. `git commit -m "tipo: descrição"` + `git push origin master`
+11. `gh release create vX.Y.Z --title "..." --notes "..." --latest --target master`
    — obrigatório para MINOR/MAJOR; para PATCHes, avaliar criticidade
 
 > O script `scripts/check_session_compliance.py` roda automaticamente ao final de cada sessão
