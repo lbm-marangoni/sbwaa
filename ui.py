@@ -15,6 +15,10 @@ import customtkinter as ctk
 os.environ["PYTHONUTF8"] = "1"
 PROJECT_ROOT = Path(__file__).resolve().parent
 
+# pythonw.exe (usado pelo iniciar.bat) não tem stdout — usar python.exe explicitamente
+_exe = Path(sys.executable)
+PYTHON_EXE = str(_exe.parent / "python.exe") if _exe.name.lower() == "pythonw.exe" else sys.executable
+
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("dark-blue")
 
@@ -272,18 +276,19 @@ class App(ctk.CTk):
     # ── Ações ──────────────────────────────────────────────────────────────────
 
     def _local(self, args: list):
-        cmd = [sys.executable, str(PROJECT_ROOT / "sbwaa.py")] + args
+        cmd = [PYTHON_EXE, str(PROJECT_ROOT / "sbwaa.py")] + args
         self._clear_output()
         self._append(f"> {' '.join(args)}\n")
         threading.Thread(target=self._run_proc, args=(cmd,), daemon=True).start()
 
     def _run_proc(self, cmd: list):
-        env = {**os.environ, "PYTHONUTF8": "1"}
+        env = {**os.environ, "PYTHONUTF8": "1", "PYTHONUNBUFFERED": "1"}
         try:
             proc = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 text=True, encoding="utf-8", errors="replace",
                 cwd=str(PROJECT_ROOT), env=env,
+                creationflags=subprocess.CREATE_NO_WINDOW,
             )
             for line in proc.stdout:
                 self.after(0, self._append, line)

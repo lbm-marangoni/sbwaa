@@ -131,7 +131,7 @@ def main():
     # Atualizar cotações
     print("Atualizando cotações...")
     subprocess.run(
-        [sys.executable, str(SCRIPTS_DATA / "update_carteira.py")],
+        [sys.executable, "-u", str(SCRIPTS_DATA / "update_carteira.py")],
         text=True,
     )
 

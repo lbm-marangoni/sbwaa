@@ -266,6 +266,19 @@ def main():
         for t, d in ativos_q.items()
     )
 
+    # RAG: buscar contexto de gestão de risco e frameworks
+    import sys as _sys
+    _sys.path.insert(0, str(PROJECT_ROOT))
+    contexto_rag_risco = ""
+    try:
+        from knowledge.retriever import buscar, formatar_contexto_para_agente, base_disponivel
+        if base_disponivel():
+            query_risco = f"gestão de risco portfólio VaR drawdown concentração diversificação"
+            chunks = buscar(query_risco, n_resultados=3)
+            contexto_rag_risco = formatar_contexto_para_agente(chunks, max_tokens=1000)
+    except Exception:
+        pass
+
     prompt_risco = f"""DATA: {hoje}
 PATRIMÔNIO DE REFERÊNCIA: R$ 100.000 (normalizado — dado privado não exposto)
 
@@ -300,7 +313,7 @@ CIRCUIT BREAKERS: {circuit_breakers}
 FLAGS PM: {flags}
 
 Gere o Risk Snapshot completo com o formato exato definido no SKILL.
-"""
+{chr(10) + contexto_rag_risco if contexto_rag_risco else ""}"""
 
     try:
         print("Enviando ao Risk Engineer (claude-opus-4-6)...")

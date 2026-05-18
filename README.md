@@ -3,13 +3,13 @@
 > Sistema multi-agente de gestão de portfólio e análise de ativos financeiros.
 > Operação 100% local. Dados 100% privados. Motor de IA: Claude Code.
 
-**Versão:** v2.2.3 | **Python:** 3.11+ | **Plataforma:** Windows (PowerShell)
+**Versão:** v2.2.4 | **Python:** 3.11+ | **Plataforma:** Windows (PowerShell)
 
 ---
 
 ## O que é
 
-SBWAA é um sistema pessoal que combina 7 agentes de IA especializados, pipeline de dados de mercado, base de conhecimento RAG e painel visual para análise e gestão de portfólio de investimentos.
+SBWAA é um sistema pessoal que combina 7 agentes de IA especializados, pipeline de dados de mercado, base de conhecimento RAG (ativa em todos os agentes) e painel visual para análise e gestão de portfólio de investimentos.
 
 O sistema opera em dois modos:
 - **Claude Code** (padrão) — sem API key, comandos de IA rodam diretamente no chat

@@ -2,6 +2,22 @@
 
 ---
 
+## [2.2.4] — 2026-05-17 — RAG INTEGRADO EM TODOS OS AGENTES
+
+### Added
+- RAG integrado em `run_valuation_reviewer.py`: busca benchmarks de valuation e metodologia do setor antes de gerar o equity research
+- RAG integrado em `run_risk_engineer.py`: busca frameworks de gestão de risco (VaR, drawdown, concentração) antes de gerar o risk snapshot
+
+### Fixed
+- `knowledge/indexed/index_log.json`: corrigidos paths e tipos de 2 livros que estavam registrados com caminho antigo (raiz) e tipo "outro" em vez de "livro"
+- `Active Portfolio Management.pdf` e `The Intelligent Investor` agora corretamente categorizados como `tipo: livro`
+
+### Changed
+- `knowledge-base` → v1.1.0 (RAG agora ativo em todos os 5 agentes que usam LLM: Market Researcher, Earnings Reviewer, Model Builder, Valuation Reviewer, Portfolio Manager, Risk Engineer)
+- Global → **v2.2.4**
+
+---
+
 ## [2.2.3] — 2026-05-16 — REPOSITÓRIO GITHUB + REESTRUTURAÇÃO DE DOCS
 
 ### Added

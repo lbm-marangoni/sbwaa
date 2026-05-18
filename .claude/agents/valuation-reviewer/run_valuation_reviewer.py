@@ -299,6 +299,22 @@ MÚLTIPLOS BRAPI (atuais):
 Gere o relatório na versão {versao.upper()}, com o formato exato definido no SKILL.
 """
 
+    # RAG: buscar benchmarks de valuation e metodologia do setor
+    sys.path.insert(0, str(PROJECT_ROOT))
+    contexto_rag = ""
+    try:
+        from knowledge.retriever import buscar, formatar_contexto_para_agente, base_disponivel
+        if base_disponivel():
+            setor_val = dados_brapi.get("setor", "")
+            query_val = f"valuation múltiplos {ticker} {setor_val} DCF equity research"
+            chunks = buscar(query_val, n_resultados=4, filtro_tipo=None)
+            contexto_rag = formatar_contexto_para_agente(chunks, max_tokens=1500)
+    except Exception:
+        pass
+
+    if contexto_rag:
+        contexto += f"\n\n{contexto_rag}"
+
     import anthropic
     print(f"Enviando ao Valuation Reviewer (claude-sonnet-4-6) — versão {versao}...")
     client = anthropic.Anthropic()

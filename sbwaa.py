@@ -272,7 +272,7 @@ def main():
         print(f"\n❌ Script não encontrado: {script_rel}\n")
         return
 
-    subprocess.run([sys.executable, str(script_path)] + args_extra)
+    subprocess.run([sys.executable, "-u", str(script_path)] + args_extra)
 
 
 if __name__ == "__main__":
