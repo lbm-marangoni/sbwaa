@@ -1,7 +1,7 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.2.8  
+**Versão de referência:** v2.2.10  
 **Data de geração:** 2026-05-18  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
@@ -1830,13 +1830,13 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.2.7 — 2026-05-18
+SBWAA v2.2.10 — 2026-05-18
 
 Módulos:
   investments     v1.7.3  ✅ Operacional
   heartbeat       v1.0.1  ✅ Operacional
   knowledge-base  v1.1.0  ✅ Operacional (RAG ativo em todos os agentes LLM)
-  interface       v2.0.0  ✅ Operacional (customtkinter)
+  interface       v2.0.1  ✅ Operacional (customtkinter)
 
 Modo de operação: Claude Code (sem API key)
   → Comandos locais rodam via Python puro
@@ -1844,17 +1844,19 @@ Modo de operação: Claude Code (sem API key)
   → ANTHROPIC_API_KEY não necessária para comandos locais
 ```
 
-### Histórico de versões (v2.2.2 → v2.2.7)
+### Histórico de versões (v2.2.2 → v2.2.10)
 
-| Versão | Data       | Descrição                                                       |
-|--------|------------|-----------------------------------------------------------------|
-| v2.2.2 | 2026-05-16 | Master Blueprint criado                                         |
-| v2.2.3 | 2026-05-16 | Repositório GitHub + GUIA-COMANDOS.md separado do README        |
-| v2.2.4 | 2026-05-17 | RAG integrado em todos os agentes LLM; livros corrigidos no log |
-| v2.2.5 | 2026-05-17 | Política de Git + GitHub Releases adicionada ao CLAUDE.md       |
-| v2.2.6 | 2026-05-17 | Graph view Obsidian com hierarquia de cores; injeção de tipo-tag nos runners |
-| v2.2.7 | 2026-05-18 | Protocolo de sessão + Stop hook de compliance + README/GUIA atualizados |
-| v2.2.8 | 2026-05-18 | Fix iniciar.vbs (sem CMD), botão IPS na UI, Blueprint e CLAUDE.md como docs obrigatórios |
+| Versão  | Data       | Descrição                                                        |
+|---------|------------|------------------------------------------------------------------|
+| v2.2.2  | 2026-05-16 | Master Blueprint criado                                          |
+| v2.2.3  | 2026-05-16 | Repositório GitHub + GUIA-COMANDOS.md separado do README         |
+| v2.2.4  | 2026-05-17 | RAG integrado em todos os agentes LLM; livros corrigidos no log  |
+| v2.2.5  | 2026-05-17 | Política de Git + GitHub Releases adicionada ao CLAUDE.md        |
+| v2.2.6  | 2026-05-17 | Graph view Obsidian com hierarquia de cores; injeção de tipo-tag |
+| v2.2.7  | 2026-05-18 | Protocolo de sessão + Stop hook de compliance + catch-up de docs |
+| v2.2.8  | 2026-05-18 | Fix iniciar.vbs (sem CMD), botão IPS na UI, CLAUDE.md completo   |
+| v2.2.9  | 2026-05-18 | Splash screen no terminal (splash.py) ao abrir pelo iniciar.vbs  |
+| v2.2.10 | 2026-05-18 | SBWAA-LOGO.md para preview VS Code; Blueprint sincronizado       |
 
 ### Diferenças do projeto original para o atual
 
@@ -1888,4 +1890,4 @@ python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-m
 
 ---
 
-*Blueprint atualizado em 2026-05-18 (v2.2.8). Para atualizar, editar este arquivo e bumpar VERSION.md.*
+*Blueprint atualizado em 2026-05-18 (v2.2.10). Para atualizar, editar este arquivo e bumpar VERSION.md.*

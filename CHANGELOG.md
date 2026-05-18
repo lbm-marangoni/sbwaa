@@ -2,6 +2,19 @@
 
 ---
 
+## [2.2.10] — 2026-05-18 — SBWAA-LOGO.MD + BLUEPRINT SINCRONIZADO
+
+### Added
+- `SBWAA-LOGO.md`: logo com ASCII block art para abrir como preview pinado no VS Code — visualmente presente enquanto trabalha no terminal integrado
+
+### Fixed
+- `SBWAA-MASTER-BLUEPRINT.md`: sincronizado com v2.2.10 — cabeçalho, bloco de Estado Atual e tabela de histórico cobrindo v2.2.2 → v2.2.10
+
+### Changed
+- Global → **v2.2.10**
+
+---
+
 ## [2.2.9] — 2026-05-18 — SPLASH SCREEN + LOGO MD
 
 ### Added

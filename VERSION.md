@@ -1,7 +1,7 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.2.9** — 2026-05-18 — Splash screen no terminal ao iniciar o sistema
+**v2.2.10** — 2026-05-18 — SBWAA-LOGO.md + Blueprint sincronizado
 
 ## Módulos
 | Módulo          | Versão  | Status        |
