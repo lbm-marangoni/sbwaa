@@ -2,6 +2,20 @@
 
 ---
 
+## [2.3.0] — 2026-05-19 — /VENDER, DIVIDENDOS REESCRITO E PROVENTOS NA CARTEIRA
+
+### Added
+- `.claude/commands/dividendos.py`: reescrito completo — usa Yahoo Finance (`yfinance`) em vez de Brapi (API exige token); exibe próximos dividendos (60 dias), dividendos declarados, histórico do ano por ativo e Yield on Cost; grava `.proventos-cache.json` em `vault/00-portfolio/` ao final
+- `scripts/data/vender_ativo.py`: novo script de registro de venda — suporta venda parcial e total, calcula P&L realizado, atualiza `carteira.md` e `historico-trades.md`; flag `--data` para data customizada
+- `.claude/commands/carteira.py`: exibe "Proventos Recebidos" e "Total c/ Proventos" na seção RESUMO quando `.proventos-cache.json` existe; se ausente, exibe prompt para executar `/dividendos`
+
+### Changed
+- `sbwaa.py`: `/vender` adicionado a `COMANDOS_LOCAIS`; banner `/help` atualizado para v2.3.0
+- `ui.py`: label de versão atualizado para v2.3.0
+- Global → **v2.3.0** | investments → **v1.10.0** | interface → **v2.1.0**
+
+---
+
 ## [2.2.16] — 2026-05-18 — UI.PY LABEL SINCRONIZADO
 
 ### Fixed

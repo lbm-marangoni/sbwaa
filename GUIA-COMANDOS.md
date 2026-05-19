@@ -3,7 +3,7 @@
 > Referência completa de todos os comandos do sistema.
 > Para instalação e configuração inicial: [`README.md`](README.md)
 
-**Versão: v2.2.16**
+**Versão: v2.3.0**
 
 ---
 
@@ -92,13 +92,15 @@ Estes comandos rodam scripts Python locais e retornam output no terminal imediat
 
 ### `/carteira` — Snapshot da carteira
 
-Atualiza cotações via Brapi/Yahoo e exibe posições, P&L e alocação vs IPS.
+Atualiza cotações via Yahoo Finance e exibe posições, P&L, alocação vs IPS e proventos recebidos.
 
 ```powershell
 python sbwaa.py /carteira
 ```
 
-Output: tabela de posições com preço médio, preço atual, P&L% e alocação por classe.
+Output: tabela de posições com preço médio, preço atual, P&L%; seção RESUMO com patrimônio total,
+total investido, P&L e — se `.proventos-cache.json` existir — proventos recebidos e total c/ proventos.
+Para popular o cache de proventos, execute `/dividendos` antes.
 
 ---
 
@@ -106,6 +108,7 @@ Output: tabela de posições com preço médio, preço atual, P&L% e alocação 
 
 Valida o ticker nas APIs, insere na `carteira.md`, registra no `historico-trades.md`
 e cria pasta `vault/01-ativos/TICKER/` com nota de tese inicial.
+Se o ticker já existe na carteira, recalcula o preço médio ponderado e exibe P&L antes de atualizar.
 
 ```powershell
 python sbwaa.py /adicionar --ticker PETR4 --tipo acao-on --quantidade 100 --preco-medio 38.50 --setor energia
@@ -114,6 +117,9 @@ python sbwaa.py /adicionar --ticker IVV --tipo etf-intl --quantidade 10 --preco-
 
 # Pular validação nas APIs (útil offline ou para ativos não suportados)
 python sbwaa.py /adicionar --ticker XPTO3 --tipo acao-on --quantidade 50 --preco-medio 12.00 --setor tecnologia --skip-validacao
+
+# Data de entrada personalizada (padrão: hoje)
+python sbwaa.py /adicionar --ticker PETR4 --tipo acao-on --quantidade 50 --preco-medio 36.00 --setor energia --data 2024-03-15
 ```
 
 **Tipos válidos para `--tipo`:**
@@ -129,6 +135,21 @@ python sbwaa.py /adicionar --ticker XPTO3 --tipo acao-on --quantidade 50 --preco
 | `tesouro`     | Tesouro Direto        | 🟪 TD           |
 | `debenture`   | Debênture             | 🟫 DEB          |
 | `cri-cra`     | CRI ou CRA            | 🟧 CRI/CRA      |
+
+---
+
+### `/vender` — Registrar venda de ativo
+
+Registra venda parcial ou total. Calcula P&L realizado, atualiza `carteira.md` e `historico-trades.md`.
+Remove o ativo da carteira automaticamente se a quantidade chegar a zero.
+
+```powershell
+python sbwaa.py /vender --ticker PETR4 --quantidade 50 --preco 45.00
+python sbwaa.py /vender --ticker MXRF11 --quantidade 500 --preco 10.50    # venda total
+
+# Data da venda personalizada (padrão: hoje)
+python sbwaa.py /vender --ticker PETR4 --quantidade 30 --preco 46.00 --data 2024-06-10
+```
 
 ---
 
@@ -151,12 +172,17 @@ beta vs IBOV, concentração máxima e status dos circuit breakers.
 ### `/dividendos` — Calendário e histórico de proventos
 
 Busca dados de dividendos via Yahoo Finance para todos os ativos da carteira.
+Ao final, grava `.proventos-cache.json` em `vault/00-portfolio/` para uso pelo `/carteira`.
 
 ```powershell
 python sbwaa.py /dividendos
 ```
 
-Output: próximos dividendos (60 dias), total recebido no ano por ativo e Yield on Cost.
+Output:
+- Próximos dividendos nos 60 dias seguintes (data + valor estimado por ticker)
+- Dividendos declarados (ex-date confirmada, ainda não pagos)
+- Histórico do ano atual: total recebido por ativo e Yield on Cost
+- Total consolidado de proventos recebidos no ano
 
 ---
 
@@ -489,6 +515,7 @@ SBWAA/
 │   │   ├── fetch_yahoo.py          ← macro, ETFs e histórico (Yahoo Finance)
 │   │   ├── update_carteira.py      ← atualiza preços e P&L na carteira.md
 │   │   ├── add_ativo.py            ← adiciona ativo à carteira
+│   │   ├── vender_ativo.py         ← registra venda e P&L realizado
 │   │   ├── market_snapshot.py      ← snapshot diário de mercado
 │   │   └── cache/                  ← cache JSON com TTL de 4h
 │   ├── alerts/

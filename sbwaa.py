@@ -40,6 +40,7 @@ MODO_CLAUDE_CODE = True
 COMANDOS_LOCAIS = {
     "/carteira":        ".claude/commands/carteira.py",
     "/adicionar":       "scripts/data/add_ativo.py",
+    "/vender":          "scripts/data/vender_ativo.py",
     "/risco-carteira":  ".claude/commands/risco_carteira.py",
     "/dividendos":      ".claude/commands/dividendos.py",
     "/stress-test":     ".claude/commands/stress_test.py",
@@ -70,7 +71,7 @@ TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": No
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.2.0               ║
+║            SBWAA — Referência de Comandos  v2.3.0                ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]
@@ -87,9 +88,16 @@ def exibir_help():
                              --quantidade 100 --preco-medio 38.50 \\
                              --setor energia
       Adiciona ativo à carteira, cria pasta em vault/01-ativos/.
-      Flag opcional: --skip-validacao  (pula checagem nas APIs)
+      Flag opcional: --skip-validacao       (pula checagem nas APIs)
+      Flag opcional: --data 2024-03-15      (data de entrada; padrão: hoje)
+      Se ticker já existe: recalcula P.M. ponderado e mostra P&L antes.
       Tipos: acao-on | acao-pn | fii | etf-br | etf-intl
              renda-fixa | tesouro | debenture | cri-cra
+
+  python sbwaa.py /vender --ticker PETR4 --quantidade 50 --preco 45.00
+      Registra venda parcial ou total. Calcula P&L realizado.
+      Remove ativo da carteira se quantidade chegar a zero.
+      Flag opcional: --data 2024-03-15      (data da venda; padrão: hoje)
 
   python sbwaa.py /dividendos
       Próximos dividendos (60 dias), histórico do ano e Yield on Cost.

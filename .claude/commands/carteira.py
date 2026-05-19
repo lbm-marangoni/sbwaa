@@ -3,6 +3,7 @@ carteira.py — Snapshot completo e atualizado da carteira.
 Uso: python sbwaa.py /carteira
 """
 
+import json
 import re
 import sys
 import subprocess
@@ -14,6 +15,16 @@ VAULT_ROOT = PROJECT_ROOT / "vault"
 SCRIPTS_DATA = PROJECT_ROOT / "scripts" / "data"
 CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
 IPS_PATH = VAULT_ROOT / "00-portfolio" / "ips.md"
+PROVENTOS_CACHE = VAULT_ROOT / "00-portfolio" / ".proventos-cache.json"
+
+
+def ler_proventos_cache() -> dict | None:
+    if not PROVENTOS_CACHE.exists():
+        return None
+    try:
+        return json.loads(PROVENTOS_CACHE.read_text(encoding="utf-8"))
+    except Exception:
+        return None
 
 LABELS = {
     "ON": "🟦 AÇÃO ON", "PN": "🟦 AÇÃO PN", "FII": "🟩 FII",
@@ -160,6 +171,21 @@ def main():
     print(f"  Patrimônio Total:  R$ {resumo.get('patrimonio', '—')}")
     print(f"  Total Investido:   R$ {resumo.get('investido', '—')}")
     print(f"  P&L Total:         R$ {resumo.get('pl', '—')}")
+
+    proventos = ler_proventos_cache()
+    if proventos:
+        total_prov = proventos.get("total_recebido", 0)
+        atualizado = proventos.get("atualizado_em", "—")
+        print(f"  Proventos Recebidos: R$ {total_prov:,.2f}  (atualizado: {atualizado})")
+        try:
+            pat_str = resumo.get("patrimonio", "0").replace(".", "").replace(",", ".")
+            total_com_prov = float(pat_str) + total_prov
+            print(f"  Total c/ Proventos:  R$ {total_com_prov:,.2f}")
+        except (ValueError, AttributeError):
+            pass
+    else:
+        print(f"  Proventos Recebidos: — (execute /dividendos para calcular)")
+
     print(f"  Última atualização: {resumo.get('ultima_atualizacao', '—')}")
 
     # Alocação vs IPS

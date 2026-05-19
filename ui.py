@@ -8,6 +8,7 @@ import os
 import sys
 import threading
 import subprocess
+from datetime import datetime
 from pathlib import Path
 
 import customtkinter as ctk
@@ -52,7 +53,7 @@ class App(ctk.CTk):
             row=0, column=0, padx=14, pady=10)
         ctk.CTkLabel(h, text="Second Brain Wealth + Asset + Assessor Individual",
                      text_color="gray60").grid(row=0, column=1, padx=4, sticky="w")
-        ctk.CTkLabel(h, text="v2.2.15", text_color="gray50",
+        ctk.CTkLabel(h, text="v2.3.0", text_color="gray50",
                      font=ctk.CTkFont(size=11)).grid(row=0, column=2, padx=14)
 
     def _build_tabs(self):
@@ -125,6 +126,12 @@ class App(ctk.CTk):
         self.f_skip = ctk.CTkCheckBox(form, text="Skip validação", width=120)
         self.f_skip.grid(row=1, column=0, columnspan=2, padx=4, pady=(6, 0), sticky="w")
 
+        ctk.CTkLabel(form, text="Data entrada").grid(row=1, column=2, padx=(8, 2), sticky="w")
+        self.f_data = ctk.CTkEntry(form, placeholder_text=datetime.now().strftime("%Y-%m-%d"), width=104)
+        self.f_data.grid(row=1, column=3, padx=(0, 6), pady=(6, 0))
+        ctk.CTkLabel(form, text="(vazio = hoje)", text_color="gray55",
+                     font=ctk.CTkFont(size=10)).grid(row=1, column=4, padx=(0, 4), sticky="w")
+
         ctk.CTkButton(form, text="Adicionar", width=100,
                       command=self._adicionar).grid(row=1, column=8, columnspan=2, padx=4, pady=(6, 0))
 
@@ -133,6 +140,23 @@ class App(ctk.CTk):
             text="Tipos: acao-on | acao-pn | fii | etf-br | etf-intl | renda-fixa | tesouro | debenture | cri-cra",
             text_color="gray55", font=ctk.CTkFont(size=11),
         ).grid(row=4, column=0, sticky="w", padx=10, pady=(4, 0))
+
+        self._sep(tab, row=5)
+        ctk.CTkLabel(tab, text="Registrar venda",
+                     font=ctk.CTkFont(weight="bold")).grid(row=6, column=0, sticky="w", padx=10, pady=(4, 2))
+
+        vform = ctk.CTkFrame(tab, fg_color="transparent")
+        vform.grid(row=7, column=0, sticky="ew", padx=4, pady=4)
+
+        self.v_ticker = self._labeled_entry(vform, col=0, label="Ticker",   placeholder="PETR4",  width=88)
+        self.v_qtd    = self._labeled_entry(vform, col=2, label="Qtd",      placeholder="50",     width=72)
+        self.v_preco  = self._labeled_entry(vform, col=4, label="Preço",    placeholder="45.00",  width=80)
+        self.v_data   = self._labeled_entry(vform, col=6, label="Data",     placeholder=datetime.now().strftime("%Y-%m-%d"), width=104)
+        ctk.CTkLabel(vform, text="(vazio = hoje)", text_color="gray55",
+                     font=ctk.CTkFont(size=10)).grid(row=0, column=8, padx=(0, 4), sticky="w")
+
+        ctk.CTkButton(vform, text="Vender", width=100, fg_color="#8B1A1A", hover_color="#6B1010",
+                      command=self._vender).grid(row=1, column=0, columnspan=3, padx=4, pady=(6, 0), sticky="w")
 
     # ── Aba Análise (IA) ──────────────────────────────────────────────────────
 
@@ -322,13 +346,29 @@ class App(ctk.CTk):
         qtd    = self.f_qtd.get().strip()
         pm     = self.f_pm.get().strip()
         setor  = self.f_setor.get().strip()
+        data   = self.f_data.get().strip()
         if not all([ticker, tipo, qtd, pm, setor]):
             self._append("Preencha todos os campos antes de adicionar.\n")
             return
         args = ["/adicionar", "--ticker", ticker, "--tipo", tipo,
                 "--quantidade", qtd, "--preco-medio", pm, "--setor", setor]
+        if data:
+            args += ["--data", data]
         if self.f_skip.get():
             args.append("--skip-validacao")
+        self._local(args)
+
+    def _vender(self):
+        ticker = self.v_ticker.get().strip().upper()
+        qtd    = self.v_qtd.get().strip()
+        preco  = self.v_preco.get().strip()
+        data   = self.v_data.get().strip()
+        if not all([ticker, qtd, preco]):
+            self._append("Preencha Ticker, Qtd e Preço antes de vender.\n")
+            return
+        args = ["/vender", "--ticker", ticker, "--quantidade", qtd, "--preco", preco]
+        if data:
+            args += ["--data", data]
         self._local(args)
 
     def _stress_custom(self):

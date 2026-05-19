@@ -38,9 +38,61 @@ def get_version():
         return "v?.?.?"
 
 
+def _resize_center_topmost(cols=72, lines=23):
+    try:
+        HWND_TOPMOST   = -1
+        SWP_SHOWWINDOW = 0x0040
+        SM_CXSCREEN    = 0
+        SM_CYSCREEN    = 1
+        STD_OUTPUT     = -11
+
+        user32   = ctypes.windll.user32
+        kernel32 = ctypes.windll.kernel32
+
+        hwnd = kernel32.GetConsoleWindow()
+        hout = kernel32.GetStdHandle(STD_OUTPUT)
+        if not hwnd or not hout:
+            return
+
+        class COORD(ctypes.Structure):
+            _fields_ = [("X", ctypes.c_short), ("Y", ctypes.c_short)]
+
+        class SMALL_RECT(ctypes.Structure):
+            _fields_ = [("Left",  ctypes.c_short), ("Top",    ctypes.c_short),
+                        ("Right", ctypes.c_short), ("Bottom", ctypes.c_short)]
+
+        class RECT(ctypes.Structure):
+            _fields_ = [("left",  ctypes.c_long), ("top",    ctypes.c_long),
+                        ("right", ctypes.c_long), ("bottom", ctypes.c_long)]
+
+        # Encolhe primeiro para evitar conflito buffer vs janela
+        kernel32.SetConsoleWindowInfo(hout, True,
+            ctypes.byref(SMALL_RECT(0, 0, 1, 1)))
+        kernel32.SetConsoleScreenBufferSize(hout, COORD(cols, lines))
+        kernel32.SetConsoleWindowInfo(hout, True,
+            ctypes.byref(SMALL_RECT(0, 0, cols - 1, lines - 1)))
+
+        time.sleep(0.05)  # garante que o Win32 aplica o resize antes de medir
+
+        rect = RECT()
+        user32.GetWindowRect(hwnd, ctypes.byref(rect))
+        win_w = rect.right  - rect.left
+        win_h = rect.bottom - rect.top
+
+        screen_w = user32.GetSystemMetrics(SM_CXSCREEN)
+        screen_h = user32.GetSystemMetrics(SM_CYSCREEN)
+
+        x = (screen_w - win_w) // 2
+        y = (screen_h - win_h) // 2
+
+        user32.SetWindowPos(hwnd, HWND_TOPMOST, x, y, 0, 0, SWP_SHOWWINDOW)
+    except Exception:
+        pass
+
+
 def main():
     os.system("title SBWAA")
-    os.system("mode con: cols=72 lines=23")
+    _resize_center_topmost()
 
     version = get_version()
     now     = datetime.now().strftime("%Y-%m-%d  %H:%M:%S")

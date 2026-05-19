@@ -57,9 +57,19 @@ def buscar_ticker(ticker: str) -> dict:
 
     dividendos_raw = r.get("dividendsData", {}) or {}
     cash_dividends = dividendos_raw.get("cashDividends", []) or []
+    _sorted_divs = sorted(cash_dividends, key=lambda x: x.get("paymentDate", ""))
     dividendos_recentes = [
         {"data": d.get("paymentDate", ""), "valor": round(d.get("rate", 0), 4)}
-        for d in sorted(cash_dividends, key=lambda x: x.get("paymentDate", ""), reverse=True)[:3]
+        for d in reversed(_sorted_divs[-3:])
+    ]
+    dividendos_historico = [
+        {
+            "data":  d.get("paymentDate", ""),
+            "valor": round(float(d.get("rate", 0) or 0), 6),
+            "tipo":  d.get("type", ""),
+        }
+        for d in _sorted_divs
+        if d.get("paymentDate") and d.get("rate")
     ]
 
     dados = {
@@ -76,7 +86,8 @@ def buscar_ticker(ticker: str) -> dict:
         "dy": r.get("dividendYield"),
         "roe": financials.get("returnOnEquity"),
         "divida_liquida_ebitda": None,
-        "dividendos_recentes": dividendos_recentes,
+        "dividendos_recentes":  dividendos_recentes,
+        "dividendos_historico": dividendos_historico,
         "fonte": "brapi",
         "atualizado_em": datetime.now().isoformat(timespec="seconds"),
     }

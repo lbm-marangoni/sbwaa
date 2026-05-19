@@ -80,6 +80,20 @@ Sempre identificar e exibir o tipo de cada ativo em todos os outputs:
 - Nunca pular etapas de versionamento
 - **Versões de módulos:** sempre bumpar o módulo afetado junto com a versão global
 
+### REGRA DE PACK — PATCHES CONSECUTIVOS
+
+Quando múltiplos bugs ou ajustes estão sendo resolvidos em sequência
+na mesma sessão, **não gerar uma versão nova a cada fix individual**.
+Em vez disso:
+
+1. Acumular todas as correções do pack como um conjunto
+2. Gerar **um único PATCH** ao final do pack — quando houver
+   "interrupção": mudança de tipo de tarefa, uso normal do sistema,
+   ou encerramento de sessão
+3. O CHANGELOG desse patch lista todos os itens do pack juntos
+4. Commits intermediários (durante o pack) podem ser feitos sem bump
+   de versão; o bump acontece uma única vez no commit de fechamento do pack
+
 | Módulo          | Cobre                                                        |
 |-----------------|--------------------------------------------------------------|
 | `investments`   | Agentes (.claude/agents/), pipeline de dados, comandos de portfólio |
