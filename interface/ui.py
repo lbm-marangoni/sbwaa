@@ -96,28 +96,37 @@ class App(ctk.CTk):
         tab = self.tabs.add("Portfólio")
         tab.grid_columnconfigure(0, weight=1)
 
-        # Botões rápidos
+        # Botões rápidos — linha 1
         row0 = ctk.CTkFrame(tab, fg_color="transparent")
-        row0.grid(row=0, column=0, sticky="ew", padx=4, pady=(10, 4))
+        row0.grid(row=0, column=0, sticky="ew", padx=4, pady=(10, 2))
         for label, slug in [
             ("Carteira", "/carteira"),
             ("Watchlist", "/watchlist"),
             ("Risco Carteira", "/risco-carteira"),
             ("Otimizar Expansão", "/otimizar-expansao"),
+        ]:
+            ctk.CTkButton(row0, text=label, width=150,
+                          command=lambda s=slug: self._local([s])
+                          ).pack(side="left", padx=4)
+
+        # Botões rápidos — linha 2
+        row0b = ctk.CTkFrame(tab, fg_color="transparent")
+        row0b.grid(row=1, column=0, sticky="ew", padx=4, pady=(2, 4))
+        for label, slug in [
             ("Dividendos", "/dividendos"),
             ("Snapshot Mercado", "/snapshot"),
             ("IPS", "/ips"),
         ]:
-            ctk.CTkButton(row0, text=label, width=130,
+            ctk.CTkButton(row0b, text=label, width=150,
                           command=lambda s=slug: self._local([s])
                           ).pack(side="left", padx=4)
 
-        self._sep(tab, row=1)
+        self._sep(tab, row=2)
         ctk.CTkLabel(tab, text="Adicionar ativo",
-                     font=ctk.CTkFont(weight="bold")).grid(row=2, column=0, sticky="w", padx=10, pady=(4, 2))
+                     font=ctk.CTkFont(weight="bold")).grid(row=3, column=0, sticky="w", padx=10, pady=(4, 2))
 
         form = ctk.CTkFrame(tab, fg_color="transparent")
-        form.grid(row=3, column=0, sticky="ew", padx=4, pady=4)
+        form.grid(row=4, column=0, sticky="ew", padx=4, pady=4)
 
         self.f_ticker = self._labeled_entry(form, col=0, label="Ticker", placeholder="PETR4", width=88)
         self.f_tipo   = self._labeled_combo(form, col=2, label="Tipo",   values=TIPOS_ATIVO, default="acao-on", width=120)
@@ -141,14 +150,14 @@ class App(ctk.CTk):
             tab,
             text="Tipos: acao-on | acao-pn | fii | etf-br | etf-intl | renda-fixa | tesouro | debenture | cri-cra",
             text_color="gray55", font=ctk.CTkFont(size=11),
-        ).grid(row=4, column=0, sticky="w", padx=10, pady=(4, 0))
+        ).grid(row=5, column=0, sticky="w", padx=10, pady=(4, 0))
 
-        self._sep(tab, row=5)
+        self._sep(tab, row=6)
         ctk.CTkLabel(tab, text="Registrar venda",
-                     font=ctk.CTkFont(weight="bold")).grid(row=6, column=0, sticky="w", padx=10, pady=(4, 2))
+                     font=ctk.CTkFont(weight="bold")).grid(row=7, column=0, sticky="w", padx=10, pady=(4, 2))
 
         vform = ctk.CTkFrame(tab, fg_color="transparent")
-        vform.grid(row=7, column=0, sticky="ew", padx=4, pady=4)
+        vform.grid(row=8, column=0, sticky="ew", padx=4, pady=4)
 
         self.v_ticker = self._labeled_entry(vform, col=0, label="Ticker",   placeholder="PETR4",  width=88)
         self.v_qtd    = self._labeled_entry(vform, col=2, label="Qtd",      placeholder="50",     width=72)

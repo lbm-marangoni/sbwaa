@@ -120,10 +120,6 @@ def exibir_help():
       marginal, peso no portfólio ótimo. Indica quais ativos MELHORA / NEUTRO / PIORA.
       Salva cache para /rebalancear e /revisar-carteira consumirem.
 
-  python sbwaa.py /rebalancear
-      Desvios da alocação atual vs alvos do IPS. Sugestão de ajuste.
-      (comando de IA — digitar no chat do Claude Code)
-
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   MERCADO  (local — sem IA, sem API key)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
