@@ -1,7 +1,7 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.4.0  
+**Versão de referência:** v2.4.1  
 **Data de geração:** 2026-05-19  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
@@ -1830,10 +1830,10 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.4.0 — 2026-05-20
+SBWAA v2.4.1 — 2026-05-20
 
 Módulos:
-  investments     v1.11.0 ✅ Operacional (consenso de analistas no Valuation Reviewer)
+  investments     v1.12.0 ✅ Operacional (/watchlist + /revisar-carteira)
   heartbeat       v1.0.1  ✅ Operacional
   knowledge-base  v1.1.0  ✅ Operacional (RAG ativo em todos os agentes LLM)
   interface       v2.1.0  ✅ Operacional (ui.py v2.3.0)
@@ -1865,6 +1865,7 @@ Modo de operação: Claude Code (sem API key)
 | v2.2.16 | 2026-05-18 | ui.py label sincronizado com versão atual                              |
 | v2.3.0  | 2026-05-19 | /vender, dividendos reescrito (Yahoo Finance), proventos na carteira   |
 | v2.4.0  | 2026-05-20 | Consenso de analistas no Valuation Reviewer (fetch_consensus.py)       |
+| v2.4.1  | 2026-05-20 | /watchlist (local) e /revisar-carteira (IA) adicionados                |
 
 ### Diferenças do projeto original para o atual
 
@@ -1898,4 +1899,4 @@ python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-m
 
 ---
 
-*Blueprint atualizado em 2026-05-20 (v2.4.0). Para atualizar, editar este arquivo e bumpar VERSION.md.*
+*Blueprint atualizado em 2026-05-20 (v2.4.1). Para atualizar, editar este arquivo e bumpar VERSION.md.*

@@ -64,6 +64,7 @@ COMANDOS_IA = {
     "/relatorio-semanal":   "relatorio-semanal",
     "/relatorio-mensal":    "relatorio-mensal",
     "/rebalancear":         "rebalancear",
+    "/revisar-carteira":    "revisar-carteira",
 }
 
 TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": None, "/help": None, "/status": None}
@@ -191,6 +192,10 @@ def exibir_help():
 
   /rebalancear
       Desvios vs IPS e sugestão de compras/vendas para reequilibrar.
+
+  /revisar-carteira
+      PM revisa cada posição em carteira: MANTER / AUMENTAR / REDUZIR / SAIR.
+      Painel consolidado com sizing alvo, justificativa e alertas de IPS.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   SISTEMA

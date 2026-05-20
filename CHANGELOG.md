@@ -2,6 +2,19 @@
 
 ---
 
+## [2.4.1] — 2026-05-20 — /WATCHLIST E /REVISAR-CARTEIRA
+
+### Added
+- `.claude/commands/watchlist.py`: comando local — lista todos os ativos analisados + carteira com último veredicto, data da análise e frescor (✅ atual / ⚠️ defasado >45d / 🔴 rever >90d); flag `--rever` filtra só os defasados; mostra se ativo está em carteira (●) ou só na watchlist (○)
+- `.claude/commands/revisar-carteira.md`: comando de IA — PM revisa cada posição em carteira individualmente com veredicto MANTER/AUMENTAR/REDUZIR/SAIR, sizing alvo, prioridades imediatas, ativos para não mexer e alertas de IPS; salva em `vault/02-relatorios/revisoes/`
+- `sbwaa.py`: `/watchlist` adicionado a `COMANDOS_LOCAIS`; `/revisar-carteira` adicionado a `COMANDOS_IA`; `/help` atualizado para v2.4.0
+- `GUIA-COMANDOS.md`: seção `/revisar-carteira` adicionada
+
+### Changed
+- Global → **v2.4.1** | investments → **v1.12.0**
+
+---
+
 ## [2.4.0] — 2026-05-20 — CONSENSO DE ANALISTAS NO VALUATION REVIEWER
 
 ### Added

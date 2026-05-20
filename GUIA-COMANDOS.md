@@ -3,7 +3,7 @@
 > Referência completa de todos os comandos do sistema.
 > Para instalação e configuração inicial: [`README.md`](README.md)
 
-**Versão: v2.3.0**
+**Versão: v2.4.1**
 
 ---
 
@@ -420,6 +420,20 @@ e sugere ajustes com valores estimados de compra/venda.
 ```
 /rebalancear
 ```
+
+---
+
+### `/revisar-carteira` — Revisão completa de posições
+
+PM avalia cada ativo em carteira individualmente e emite:
+**MANTER / AUMENTAR / REDUZIR / SAIR** com sizing alvo e justificativa.
+Inclui painel consolidado, prioridades imediatas e alertas de IPS.
+
+```
+/revisar-carteira
+```
+
+Output em: `vault/02-relatorios/revisoes/`
 
 ---
 
