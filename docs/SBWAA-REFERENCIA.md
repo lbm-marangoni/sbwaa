@@ -1,6 +1,6 @@
 # SBWAA — Referência de Comandos
 
-> Documento complementar ao [`GUIA-COMANDOS.md`](GUIA-COMANDOS.md).
+> Documento complementar ao [`GUIA-COMANDOS.md`](docs/GUIA-COMANDOS.md).
 > O guia cobre sintaxe e flags. Esta referência cobre **o que cada comando entrega**:
 > campos, estrutura do output e o que você pode esperar ver.
 

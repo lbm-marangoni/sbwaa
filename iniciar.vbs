@@ -7,7 +7,7 @@ root     = fso.GetParentFolderName(WScript.ScriptFullName)
 obsidian = shell.ExpandEnvironmentStrings("%LOCALAPPDATA%") & "\Programs\Obsidian\Obsidian.exe"
 
 ' 0. Splash screen (fecha sozinho apos DELAY segundos)
-shell.Run "cmd /c python """ & root & "\splash.py""", 1, False
+shell.Run "cmd /c python """ & root & "\interface\splash.py""", 1, False
 
 WScript.Sleep 500
 
@@ -22,4 +22,4 @@ shell.Run "code """ & root & """", 0, False
 WScript.Sleep 1000
 
 ' 3. Painel SBWAA (pythonw = sem janela de console)
-shell.Run "pythonw """ & root & "\ui.py""", 0, False
+shell.Run "pythonw """ & root & "\interface\ui.py""", 0, False

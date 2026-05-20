@@ -2,6 +2,21 @@
 
 ---
 
+## [2.4.3] — 2026-05-20 — REORGANIZAÇÃO DE PASTAS
+
+### Changed
+- `docs/`: movidos GUIA-COMANDOS.md, SBWAA-LOGO.md, SBWAA-MASTER-BLUEPRINT.md, SBWAA-REFERENCIA.md (antes na raiz)
+- `interface/`: movidos ui.py, splash.py (antes na raiz)
+- `prompts/`: renomeado de `prompt/` (clareza de nomenclatura)
+- `_standby/interface-streamlit/`: interface Streamlit legada movida para standby (era `interface/`)
+- `sbwaa.py`: path de ui.py corrigido para `interface/ui.py`
+- `iniciar.bat`, `iniciar.vbs`: paths de ui.py e splash.py atualizados
+- `scripts/check_session_compliance.py`: paths de GUIA-COMANDOS.md e SBWAA-LOGO.md atualizados para `docs/`
+- `CLAUDE.md`: seção "ESTRUTURA DE PASTAS — MAPA DE LOCALIZAÇÃO" adicionada; todos os paths de docs obrigatórios atualizados; checklist de sessão atualizado
+- Global → **v2.4.3** | interface → **v2.2.0**
+
+---
+
 ## [2.4.2] — 2026-05-20 — SBWAA-REFERENCIA.MD E REGRA DE ATUALIZAÇÃO NO CLAUDE.MD
 
 ### Added

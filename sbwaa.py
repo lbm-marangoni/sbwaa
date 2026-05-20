@@ -266,7 +266,7 @@ def main():
         return
 
     if comando == "/ui":
-        interface_path = PROJECT_ROOT / "ui.py"
+        interface_path = PROJECT_ROOT / "interface" / "ui.py"
         if not interface_path.exists():
             print("\n❌ Interface não encontrada.\n")
             return

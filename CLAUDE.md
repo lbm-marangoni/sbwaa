@@ -4,6 +4,28 @@
 
 ---
 
+## ESTRUTURA DE PASTAS — MAPA DE LOCALIZAÇÃO
+
+A raiz foi reorganizada. Ao buscar qualquer arquivo, respeitar este mapa:
+
+| Pasta | Conteúdo |
+|-------|----------|
+| `docs/` | Documentação do projeto: `GUIA-COMANDOS.md`, `SBWAA-REFERENCIA.md`, `SBWAA-MASTER-BLUEPRINT.md`, `SBWAA-LOGO.md` |
+| `interface/` | UI desktop: `ui.py` (painel customtkinter), `splash.py` |
+| `prompts/` | Histórico de prompts de construção do sistema (F0–F8) |
+| `scripts/` | Scripts de dados, cache, alertas, compliance |
+| `knowledge/` | Base RAG local (ChromaDB + documentos indexados) |
+| `vault/` | Vault Obsidian — portfólio, ativos, relatórios, macro |
+| `logs/` | Logs do sistema e alertas |
+| `_standby/` | Código arquivado (Streamlit legado, comandos antigos) |
+
+Ficam na raiz: `sbwaa.py`, `CLAUDE.md`, `README.md`, `CHANGELOG.md`, `VERSION.md`, `requirements.txt`, `iniciar.bat`, `iniciar.vbs`, `.gitignore`, `.env.template`
+
+> Sempre que precisar ler um arquivo de documentação, procurar em `docs/` primeiro.
+> Sempre que precisar ler ou editar a UI, procurar em `interface/`.
+
+---
+
 ## ⚠️ SECURITY POLICY — CONFIDENCIAL
 
 Este sistema contém dados financeiros privados e confidenciais.
@@ -111,12 +133,12 @@ DEVEM ser atualizados antes de encerrar qualquer sessão de trabalho:
 | `VERSION.md`        | Sempre — bumpar versão global e módulo afetado               |
 | `CHANGELOG.md`      | Sempre — entrada com data, versão, Added/Fixed/Changed/Removed|
 | `README.md`         | Quando mudar pré-requisitos, estrutura geral ou versão        |
-| `GUIA-COMANDOS.md`    | Quando mudar sintaxe de comandos, flags ou exemplos de uso   |
-| `SBWAA-REFERENCIA.md` | Quando adicionar, remover ou alterar qualquer comando — atualizar descrição de campos, mockup de output e comportamento esperado |
-| `sbwaa.py` `/help`    | Quando adicionar, remover ou renomear qualquer comando        |
-| `ui.py`               | Quando adicionar, remover ou renomear qualquer comando que deva aparecer na tela do painel |
-| `SBWAA-LOGO.md`             | A cada bump de versão — atualizar a string de versão no arquivo                              |
-| `SBWAA-MASTER-BLUEPRINT.md` | Quando mudar arquitetura, adicionar agente, alterar fluxo de dados ou bumpar versão MINOR/MAJOR — atualizar cabeçalho, tabela de histórico e seção Estado Atual |
+| `docs/GUIA-COMANDOS.md`    | Quando mudar sintaxe de comandos, flags ou exemplos de uso   |
+| `docs/SBWAA-REFERENCIA.md` | Quando adicionar, remover ou alterar qualquer comando — atualizar descrição de campos, mockup de output e comportamento esperado |
+| `sbwaa.py` `/help`         | Quando adicionar, remover ou renomear qualquer comando        |
+| `interface/ui.py`          | Quando adicionar, remover ou renomear qualquer comando que deva aparecer na tela do painel |
+| `docs/SBWAA-LOGO.md`             | A cada bump de versão — atualizar a string de versão no arquivo                              |
+| `docs/SBWAA-MASTER-BLUEPRINT.md` | Quando mudar arquitetura, adicionar agente, alterar fluxo de dados ou bumpar versão MINOR/MAJOR — atualizar cabeçalho, tabela de histórico e seção Estado Atual |
 
 Regras de execução:
 - Atualizar na mesma sessão em que a mudança foi feita — nunca deixar para depois

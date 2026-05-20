@@ -13,6 +13,6 @@ start "" code "%ROOT%"
 timeout /t 1 /nobreak >nul
 
 :: 3. Painel SBWAA
-start "" pythonw "%ROOT%\ui.py"
+start "" pythonw "%ROOT%\interface\ui.py"
 
 endlocal

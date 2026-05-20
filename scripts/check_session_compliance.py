@@ -37,23 +37,23 @@ def main():
     status_readme = "[OK]" if versao_readme == versao_atual else f"[FAIL] desatualizado ({versao_readme})"
     print(f"  README.md:         {status_readme}")
 
-    # 3. GUIA-COMANDOS.md
-    guia_txt = _ler(ROOT / "GUIA-COMANDOS.md", 10)
+    # 3. GUIA-COMANDOS.md (em docs/)
+    guia_txt = _ler(ROOT / "docs" / "GUIA-COMANDOS.md", 10)
     versao_guia = _extrair_versao(guia_txt)
     status_guia = "[OK]" if versao_guia == versao_atual else f"[FAIL] desatualizado ({versao_guia})"
-    print(f"  GUIA-COMANDOS.md:  {status_guia}")
+    print(f"  docs/GUIA-COMANDOS.md:  {status_guia}")
 
     # 4. CHANGELOG.md tem entrada para versão atual?
     changelog_txt = _ler(ROOT / "CHANGELOG.md", 5)
     tem_changelog = versao_atual.lstrip("v") in changelog_txt
     status_cl = "[OK]" if tem_changelog else f"[FAIL] faltando entrada para {versao_atual}"
-    print(f"  CHANGELOG.md:      {status_cl}")
+    print(f"  CHANGELOG.md:           {status_cl}")
 
-    # 5. SBWAA-LOGO.md versão sincronizada
-    logo_txt = _ler(ROOT / "SBWAA-LOGO.md")
+    # 5. SBWAA-LOGO.md versão sincronizada (em docs/)
+    logo_txt = _ler(ROOT / "docs" / "SBWAA-LOGO.md")
     versao_logo = _extrair_versao(logo_txt)
     status_logo = "[OK]" if versao_logo == versao_atual else f"[FAIL] desatualizado ({versao_logo})"
-    print(f"  SBWAA-LOGO.md:     {status_logo}")
+    print(f"  docs/SBWAA-LOGO.md:     {status_logo}")
 
     # 6. Git status
     print()

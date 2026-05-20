@@ -3,7 +3,7 @@
 > Sistema multi-agente de gestão de portfólio e análise de ativos financeiros.
 > Operação 100% local. Dados 100% privados. Motor de IA: Claude Code.
 
-**Versão:** v2.4.2 | **Python:** 3.11+ | **Plataforma:** Windows (PowerShell)
+**Versão:** v2.4.3 | **Python:** 3.11+ | **Plataforma:** Windows (PowerShell)
 
 ---
 
