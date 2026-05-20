@@ -1,8 +1,8 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.4.1  
-**Data de geração:** 2026-05-19  
+**Versão de referência:** v2.5.3  
+**Data de geração:** 2026-05-20  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
 ---
@@ -247,7 +247,6 @@ Ao encerrar qualquer sessão com mudanças prontas:
 ```
 sbwaa/
 ├── sbwaa.py                          ← ponto de entrada único
-├── ui.py                             ← interface customtkinter
 ├── CLAUDE.md                         ← config global (lida pelos agentes)
 ├── VERSION.md                        ← versionamento semântico
 ├── CHANGELOG.md                      ← histórico de mudanças
@@ -276,7 +275,8 @@ sbwaa/
 │   │   │   └── calculators/
 │   │   │       ├── returns.py
 │   │   │       ├── portfolio_metrics.py
-│   │   │       └── correlation.py
+│   │   │       ├── correlation.py
+│   │   │       └── optimization.py       ← Fronteira Eficiente (Markowitz)
 │   │   ├── risk-engineer/
 │   │   │   ├── SKILL.md
 │   │   │   ├── run_risk_engineer.py
@@ -1065,7 +1065,8 @@ if __name__ == "__main__":
 | dividendos.py        | /dividendos        | Próximos dividendos (60d) e histórico do ano     |
 | stress_test.py       | /stress-test       | Simula choques de mercado na carteira            |
 | ips.py               | /ips               | Exibe o IPS do usuário                           |
-| risco_carteira.py    | /risco-carteira    | VaR, CVaR, Sharpe, drawdown, circuit breakers    |
+| risco_carteira.py    | /risco-carteira    | VaR, CVaR, Sharpe, drawdown, circuit breakers, Fronteira Eficiente |
+| optimize_expansao.py (scripts/data/) | /otimizar-expansao | Fronteira dual: carteira vs carteira + watchlist — candidatos MELHORA/NEUTRO/PIORA |
 | morning_call.py      | /morning-call      | Briefing pré-abertura com macro + alertas        |
 | mundo_economico.py   | /mundo-economico   | Análise macro do dia                             |
 | investimento_do_dia.py | /investimento-do-dia | Sugestão de 1-2 ativos para explorar          |
@@ -1830,13 +1831,13 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.4.1 — 2026-05-20
+SBWAA v2.5.3 — 2026-05-20
 
 Módulos:
-  investments     v1.12.0 ✅ Operacional (/watchlist + /revisar-carteira)
+  investments     v1.14.0 ✅ Operacional (/watchlist + /revisar-carteira + /otimizar-expansao + Fronteira Eficiente)
   heartbeat       v1.0.1  ✅ Operacional
-  knowledge-base  v1.1.0  ✅ Operacional (RAG ativo em todos os agentes LLM)
-  interface       v2.1.0  ✅ Operacional (ui.py v2.3.0)
+  knowledge-base  v1.2.0  ✅ Operacional (RAG ativo em todos os agentes LLM; referências Markowitz indexadas)
+  interface       v2.2.0  ✅ Operacional (ui.py v2.5.3; botão Otimizar Expansão no Portfolio tab)
 
 Modo de operação: Claude Code (sem API key)
   → Comandos locais rodam via Python puro
@@ -1844,7 +1845,7 @@ Modo de operação: Claude Code (sem API key)
   → ANTHROPIC_API_KEY não necessária para comandos locais
 ```
 
-### Histórico de versões (v2.2.2 → v2.2.10)
+### Histórico de versões (v2.2.2 → v2.5.3)
 
 | Versão  | Data       | Descrição                                                        |
 |---------|------------|------------------------------------------------------------------|
@@ -1866,6 +1867,12 @@ Modo de operação: Claude Code (sem API key)
 | v2.3.0  | 2026-05-19 | /vender, dividendos reescrito (Yahoo Finance), proventos na carteira   |
 | v2.4.0  | 2026-05-20 | Consenso de analistas no Valuation Reviewer (fetch_consensus.py)       |
 | v2.4.1  | 2026-05-20 | /watchlist (local) e /revisar-carteira (IA) adicionados                |
+| v2.4.2  | 2026-05-20 | Reorganização de pastas: docs/, interface/, prompts/, _standby/        |
+| v2.4.3  | 2026-05-20 | README.md atualizado com nova estrutura de pastas                      |
+| v2.5.0  | 2026-05-20 | Fronteira Eficiente Markowitz no Quant (optimization.py, 10k Monte Carlo + SLSQP); /risco-carteira exibe fronteira + ajustes sugeridos |
+| v2.5.1  | 2026-05-20 | /otimizar-expansao: análise dual carteira vs carteira+watchlist; marginal Sharpe contribution por candidato |
+| v2.5.2  | 2026-05-20 | docs/SBWAA-WORKFLOW.md: workflow operacional completo (6 cadências, 5 fluxos oportunísticos, árvores de decisão) |
+| v2.5.3  | 2026-05-20 | Auditoria docs: SBWAA-REFERENCIA.md (versão + /otimizar-expansao + mockup fronteira), SBWAA-MASTER-BLUEPRINT.md (versão + Estado Atual), ui.py (versão + botão Otimizar Expansão) |
 
 ### Diferenças do projeto original para o atual
 
@@ -1890,13 +1897,22 @@ python sbwaa.py /carteira          # ver posições atualizadas
 /analisar PETR4
 
 # Semana
-python sbwaa.py /risco-carteira    # verificar métricas HF
+python sbwaa.py /risco-carteira    # verificar métricas HF + Fronteira Eficiente
+python sbwaa.py /watchlist         # ver veredictos e frescor das análises
 # /relatorio-semanal               (no chat do Claude Code)
+
+# Mensal / expansão de carteira
+python sbwaa.py /otimizar-expansao # análise dual: carteira vs carteira+watchlist
+# /revisar-carteira                (no chat do Claude Code)
+# /rebalancear                     (no chat do Claude Code)
 
 # Adicionar novo ativo
 python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-medio 9.80 --setor fiis
 ```
 
+> Workflow completo (cadências diária, semanal, mensal, trimestral, anual e oportunístico):
+> `docs/SBWAA-WORKFLOW.md`
+
 ---
 
-*Blueprint atualizado em 2026-05-20 (v2.4.1). Para atualizar, editar este arquivo e bumpar VERSION.md.*
+*Blueprint atualizado em 2026-05-20 (v2.5.3). Para atualizar, editar este arquivo e bumpar VERSION.md.*

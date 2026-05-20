@@ -2,6 +2,19 @@
 
 ---
 
+## [2.5.3] — 2026-05-20 — AUDITORIA DOCS: SBWAA-REFERENCIA, BLUEPRINT E UI
+
+### Fixed
+- `docs/SBWAA-REFERENCIA.md`: versão atualizada de v2.4.1 para v2.5.3; `/otimizar-expansao` adicionado ao índice e com seção completa (campos, classificação, mockup de output); mockup do `/risco-carteira` atualizado com bloco de Fronteira Eficiente
+- `docs/SBWAA-MASTER-BLUEPRINT.md`: versão e data do cabeçalho atualizados (v2.4.1 → v2.5.3, 2026-05-19 → 2026-05-20); Seção 3 com `optimization.py` na estrutura de pastas; Seção 10 com `/otimizar-expansao` na tabela de comandos; Seção 16 "Estado Atual" com versões e histórico completo até v2.5.3; "Uso diário típico" com `/risco-carteira`, `/watchlist`, `/otimizar-expansao` e link para SBWAA-WORKFLOW.md
+- `interface/ui.py`: versão no header atualizada de v2.4.1 para v2.5.3; botão "Otimizar Expansão" adicionado ao Portfolio tab
+
+### Changed
+- `interface`: v2.2.0 → **v2.2.1**
+- Global → **v2.5.3**
+
+---
+
 ## [2.5.2] — 2026-05-20 — SBWAA-WORKFLOW.MD: WORKFLOW OPERACIONAL COMPLETO
 
 ### Added

@@ -4,7 +4,7 @@
 > O guia cobre sintaxe e flags. Esta referência cobre **o que cada comando entrega**:
 > campos, estrutura do output e o que você pode esperar ver.
 
-**Versão: v2.4.1**
+**Versão: v2.5.3**
 
 ---
 
@@ -14,6 +14,7 @@
 - [/carteira](#carteira)
 - [/watchlist](#watchlist)
 - [/risco-carteira](#risco-carteira)
+- [/otimizar-expansao](#otimizar-expansao)
 - [/dividendos](#dividendos)
 - [/snapshot](#snapshot)
 - [/stress-test](#stress-test)
@@ -159,8 +160,74 @@ Calcula e exibe as métricas de risco quantitativas da carteira com base no hist
     Drawdown < 18%    ✅ OK (4,2%)
     Concentração < 20% ⚠️ ATENÇÃO (38,2%)
     Correlação média  ✅ OK
+
+  🎯 Fronteira Eficiente (Markowitz — 10k simulações)
+  ────────────────────────────────────────────────────
+  Carteira atual:       Sharpe 1,24  |  Vol 11,2%
+  Máx Sharpe possível:  Sharpe 1,61  |  Vol 9,8%    → +30% de eficiência
+  Mín Volatilidade:     Sharpe 1,18  |  Vol 8,1%
+
+  Ajustes sugeridos (delta ≥ 2%):
+    PETR4   46,4% → 28,0%  ▼ -18,4%
+    XPML11  53,6% → 38,0%  ▼ -15,6%
+    (+ diversificação em outras classes)
 ══════════════════════════════════════════════════════
 ```
+
+> Para análise de expansão com watchlist, use `/otimizar-expansao`.
+
+---
+
+### /otimizar-expansao
+
+Análise de Fronteira Eficiente dual: compara a fronteira da carteira atual com a fronteira expandida (carteira + ativos da watchlist). Identifica quais candidatos da watchlist melhorariam, degradariam ou seriam neutros ao portfólio.
+
+**Tipo:** Local (sem IA) — roda `scripts/data/optimize_expansao.py`
+
+**Campos:**
+
+| Campo | Descrição |
+|-------|-----------|
+| Ticker | Ativo da watchlist analisado |
+| Correlação | Correlação com a carteira atual (12 meses) |
+| ΔSharpe | Variação do Sharpe ao adicionar o ativo a 5% de peso |
+| Peso ótimo | Peso sugerido no portfólio Max Sharpe expandido |
+| Classificação | MELHORA / NEUTRO / PIORA |
+
+**Classificação:**
+- **MELHORA:** peso ótimo ≥ 2% e ΔSharpe ≥ 0 — candidato a entrada
+- **PIORA:** peso ótimo < 1% e ΔSharpe < -0,01 — evitar ou aguardar
+- **NEUTRO:** demais casos — impacto marginal
+
+**Exemplo de output:**
+
+```
+══════════════════════════════════════════════════════════════════
+  OTIMIZAR EXPANSÃO — 2026-05-20
+  Carteira base: 2 ativos | Watchlist: 3 candidatos
+══════════════════════════════════════════════════════════════════
+
+  📊 FRONTEIRA BASE (carteira atual)
+  Sharpe atual:         1,24
+  Máx Sharpe (base):   1,61  |  Vol 9,8%
+  Mín Vol (base):      1,18  |  Vol 8,1%
+
+  📈 FRONTEIRA EXPANDIDA (+ watchlist)
+  Máx Sharpe expandido: 1,82  |  Vol 9,1%
+  Ganho de eficiência:  +13,0% de Sharpe
+
+  🔍 ANÁLISE POR CANDIDATO
+  ────────────────────────────────────────────────────────────────
+  Ticker    Correlação   ΔSharpe   Peso ótimo   Classificação
+  VALE3        +0,32      +0,18       12,0%     ✅ MELHORA
+  MXRF11       +0,18      +0,09        8,0%     ✅ MELHORA
+  BOVA11       +0,72      -0,04        0,5%     ⚠️ NEUTRO
+
+  💾 Salvo em: scripts/data/cache/optim_expansao_2026-05-20.json
+══════════════════════════════════════════════════════════════════
+```
+
+> Para análise mais aprofundada de um candidato MELHORA, use `/tese TICKER` ou `/analisar TICKER`.
 
 ---
 

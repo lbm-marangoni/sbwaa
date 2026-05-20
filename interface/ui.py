@@ -53,7 +53,7 @@ class App(ctk.CTk):
             row=0, column=0, padx=14, pady=10)
         ctk.CTkLabel(h, text="Second Brain Wealth + Asset + Assessor Individual",
                      text_color="gray60").grid(row=0, column=1, padx=4, sticky="w")
-        ctk.CTkLabel(h, text="v2.4.1", text_color="gray50",
+        ctk.CTkLabel(h, text="v2.5.3", text_color="gray50",
                      font=ctk.CTkFont(size=11)).grid(row=0, column=2, padx=14)
 
     def _build_tabs(self):
@@ -103,6 +103,7 @@ class App(ctk.CTk):
             ("Carteira", "/carteira"),
             ("Watchlist", "/watchlist"),
             ("Risco Carteira", "/risco-carteira"),
+            ("Otimizar Expansão", "/otimizar-expansao"),
             ("Dividendos", "/dividendos"),
             ("Snapshot Mercado", "/snapshot"),
             ("IPS", "/ips"),
