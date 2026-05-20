@@ -133,6 +133,15 @@ python sbwaa.py /snapshot
 # Ver posições da carteira com P&L atualizado
 python sbwaa.py /carteira
 
+# Ver watchlist + veredictos e frescor das análises
+python sbwaa.py /watchlist
+
+# Risco: VaR, CVaR, Sharpe, Fronteira Eficiente Markowitz
+python sbwaa.py /risco-carteira
+
+# Fronteira dual: carteira vs carteira + watchlist (candidatos MELHORA/NEUTRO/PIORA)
+python sbwaa.py /otimizar-expansao
+
 # Abrir painel visual (customtkinter)
 python sbwaa.py /ui
 ```
@@ -141,9 +150,15 @@ python sbwaa.py /ui
 
 ```
 /morning-call          # briefing pré-abertura com macro + alertas
-/analisar PETR4        # pipeline completo de análise (8 etapas, ~15 min)
+/analisar PETR4        # pipeline completo de análise (7 agentes, ~15 min)
 /tese VALE3            # análise rápida com DCF e veredicto do PM
+/revisar-carteira      # PM revisa todas as posições: MANTER/AUMENTAR/REDUZIR/SAIR
+/rebalancear           # desvios vs IPS e sugestão de ajuste de alocação
 ```
+
+**Workflow operacional completo** (cadências diária, semanal, mensal, trimestral, anual):
+
+→ [`docs/SBWAA-WORKFLOW.md`](docs/SBWAA-WORKFLOW.md)
 
 ---
 
@@ -202,7 +217,8 @@ sbwaa/
 ├── CHANGELOG.md
 │
 ├── docs/                     ← documentação do projeto
-│   ├── GUIA-COMANDOS.md      ← referência completa de comandos, flags e rotinas
+│   ├── GUIA-COMANDOS.md      ← referência completa de comandos, flags e exemplos
+│   ├── SBWAA-WORKFLOW.md     ← workflow operacional: 6 cadências + fluxos oportunísticos
 │   ├── SBWAA-REFERENCIA.md   ← campos, mockups de output e comportamento esperado
 │   ├── SBWAA-MASTER-BLUEPRINT.md
 │   └── SBWAA-LOGO.md
@@ -213,10 +229,11 @@ sbwaa/
 │
 ├── .claude/
 │   ├── agents/               ← 7 agentes especializados (SKILL.md + runner)
+│   │   └── quant-data-engineer/calculators/optimization.py  ← Fronteira Eficiente (Markowitz)
 │   └── commands/             ← scripts dos comandos locais
 │
 ├── scripts/
-│   ├── data/                 ← fetch Brapi (BR) e Yahoo Finance (macro)
+│   ├── data/                 ← fetch Brapi (BR), Yahoo Finance (macro), optimize_expansao.py
 │   ├── alerts/               ← 8 tipos de alerta automático
 │   └── heartbeat/            ← processo diário automatizado
 │
