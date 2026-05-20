@@ -101,12 +101,13 @@ class App(ctk.CTk):
         row0.grid(row=0, column=0, sticky="ew", padx=4, pady=(10, 4))
         for label, slug in [
             ("Carteira", "/carteira"),
+            ("Watchlist", "/watchlist"),
             ("Risco Carteira", "/risco-carteira"),
             ("Dividendos", "/dividendos"),
             ("Snapshot Mercado", "/snapshot"),
             ("IPS", "/ips"),
         ]:
-            ctk.CTkButton(row0, text=label, width=140,
+            ctk.CTkButton(row0, text=label, width=130,
                           command=lambda s=slug: self._local([s])
                           ).pack(side="left", padx=4)
 
@@ -256,6 +257,7 @@ class App(ctk.CTk):
             ("Relatório Semanal", "relatorio-semanal"),
             ("Relatório Mensal", "relatorio-mensal"),
             ("Rebalancear vs IPS", "rebalancear"),
+            ("Revisar Carteira", "revisar-carteira"),
         ]:
             ctk.CTkButton(row, text=label, width=160,
                           command=lambda s=slash: self._ia_noarg(s)
