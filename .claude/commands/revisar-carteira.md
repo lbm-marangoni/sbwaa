@@ -22,6 +22,9 @@ Leia:
 - `vault/00-portfolio/ips.md` — perfil de risco, limites e alocação alvo
 - `scripts/data/cache/quant_*.json` — métricas quantitativas (arquivo mais recente)
 - `scripts/data/cache/risk_*.json` — métricas de risco (arquivo mais recente)
+- `scripts/data/cache/optim_expansao_*.json` — análise de expansão com watchlist (se disponível)
+  Use para adicionar seção "Oportunidades da Watchlist" ao final do painel, listando os
+  candidatos MELHORA que ainda não estão em carteira.
 
 ## Passo 3 — Coletar análises existentes por ativo
 
@@ -63,6 +66,17 @@ Se alguma posição viola ou está próxima de violar os limites do IPS (concent
 ### Métricas HF da Carteira
 
 Exibir o bloco de métricas HF conforme Passo 4 do SKILL do PM.
+
+### Oportunidades da Watchlist (se cache de expansão disponível)
+
+Se `optim_expansao_*.json` existir, adicione esta seção:
+
+| Ticker | Sharpe Próprio | ΔSharpe | Peso Ótimo | Status | Análise Disponível |
+|--------|---------------|---------|-----------|--------|-------------------|
+
+Liste apenas os classificados como MELHORA. Para cada um, indique se já existe análise
+em `vault/01-ativos/TICKER/` (e o frescor) — se sim, o PM pode emitir um veredicto
+rápido; se não, indicar `/analisar TICKER`.
 
 ### Próximos Passos Sugeridos
 

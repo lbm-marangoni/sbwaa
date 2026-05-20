@@ -2,6 +2,19 @@
 
 ---
 
+## [2.5.1] — 2026-05-20 — /OTIMIZAR-EXPANSAO: FRONTEIRA EFICIENTE COM WATCHLIST
+
+### Added
+- `scripts/data/optimize_expansao.py`: script local que compara duas fronteiras eficientes — carteira atual (base) vs carteira + watchlist (expandida); para cada ativo da watchlist calcula Sharpe próprio, correlação com a carteira, delta Sharpe marginal (a 5% de peso) e peso no portfólio ótimo expandido; classifica como MELHORA / NEUTRO / PIORA; salva cache `optim_expansao_YYYY-MM-DD.json`
+- `sbwaa.py /otimizar-expansao`: wrapper local para o script, com descrição no `/help`
+- `/rebalancear`: lê cache de expansão quando disponível — seção "Candidatos da watchlist" com delta Sharpe e frescor de análise
+- `/revisar-carteira`: lê cache de expansão quando disponível — seção "Oportunidades da Watchlist" no painel consolidado
+
+### Changed
+- Global → **v2.5.1** | investments → **v1.14.0**
+
+---
+
 ## [2.5.0] — 2026-05-20 — FRONTEIRA EFICIENTE E OTIMIZAÇÃO DE PORTFÓLIO
 
 ### Added

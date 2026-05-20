@@ -46,8 +46,9 @@ COMANDOS_LOCAIS = {
     "/dividendos":      ".claude/commands/dividendos.py",
     "/stress-test":     ".claude/commands/stress_test.py",
     "/ips":             ".claude/commands/ips.py",
-    "/snapshot":        "scripts/data/market_snapshot.py",
-    "/knowledge":       "knowledge/knowledge_cmd.py",
+    "/snapshot":            "scripts/data/market_snapshot.py",
+    "/knowledge":           "knowledge/knowledge_cmd.py",
+    "/otimizar-expansao":   "scripts/data/optimize_expansao.py",
 }
 
 # Comandos de IA — redirecionados para Claude Code (sem API key)
@@ -112,6 +113,12 @@ def exibir_help():
   python sbwaa.py /risco-carteira
       VaR 95%, CVaR, Sharpe 12m, volatilidade, drawdown, beta IBOV,
       concentração e circuit breakers do IPS.
+
+  python sbwaa.py /otimizar-expansao
+      Compara fronteira eficiente da carteira atual vs carteira + watchlist.
+      Ranking de candidatos da watchlist: Sharpe próprio, correlação, impacto
+      marginal, peso no portfólio ótimo. Indica quais ativos MELHORA / NEUTRO / PIORA.
+      Salva cache para /rebalancear e /revisar-carteira consumirem.
 
   python sbwaa.py /rebalancear
       Desvios da alocação atual vs alvos do IPS. Sugestão de ajuste.

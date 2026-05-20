@@ -19,6 +19,9 @@ Leia:
   — campos relevantes: `otimizacao.max_sharpe`, `otimizacao.min_vol`,
     `otimizacao.ajustes_sugeridos`, `otimizacao.ganho_sharpe_potencial`,
     `pares_alta_correlacao`, `contribuicao_risco`
+- Cache de expansão (se disponível) em `scripts/data/cache/optim_expansao_YYYY-MM-DD.json`
+  — campos: `fronteira_base`, `fronteira_expandida`, `ganho_sharpe_expansao`,
+    `candidatos` (ranking watchlist com classificação MELHORA/NEUTRO/PIORA)
 
 ## Passo 2 — Análise de Rebalanceamento
 
@@ -57,6 +60,14 @@ Use os dados de `otimizacao` do cache quant para apresentar:
 
 - Pares com correlação > 0.7 (leia `pares_alta_correlacao` do cache)
 - Qual par mais reduz diversificação real e o que fazer a respeito
+
+**Candidatos da watchlist (se cache de expansão disponível)**
+
+Se `optim_expansao_YYYY-MM-DD.json` existir:
+- Liste os candidatos classificados MELHORA com ticker, delta Sharpe e peso sugerido
+- Destaque o ganho potencial de Sharpe ao incluir os melhores (vs fronteira base)
+- Sinalize se algum candidato MELHORA já foi analisado recentemente (frescor) — esses
+  são os mais prontos para uma decisão; os sem análise recente pedem /analisar primeiro
 
 **Regras do IPS a respeitar:**
 - Não sugerir alavancagem nem derivativos
