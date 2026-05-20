@@ -195,13 +195,21 @@ corretos. Para o IPS, gere o vault/00-portfolio/ips.md completo.
 ```
 sbwaa/
 ├── sbwaa.py                  ← ponto de entrada de todos os comandos
-├── ui.py                     ← painel visual (customtkinter)
 ├── requirements.txt
 ├── .env.template
 ├── CLAUDE.md                 ← políticas globais e roteamento de agentes
-├── GUIA-COMANDOS.md          ← referência completa de todos os comandos
 ├── VERSION.md
 ├── CHANGELOG.md
+│
+├── docs/                     ← documentação do projeto
+│   ├── GUIA-COMANDOS.md      ← referência completa de comandos, flags e rotinas
+│   ├── SBWAA-REFERENCIA.md   ← campos, mockups de output e comportamento esperado
+│   ├── SBWAA-MASTER-BLUEPRINT.md
+│   └── SBWAA-LOGO.md
+│
+├── interface/                ← painel visual (customtkinter)
+│   ├── ui.py
+│   └── splash.py
 │
 ├── .claude/
 │   ├── agents/               ← 7 agentes especializados (SKILL.md + runner)
@@ -213,6 +221,8 @@ sbwaa/
 │   └── heartbeat/            ← processo diário automatizado
 │
 ├── knowledge/                ← base RAG (ChromaDB + sentence-transformers)
+├── prompts/                  ← histórico de prompts de construção do sistema
+├── _standby/                 ← código arquivado (interface Streamlit legada)
 │
 └── vault/                    ← notas Obsidian
     ├── 00-portfolio/         ← carteira, IPS, trades (dados pessoais — não versionados)
@@ -254,7 +264,7 @@ Política completa: [`CLAUDE.md`](CLAUDE.md) — seção Security Policy.
 
 Documentação completa de todos os comandos, flags e exemplos de uso:
 
-→ [`GUIA-COMANDOS.md`](GUIA-COMANDOS.md)
+→ [`docs/GUIA-COMANDOS.md`](docs/GUIA-COMANDOS.md)
 
 ---
 
