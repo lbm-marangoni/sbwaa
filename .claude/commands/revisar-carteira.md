@@ -64,6 +64,18 @@ Se alguma posição viola ou está próxima de violar os limites do IPS (concent
 
 Exibir o bloco de métricas HF conforme Passo 4 do SKILL do PM.
 
+### Próximos Passos Sugeridos
+
+Para cada ativo que recebeu AUMENTAR / REDUZIR / SAIR ou que tem confiança baixa, indique qual comando usar a seguir:
+
+| Ticker | Ação | Próximo Passo | Motivo |
+|--------|------|---------------|--------|
+| ... | ... | `/pm TICKER` ou `/analisar TICKER` | ... |
+
+Critério:
+- **`/pm TICKER`** → análise existe e tem menos de 60 dias; só precisa de decisão atualizada
+- **`/analisar TICKER`** → análise ausente, desatualizada (>60 dias) ou houve evento relevante desde a última análise (resultado, mudança de gestão, macro)
+
 ---
 
 **Regras:**

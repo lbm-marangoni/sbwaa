@@ -5,9 +5,14 @@ Uso: python sbwaa.py /watchlist
 """
 
 import sys
+import os
 import re
 from datetime import datetime, date
 from pathlib import Path
+
+os.environ["PYTHONUTF8"] = "1"
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 VAULT_ROOT = PROJECT_ROOT / "vault"
