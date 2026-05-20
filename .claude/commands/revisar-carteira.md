@@ -4,6 +4,8 @@ description: Revisão completa de todas as posições em carteira — PM emite M
 
 # /revisar-carteira
 
+> **Como funciona:** o PM recebe toda a carteira de uma vez (posições, IPS, quant, risk + arquivos de análise de cada ativo) e produz o painel consolidado em uma única chamada. Não chama `/pm` nem `/analisar` em loop — é uma visão panorâmica rápida. Se após a revisão um ativo específico precisar de atenção mais profunda, aí você roda `/pm TICKER` ou `/analisar TICKER` naquele ativo individualmente.
+
 ## Passo 1 — Atualizar dados
 
 ```powershell
