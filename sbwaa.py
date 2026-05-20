@@ -39,6 +39,7 @@ MODO_CLAUDE_CODE = True
 # Comandos que rodam localmente (sem IA / sem API key)
 COMANDOS_LOCAIS = {
     "/carteira":        ".claude/commands/carteira.py",
+    "/watchlist":       ".claude/commands/watchlist.py",
     "/adicionar":       "scripts/data/add_ativo.py",
     "/vender":          "scripts/data/vender_ativo.py",
     "/risco-carteira":  ".claude/commands/risco_carteira.py",
@@ -71,7 +72,7 @@ TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": No
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.3.0                ║
+║            SBWAA — Referência de Comandos  v2.4.0                ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]
@@ -83,6 +84,11 @@ def exibir_help():
 
   python sbwaa.py /carteira
       Atualiza cotações e exibe posições, P&L% e alocação vs IPS.
+
+  python sbwaa.py /watchlist
+      Lista todos os ativos analisados + carteira com último veredicto,
+      data da análise e frescor (✅ atual / ⚠️ defasado / 🔴 rever).
+      Flag: --rever   (mostra apenas os que precisam de nova análise)
 
   python sbwaa.py /adicionar --ticker PETR4 --tipo acao-on \\
                              --quantidade 100 --preco-medio 38.50 \\
