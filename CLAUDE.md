@@ -111,9 +111,10 @@ DEVEM ser atualizados antes de encerrar qualquer sessão de trabalho:
 | `VERSION.md`        | Sempre — bumpar versão global e módulo afetado               |
 | `CHANGELOG.md`      | Sempre — entrada com data, versão, Added/Fixed/Changed/Removed|
 | `README.md`         | Quando mudar pré-requisitos, estrutura geral ou versão        |
-| `GUIA-COMANDOS.md`  | Quando mudar sintaxe de comandos, flags ou exemplos de uso   |
-| `sbwaa.py` `/help`  | Quando adicionar, remover ou renomear qualquer comando        |
-| `ui.py`             | Quando adicionar, remover ou renomear qualquer comando que deva aparecer na tela do painel |
+| `GUIA-COMANDOS.md`    | Quando mudar sintaxe de comandos, flags ou exemplos de uso   |
+| `SBWAA-REFERENCIA.md` | Quando adicionar, remover ou alterar qualquer comando — atualizar descrição de campos, mockup de output e comportamento esperado |
+| `sbwaa.py` `/help`    | Quando adicionar, remover ou renomear qualquer comando        |
+| `ui.py`               | Quando adicionar, remover ou renomear qualquer comando que deva aparecer na tela do painel |
 | `SBWAA-LOGO.md`             | A cada bump de versão — atualizar a string de versão no arquivo                              |
 | `SBWAA-MASTER-BLUEPRINT.md` | Quando mudar arquitetura, adicionar agente, alterar fluxo de dados ou bumpar versão MINOR/MAJOR — atualizar cabeçalho, tabela de histórico e seção Estado Atual |
 
@@ -181,12 +182,13 @@ Execute nesta ordem (sem pular nenhuma):
 4. **GUIA-COMANDOS.md** — atualizar versão no topo; refletir novos/alterados comandos se houver
 5. **sbwaa.py /help** — atualizar se adicionou, removeu ou renomeou qualquer comando
 6. **ui.py** — atualizar se adicionou, removeu ou renomeou qualquer comando no painel
-7. **SBWAA-LOGO.md** — atualizar a string de versão a cada bump
-8. **SBWAA-MASTER-BLUEPRINT.md** — atualizar cabeçalho (versão + data), tabela de histórico e seção Estado Atual a cada MINOR/MAJOR ou mudança estrutural
-9. `git status` — confirmar que nenhum arquivo privado será commitado
-10. `git add <arquivos>` — somente arquivos do projeto, nunca vault/00-portfolio/ nem knowledge/raw/
-11. `git commit -m "tipo: descrição"` + `git push origin master`
-12. `gh release create vX.Y.Z --title "..." --notes "..." --latest --target master`
+7. **SBWAA-REFERENCIA.md** — atualizar se adicionou, removeu ou alterou qualquer comando (campos, mockup de output, comportamento)
+8. **SBWAA-LOGO.md** — atualizar a string de versão a cada bump
+9. **SBWAA-MASTER-BLUEPRINT.md** — atualizar cabeçalho (versão + data), tabela de histórico e seção Estado Atual a cada MINOR/MAJOR ou mudança estrutural
+10. `git status` — confirmar que nenhum arquivo privado será commitado
+11. `git add <arquivos>` — somente arquivos do projeto, nunca vault/00-portfolio/ nem knowledge/raw/
+12. `git commit -m "tipo: descrição"` + `git push origin master`
+13. `gh release create vX.Y.Z --title "..." --notes "..." --latest --target master`
    — obrigatório para MINOR/MAJOR; para PATCHes, avaliar criticidade
 
 > O script `scripts/check_session_compliance.py` roda automaticamente ao final de cada sessão

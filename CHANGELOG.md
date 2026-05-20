@@ -2,6 +2,17 @@
 
 ---
 
+## [2.4.2] — 2026-05-20 — SBWAA-REFERENCIA.MD E REGRA DE ATUALIZAÇÃO NO CLAUDE.MD
+
+### Added
+- `SBWAA-REFERENCIA.md`: documento de referência completo — todos os comandos com descrição de campos, mockup de output representativo e notas de uso; separado do GUIA-COMANDOS.md (que cobre sintaxe/flags/rotinas)
+- `CLAUDE.md`: `SBWAA-REFERENCIA.md` adicionado à tabela de docs obrigatórios e ao checklist de encerramento de sessão (etapa 7)
+
+### Changed
+- Global → **v2.4.2**
+
+---
+
 ## [2.4.1] — 2026-05-20 — /WATCHLIST E /REVISAR-CARTEIRA
 
 ### Added

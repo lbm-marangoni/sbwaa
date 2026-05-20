@@ -1,7 +1,7 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.4.1** — 2026-05-20 — /watchlist e /revisar-carteira
+**v2.4.2** — 2026-05-20 — SBWAA-REFERENCIA.md + regra no CLAUDE.md
 
 ## Módulos
 | Módulo          | Versão  | Última alteração                                              |
