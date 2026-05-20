@@ -463,32 +463,82 @@ que pode ser chamado diretamente ou via pipeline `/analisar`.
 
 ---
 
-## Rotina de uso sugerida
+## Rotinas de uso sugeridas
 
-### Diário (manhã — 5 min)
+> Padrão para perfil de acumulação de longo prazo: diário leve, semanal de controle, mensal de decisão.
+> Não é checklist obrigatório — é camadas. Use o que fizer sentido no contexto do dia.
+
+---
+
+### Diário — antes de acompanhar o mercado (5 min)
+
+```
+# 1. Briefing macro + impacto na carteira + alertas
+/morning-call
+
+# 2. Opcional — ver P&L do dia atualizado
+python sbwaa.py /carteira
+```
+
+---
+
+### Semanal — revisão de performance e posicionamento (15–20 min)
+
 ```powershell
-python sbwaa.py /snapshot       # macro global + carteira
-# ou no Claude Code:
-/morning-call                   # snapshot + análise macro + alertas
-```
+# 1. Atualizar base
+python sbwaa.py /carteira
 
-### Por demanda (quando for estudar um ativo)
-```
-/analisar TICKER    # análise completa
-/tese TICKER        # visão rápida
-```
-
-### Semanal
-```powershell
-python sbwaa.py /risco-carteira
 # no Claude Code:
+# 2. P&L da semana, Sharpe, drawdown, outlook
 /relatorio-semanal
+
+# 3. Ver ativos defasados que precisam de nova análise
+python sbwaa.py /watchlist --rever
+
+# 4. Verificar se alguma classe saiu da banda do IPS
 /rebalancear
 ```
 
-### Mensal
-```
+---
+
+### Mensal — visão profunda e decisões de portfólio (45–60 min)
+
+```powershell
+# 1. Base atualizada + métricas HF
+python sbwaa.py /carteira
+python sbwaa.py /risco-carteira
+
+# no Claude Code:
+# 2. Performance completa com benchmarks
 /relatorio-mensal
+
+# 3. PM revisa cada posição: manter / aumentar / reduzir / sair
+/revisar-carteira
+
+# 4. Se a revisão apontar ajuste, confirmar plano de ação
+/rebalancear
+
+# 5. Aprofundar nos ativos sinalizados pelo /revisar-carteira
+/pm TICKER        # análise recente (<60 dias) — só atualiza decisão
+/analisar TICKER  # análise ausente ou desatualizada (>60 dias)
+```
+
+---
+
+### Oportunístico — ativo novo ou evento relevante
+
+```
+# Tese rápida antes de decidir se vale aprofundar
+/tese TICKER
+
+# Pipeline completo se a tese for interessante
+/analisar TICKER
+
+# Macro mudou bruscamente (juros, crise, eleição)
+/mundo-economico
+
+# Sugestão baseada no cenário atual e no IPS
+/investimento-do-dia
 ```
 
 ---
