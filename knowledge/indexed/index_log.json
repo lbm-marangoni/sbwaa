@@ -62,6 +62,15 @@
       "chunks": 5,
       "idioma": "pt",
       "indexado_em": "2026-05-19 23:40"
+    },
+    {
+      "arquivo": "knowledge\\raw\\referencias-otimizacao-portfolio.md",
+      "nome": "referencias-otimizacao-portfolio.md",
+      "tipo": "outro",
+      "md5": "31f7f6b80fde4f29b383038f3a1d4d68",
+      "chunks": 2,
+      "idioma": "pt",
+      "indexado_em": "2026-05-20 01:12"
     }
   ]
 }

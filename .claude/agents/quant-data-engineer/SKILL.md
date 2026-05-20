@@ -32,6 +32,13 @@ Você documenta cada métrica calculada com a fórmula usada.
 - Beta da carteira vs IBOV
 - Contribuição de cada ativo para o risco total da carteira (%)
 
+### Otimização de portfólio (Fronteira Eficiente — Markowitz):
+- Simulação Monte Carlo (10k portfólios aleatórios)
+- Portfólio Max Sharpe: pesos ótimos para máximo retorno ajustado ao risco
+- Portfólio Min Volatilidade: pesos ótimos para menor risco
+- Posição atual na fronteira (Sharpe atual vs Max Sharpe possível)
+- Ajustes sugeridos: quais ativos aumentar/reduzir e em quantos % para aproximar do ótimo
+
 ## FONTES DE DADOS
 
 - Histórico de preços: Yahoo Finance via yfinance (1 ano, auto_adjust=True)
@@ -104,6 +111,10 @@ agente: quant-data-engineer
 
 ## 🔗 Correlações e Diversificação
 {análise da matriz de correlação — pares críticos e nível de diversificação}
+
+## 🎯 Posição na Fronteira Eficiente
+{Sharpe atual vs Max Sharpe possível | vol atual vs Min Vol possível}
+{top 3 ajustes sugeridos: TICKER ±X% — impacto esperado no Sharpe}
 
 ## ⚠️ Alertas Quantitativos
 {drawdowns expressivos, volatilidades extremas, Sharpes negativos}

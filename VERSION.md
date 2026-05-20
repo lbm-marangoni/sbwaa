@@ -1,12 +1,12 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.4.3** — 2026-05-20 — Reorganização de pastas (docs/, interface/, prompts/, _standby/)
+**v2.5.0** — 2026-05-20 — Otimização de portfólio (Fronteira Eficiente de Markowitz)
 
 ## Módulos
 | Módulo          | Versão  | Última alteração                                              |
 |-----------------|---------|--------------------------------------------------------------|
-| investments     | v1.12.0 | ✅ /watchlist (local) + /revisar-carteira (IA)               |
+| investments     | v1.13.0 | ✅ Fronteira eficiente integrada ao Quant, /risco-carteira e /rebalancear |
 | heartbeat       | v1.0.1  | ✅ Sem alterações                                             |
-| knowledge-base  | v1.1.0  | ✅ RAG ativo em todos os agentes LLM                         |
-| interface       | v2.2.0  | ✅ ui.py + splash.py movidos para interface/                  |
+| knowledge-base  | v1.2.0  | ✅ Referencias de otimização de portfólio indexadas           |
+| interface       | v2.2.0  | ✅ Sem alterações                                             |

@@ -2,6 +2,21 @@
 
 ---
 
+## [2.5.0] — 2026-05-20 — FRONTEIRA EFICIENTE E OTIMIZAÇÃO DE PORTFÓLIO
+
+### Added
+- `calculators/optimization.py` (Quant/Data Engineer): motor de otimização — Monte Carlo (10k simulações), Max Sharpe exato (scipy.optimize SLSQP), Min Volatilidade exato, posição atual na fronteira, ajustes sugeridos por ativo (atual → ótimo)
+- `run_quant.py`: seção `otimizacao` adicionada ao cache quant JSON — gerada automaticamente a cada execução do Quant
+- `.claude/agents/quant-data-engineer/SKILL.md`: seção "Fronteira Eficiente" adicionada às métricas calculadas e ao formato de output (nova seção `## 🎯 Posição na Fronteira Eficiente`)
+- `.claude/commands/risco_carteira.py`: bloco "FRONTEIRA EFICIENTE" no output — exibe Sharpe atual vs Max Sharpe possível, vol atual vs Min Vol possível, e top 5 ajustes sugeridos por ativo
+- `.claude/commands/rebalancear.md`: passo de otimização adicionado — lê cache quant com dados de fronteira eficiente e os usa como referência quantitativa junto ao IPS
+- `knowledge/raw/referencias-otimizacao-portfolio.md`: referências indexadas na base RAG — artigos fundacionais (Markowitz 1952, Sharpe 1964, Black-Litterman 1992, Fama-French 1992, Carhart 1997), livros essenciais, recursos sobre mercado brasileiro (NEFIN/USP), Python libs relevantes e glossário de conceitos
+
+### Changed
+- Global → **v2.5.0** | investments → **v1.13.0** | knowledge-base → **v1.2.0**
+
+---
+
 ## [2.4.3] — 2026-05-20 — REORGANIZAÇÃO DE PASTAS
 
 ### Changed

@@ -37,6 +37,7 @@ from calculators.portfolio_metrics import (volatilidade_carteira,
 from calculators.correlation import (pares_alta_correlacao,
                                       diversificacao_efetiva,
                                       correlacao_media)
+from calculators.optimization import otimizar_carteira
 
 CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
 IBOV_TICKER = "^BVSP"
@@ -234,6 +235,21 @@ def main():
             v = corr_matrix.iloc[i, j]
             corr_dict[ti][tj] = round(float(v), 3) if not math.isnan(v) else None
 
+    # ── Otimização de portfólio (Fronteira Eficiente) ────────────────────────
+    tickers_opt = list(retornos_df.columns)
+    print("Calculando fronteira eficiente (10k simulações)...")
+    try:
+        otimizacao = otimizar_carteira(
+            tickers=tickers_opt,
+            retornos_df=retornos_df,
+            pesos_atual={t: carteira.get(t, 0.0) for t in tickers_opt},
+            selic=selic,
+            limites_ips=None,  # sem limites por ativo por padrão
+        )
+    except Exception as e:
+        print(f"  AVISO: otimização falhou — {e}")
+        otimizacao = {"erro": str(e)}
+
     metricas_json = {
         "data_calculo": hoje,
         "periodo_historico_dias": len(retornos_df),
@@ -253,6 +269,7 @@ def main():
         "matriz_correlacao": corr_dict,
         "contribuicao_risco": contrib_dict,
         "pares_alta_correlacao": pares_alta_correlacao(corr_matrix, threshold=0.7),
+        "otimizacao": otimizacao,
     }
 
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -284,7 +301,12 @@ ATIVOS:
 PARES ALTA CORRELAÇÃO (>0.7):
 {json.dumps(metricas_json['pares_alta_correlacao'], ensure_ascii=False)}
 
-Gere a síntese em markdown com o formato definido no SKILL.
+OTIMIZAÇÃO DE PORTFÓLIO (Fronteira Eficiente):
+{json.dumps(metricas_json.get('otimizacao', {}), ensure_ascii=False, indent=2)}
+
+Gere a síntese em markdown com o formato definido no SKILL. Inclua uma seção
+'## 🎯 Posição na Fronteira Eficiente' com: Sharpe atual vs Max Sharpe possível,
+vol atual vs Min Vol possível, e os 3 maiores ajustes sugeridos (ticker + delta%).
 """
 
     try:

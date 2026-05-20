@@ -81,6 +81,34 @@ def main():
         for f in flags:
             print(f"    {f}")
 
+    # ── Fronteira Eficiente ───────────────────────────────────────────────────
+    optim = (quant or {}).get("otimizacao", {})
+    if optim and "erro" not in optim:
+        atual_sh = (optim.get("atual") or {}).get("sharpe")
+        ms = optim.get("max_sharpe") or {}
+        mv = optim.get("min_vol") or {}
+        ajustes = optim.get("ajustes_sugeridos") or []
+
+        print(f"\n{'─'*55}")
+        print(f"  FRONTEIRA EFICIENTE — Markowitz")
+        print(f"{'─'*55}")
+        sh_atual_str = f"{atual_sh:.3f}" if atual_sh else "N/D"
+        sh_ms_str    = f"{ms.get('sharpe', 'N/D'):.3f}" if ms.get("sharpe") else "N/D"
+        vol_atual_str = fmt_pct(cart.get("volatilidade_pct"))
+        vol_mv_str    = fmt_pct(mv.get("volatilidade_pct"))
+        ganho = optim.get("ganho_sharpe_potencial")
+        ganho_str = f"  (+{ganho:.3f})" if ganho and ganho > 0 else ""
+        print(f"  Sharpe atual:           {sh_atual_str}  →  Max Sharpe possível: {sh_ms_str}{ganho_str}")
+        print(f"  Volatilidade atual:     {vol_atual_str}  →  Min Vol possível:    {vol_mv_str}")
+
+        if ajustes:
+            print(f"\n  Ajustes sugeridos (atual → Max Sharpe):")
+            for a in ajustes[:5]:
+                seta = "▲" if a["acao"] == "AUMENTAR" else "▼"
+                print(f"    {seta} {a['ticker']:8s} {a['peso_atual_pct']:5.1f}% → {a['peso_alvo_pct']:5.1f}%  ({a['delta_pct']:+.1f}%)")
+        else:
+            print(f"  Carteira já próxima do ótimo (delta < 2% por ativo).")
+
     print(f"\n  * Valor normalizado R$ 100k — privacidade preservada")
     print(f"{'═'*55}\n")
 
