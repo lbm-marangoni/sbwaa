@@ -2,6 +2,18 @@
 
 ---
 
+## [2.5.2] — 2026-05-20 — SBWAA-WORKFLOW.MD: WORKFLOW OPERACIONAL COMPLETO
+
+### Added
+- `docs/SBWAA-WORKFLOW.md`: workflow operacional completo separado do GUIA-COMANDOS — 6 cadências (diária/semanal/mensal/trimestral/anual + pós-fechamento), 5 fluxos oportunísticos (ativo novo, evento relevante, circuit breaker/drawdown, saída de posição, knowledge base), árvores de decisão por situação, tabela de calendário de comandos, tabela de decisão rápida "quando usar cada comando de análise" e dicas operacionais de encadeamento de comandos
+- `CLAUDE.md`: `docs/SBWAA-WORKFLOW.md` adicionado ao mapa de pastas, à tabela de docs obrigatórios e ao checklist de encerramento de sessão (etapa 8, renumerando as seguintes)
+
+### Changed
+- `docs/GUIA-COMANDOS.md`: seção "Rotinas de uso sugeridas" substituída por link para SBWAA-WORKFLOW.md + tabela de resumo rápido
+- Global → **v2.5.2**
+
+---
+
 ## [2.5.1] — 2026-05-20 — /OTIMIZAR-EXPANSAO: FRONTEIRA EFICIENTE COM WATCHLIST
 
 ### Added

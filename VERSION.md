@@ -1,7 +1,7 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.5.1** — 2026-05-20 — /otimizar-expansao: fronteira eficiente com watchlist
+**v2.5.2** — 2026-05-20 — SBWAA-WORKFLOW.md: workflow operacional completo
 
 ## Módulos
 | Módulo          | Versão  | Última alteração                                              |

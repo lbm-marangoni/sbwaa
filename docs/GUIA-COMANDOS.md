@@ -3,7 +3,7 @@
 > Referência completa de todos os comandos do sistema.
 > Para instalação e configuração inicial: [`README.md`](README.md)
 
-**Versão: v2.5.1**
+**Versão: v2.5.2**
 
 ---
 
@@ -463,83 +463,21 @@ que pode ser chamado diretamente ou via pipeline `/analisar`.
 
 ---
 
-## Rotinas de uso sugeridas
+## Rotinas de uso
 
-> Padrão para perfil de acumulação de longo prazo: diário leve, semanal de controle, mensal de decisão.
-> Não é checklist obrigatório — é camadas. Use o que fizer sentido no contexto do dia.
+> Workflow completo por cadência e por fluxo oportunístico, com árvores de decisão e encadeamento de comandos:
+>
+> → **[`docs/SBWAA-WORKFLOW.md`](SBWAA-WORKFLOW.md)**
 
----
+Resumo rápido das cadências:
 
-### Diário — antes de acompanhar o mercado (5 min)
-
-```
-# 1. Briefing macro + impacto na carteira + alertas
-/morning-call
-
-# 2. Opcional — ver P&L do dia atualizado
-python sbwaa.py /carteira
-```
-
----
-
-### Semanal — revisão de performance e posicionamento (15–20 min)
-
-```powershell
-# 1. Atualizar base
-python sbwaa.py /carteira
-
-# no Claude Code:
-# 2. P&L da semana, Sharpe, drawdown, outlook
-/relatorio-semanal
-
-# 3. Ver ativos defasados que precisam de nova análise
-python sbwaa.py /watchlist --rever
-
-# 4. Verificar se alguma classe saiu da banda do IPS
-/rebalancear
-```
-
----
-
-### Mensal — visão profunda e decisões de portfólio (45–60 min)
-
-```powershell
-# 1. Base atualizada + métricas HF
-python sbwaa.py /carteira
-python sbwaa.py /risco-carteira
-
-# no Claude Code:
-# 2. Performance completa com benchmarks
-/relatorio-mensal
-
-# 3. PM revisa cada posição: manter / aumentar / reduzir / sair
-/revisar-carteira
-
-# 4. Se a revisão apontar ajuste, confirmar plano de ação
-/rebalancear
-
-# 5. Aprofundar nos ativos sinalizados pelo /revisar-carteira
-/pm TICKER        # análise recente (<60 dias) — só atualiza decisão
-/analisar TICKER  # análise ausente ou desatualizada (>60 dias)
-```
-
----
-
-### Oportunístico — ativo novo ou evento relevante
-
-```
-# Tese rápida antes de decidir se vale aprofundar
-/tese TICKER
-
-# Pipeline completo se a tese for interessante
-/analisar TICKER
-
-# Macro mudou bruscamente (juros, crise, eleição)
-/mundo-economico
-
-# Sugestão baseada no cenário atual e no IPS
-/investimento-do-dia
-```
+| Cadência | Tempo | Foco |
+|----------|-------|------|
+| Diária (pré-abertura) | 5–10 min | `/morning-call` + `/snapshot` |
+| Semanal | 20–30 min | `/risco-carteira` + `/relatorio-semanal` + `/rebalancear` |
+| Mensal | 60–90 min | `/risco-carteira` + `/stress-test` + `/otimizar-expansao` + `/revisar-carteira` + `/rebalancear` |
+| Trimestral (resultados) | 2–3h | `/earnings` por ativo + recalibração completa |
+| Anual | meio período | Revisão do IPS + reposicionamento |
 
 ---
 

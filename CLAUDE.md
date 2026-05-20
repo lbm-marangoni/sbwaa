@@ -10,7 +10,7 @@ A raiz foi reorganizada. Ao buscar qualquer arquivo, respeitar este mapa:
 
 | Pasta | Conteúdo |
 |-------|----------|
-| `docs/` | Documentação do projeto: `GUIA-COMANDOS.md`, `SBWAA-REFERENCIA.md`, `SBWAA-MASTER-BLUEPRINT.md`, `SBWAA-LOGO.md` |
+| `docs/` | Documentação do projeto: `GUIA-COMANDOS.md`, `SBWAA-WORKFLOW.md`, `SBWAA-REFERENCIA.md`, `SBWAA-MASTER-BLUEPRINT.md`, `SBWAA-LOGO.md` |
 | `interface/` | UI desktop: `ui.py` (painel customtkinter), `splash.py` |
 | `prompts/` | Histórico de prompts de construção do sistema (F0–F8) |
 | `scripts/` | Scripts de dados, cache, alertas, compliance |
@@ -135,6 +135,7 @@ DEVEM ser atualizados antes de encerrar qualquer sessão de trabalho:
 | `README.md`         | Quando mudar pré-requisitos, estrutura geral ou versão        |
 | `docs/GUIA-COMANDOS.md`    | Quando mudar sintaxe de comandos, flags ou exemplos de uso   |
 | `docs/SBWAA-REFERENCIA.md` | Quando adicionar, remover ou alterar qualquer comando — atualizar descrição de campos, mockup de output e comportamento esperado |
+| `docs/SBWAA-WORKFLOW.md`   | Quando adicionar novo comando ou fluxo que altere as rotinas — atualizar a cadência correspondente, a tabela de calendário e a tabela de decisão |
 | `sbwaa.py` `/help`         | Quando adicionar, remover ou renomear qualquer comando        |
 | `interface/ui.py`          | Quando adicionar, remover ou renomear qualquer comando que deva aparecer na tela do painel |
 | `docs/SBWAA-LOGO.md`             | A cada bump de versão — atualizar a string de versão no arquivo                              |
@@ -205,12 +206,13 @@ Execute nesta ordem (sem pular nenhuma):
 5. **sbwaa.py /help** — atualizar se adicionou, removeu ou renomeou qualquer comando
 6. **ui.py** — atualizar se adicionou, removeu ou renomeou qualquer comando no painel
 7. **SBWAA-REFERENCIA.md** — atualizar se adicionou, removeu ou alterou qualquer comando (campos, mockup de output, comportamento)
-8. **SBWAA-LOGO.md** — atualizar a string de versão a cada bump
-9. **SBWAA-MASTER-BLUEPRINT.md** — atualizar cabeçalho (versão + data), tabela de histórico e seção Estado Atual a cada MINOR/MAJOR ou mudança estrutural
-10. `git status` — confirmar que nenhum arquivo privado será commitado
-11. `git add <arquivos>` — somente arquivos do projeto, nunca vault/00-portfolio/ nem knowledge/raw/
-12. `git commit -m "tipo: descrição"` + `git push origin master`
-13. `gh release create vX.Y.Z --title "..." --notes "..." --latest --target master`
+8. **SBWAA-WORKFLOW.md** — atualizar se novo comando ou fluxo afeta alguma rotina (cadência, tabela de calendário ou tabela de decisão)
+9. **SBWAA-LOGO.md** — atualizar a string de versão a cada bump
+10. **SBWAA-MASTER-BLUEPRINT.md** — atualizar cabeçalho (versão + data), tabela de histórico e seção Estado Atual a cada MINOR/MAJOR ou mudança estrutural
+11. `git status` — confirmar que nenhum arquivo privado será commitado
+12. `git add <arquivos>` — somente arquivos do projeto, nunca vault/00-portfolio/ nem knowledge/raw/
+13. `git commit -m "tipo: descrição"` + `git push origin master`
+14. `gh release create vX.Y.Z --title "..." --notes "..." --latest --target master`
    — obrigatório para MINOR/MAJOR; para PATCHes, avaliar criticidade
 
 > O script `scripts/check_session_compliance.py` roda automaticamente ao final de cada sessão
