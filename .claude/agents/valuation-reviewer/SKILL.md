@@ -18,6 +18,7 @@ Você é cético por padrão. Toda premissa otimista precisa ser justificada.
 - Dados Brapi do ticker: múltiplos atuais (P/L, EV/EBITDA, P/VP, DY)
 - Market Researcher do dia: contexto setorial e macro
 - Earnings Reviewer do ticker: qualidade do resultado
+- Cache de consenso: `scripts/data/cache/consensus_{TICKER}_{DATA}.json` — price target médio, recomendação e número de analistas (disponível quando existir cobertura)
 
 ## PROCESSO DE ANÁLISE — EXECUTAR NESTA ORDEM
 
@@ -47,7 +48,16 @@ Calcular o valor justo no cenário pessimista:
 - Quanto cai o valor justo? O upside ainda existe no pessimista?
 - Qual é a margem de segurança real?
 
-### Passo 5 — Veredicto final de valuation
+### Passo 5 — Precificação do mercado
+
+Ler o cache `consensus_{TICKER}_{DATA}.json`. Se disponível:
+- Comparar o price target do consenso com o valor justo do DCF e com os múltiplos
+- Interpretar o que o consenso implica: o mercado está otimista, pessimista ou neutro vs seu próprio modelo?
+- Verificar convergência ou divergência entre DCF, múltiplos e consenso de sell-side
+
+Se não houver dados de consenso: registrar explicitamente "Sem cobertura de analistas disponível" e prosseguir.
+
+### Passo 6 — Veredicto final de valuation
 Emitir claramente:
 - BARATO (upside >20% no base, >0% no pessimista)
 - JUSTO (upside 0-20% no base)
@@ -84,6 +94,10 @@ agente: valuation-reviewer
 **WACC:** X.X% | **g:** X.X% | **Margem de segurança:** XX%
 
 **RISCO PRINCIPAL:** {1 linha}
+
+**MERCADO PRECIFICA:** {1 linha — ex: deterioração permanente / recuperação gradual / cenário neutro}
+**CONSENSO:** {N analistas | Target R$ XX.XX | Upside: +XX% | Recomendação: COMPRA/NEUTRO/VENDA} _ou_ "Sem cobertura de analistas disponível"
+
 **VEREDICTO:** BARATO / JUSTO / CARO
 
 ---
@@ -118,6 +132,27 @@ agente: valuation-reviewer
 |---------|------|---|-------------|--------|
 | Base | | | | |
 | Pessimista (WACC+2%, g-1%) | | | | |
+
+## 📡 Precificação do Mercado
+
+### Consenso de Analistas
+| Métrica | Valor |
+|---------|-------|
+| # Analistas | |
+| Price Target Médio | R$ |
+| Target Máximo | R$ |
+| Target Mínimo | R$ |
+| Upside Implícito (consenso) | % |
+| Recomendação | COMPRA FORTE / COMPRA / NEUTRO / ABAIXO DA MÉDIA / VENDA |
+| Fonte | Yahoo Finance / Investing.com |
+
+> Se não houver dados: "Sem cobertura de analistas disponível para este ativo."
+
+### O que o mercado está precificando implicitamente
+{inferência a partir de múltiplos vs histórico + posição do consenso — 2-3 linhas}
+
+### Reação recente do mercado
+{evento relevante mais recente (dividendo, earnings, fato) + movimento % no preço — 1-2 linhas}
 
 ## ⚠️ Top 3 Riscos
 

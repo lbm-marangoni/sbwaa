@@ -2,6 +2,18 @@
 
 ---
 
+## [2.4.0] — 2026-05-20 — CONSENSO DE ANALISTAS NO VALUATION REVIEWER
+
+### Added
+- `scripts/data/fetch_consensus.py`: novo script — busca consenso de analistas via yfinance (primário) + scraping Investing.com (fallback); cache 24h em `consensus_{TICKER}_{DATA}.json`; exibe price target médio/alto/baixo, upside implícito, recomendação (normalizada PT-BR) e número de analistas; aviso explícito quando sem cobertura
+- `.claude/agents/valuation-reviewer/SKILL.md`: novo Passo 5 "Precificação do mercado" — lê cache de consenso e cruza com DCF e múltiplos; novo bloco `## 📡 Precificação do Mercado` em ambas as versões de output (curta e longa), com tabela de consenso, inferência do que o mercado precifica e reação recente do preço
+- `.claude/commands/analisar.md`: `fetch_consensus.py` adicionado à ETAPA 0; cache de consenso listado nos arquivos a ler
+
+### Changed
+- Global → **v2.4.0** | investments → **v1.11.0**
+
+---
+
 ## [2.3.0] — 2026-05-19 — /VENDER, DIVIDENDOS REESCRITO E PROVENTOS NA CARTEIRA
 
 ### Added

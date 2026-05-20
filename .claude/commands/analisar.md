@@ -15,12 +15,14 @@ Rode em sequência:
 $env:PYTHONUTF8 = "1"; cd "C:\Users\lbmma\Downloads\Local\SBWAA"
 python scripts/data/fetch_brapi.py $ARGUMENTS
 python scripts/data/fetch_yahoo.py --macro
+python scripts/data/fetch_consensus.py $ARGUMENTS
 python scripts/data/update_carteira.py
 ```
 
 Leia os arquivos de cache gerados:
 - `scripts/data/cache/brapi_$ARGUMENTS_*.json` — dados fundamentalistas BR
 - `scripts/data/cache/yahoo_*.json` — macro global (todos os arquivos do dia)
+- `scripts/data/cache/consensus_$ARGUMENTS_*.json` — consenso de analistas (disponível quando houver cobertura)
 
 ---
 
