@@ -36,6 +36,7 @@ Os fluxos oportunísticos não têm calendário — são gatilhados por eventos.
 | `/relatorio-semanal` | | ✅ | | | |
 | `/rebalancear` | | ✅ | ✅ | ✅ | ✅ |
 | `/stress-test` | | | ✅ | ✅ | ✅ |
+| `/simulacao` | | | ✅ | | ✅ |
 | `/otimizar-expansao` | | | ✅ | ✅ | ✅ |
 | `/watchlist` | | | ✅ | ✅ | ✅ |
 | `/relatorio-mensal` | | | ✅ | | ✅ |
@@ -229,6 +230,9 @@ Rodar tudo antes de abrir qualquer comando de IA. Os agentes vão usar esses cac
 
 # Stress test completo (todos os cenários históricos)
 ! python sbwaa.py /stress-test
+
+# Simulação Monte Carlo de patrimônio (10 anos, parâmetros da carteira)
+! python sbwaa.py /simulacao
 
 # Fronteira eficiente expandida com watchlist
 ! python sbwaa.py /otimizar-expansao

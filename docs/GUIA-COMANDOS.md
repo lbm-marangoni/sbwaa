@@ -136,6 +136,41 @@ python sbwaa.py /adicionar --ticker PETR4 --tipo acao-on --quantidade 50 --preco
 | `debenture`   | Debênture             | 🟫 DEB          |
 | `cri-cra`     | CRI ou CRA            | 🟧 CRI/CRA      |
 
+**Flags exclusivas para Renda Fixa (`renda-fixa` | `tesouro` | `debenture` | `cri-cra`):**
+
+Para esses tipos, a validação via API é pulada automaticamente (sem ticker em bolsa).
+O campo `--setor` passa a ser o **emissor** (XP, BTG, Nubank, Tesouro Nacional…).
+
+```powershell
+# CDB com todos os detalhes
+python sbwaa.py /adicionar --ticker CDB001 --tipo renda-fixa --quantidade 1 --preco-medio 10000 \
+  --setor "XP Investimentos" \
+  --nome "CDB XP 110% CDI" \
+  --indexador CDI --taxa "110%" --vencimento 2027-06-01
+
+# Tesouro Direto
+python sbwaa.py /adicionar --ticker TDREND30 --tipo tesouro --quantidade 1 --preco-medio 5000 \
+  --setor "Tesouro Nacional" \
+  --nome "Tesouro Renda+ 2030" \
+  --indexador IPCA --taxa "+6%" --vencimento 2030-01-01
+
+# Debênture com nome livre
+python sbwaa.py /adicionar --ticker DEB001 --tipo debenture --quantidade 1 --preco-medio 20000 \
+  --setor "BTG Pactual" \
+  --nome "Debênture Incentivada BTG" \
+  --indexador IPCA --taxa "+5.5%" --vencimento 2028-12-01
+```
+
+| Flag RF | Descrição |
+|---------|-----------|
+| `--nome "..."` | Nome legível do produto (ex: "CDB XP 110% CDI") |
+| `--indexador X` | `CDI` \| `IPCA` \| `Selic` \| `PRE` \| `IGPM` |
+| `--taxa "..."` | Taxa contratada (ex: `"110%"`, `"+6%"`, `"13.5% PRE"`) |
+| `--vencimento YYYY-MM-DD` | Data de vencimento do título |
+
+A nota gerada em `vault/01-ativos/TICKER/` inclui tabela estruturada com indexador, taxa e vencimento.
+Unidade exibida: **unidades** (não "ações") no output e no histórico de trades.
+
 ---
 
 ### `/vender` — Registrar venda de ativo
@@ -210,6 +245,37 @@ Cenários disponíveis: Crise Financeira 2008 (-41%), COVID Março 2020 (-30%),
 Incerteza Eleitoral 2022 (-15%), Crise de Confiança 2002 (-17%).
 
 > Patrimônio normalizado em R$ 100k — privacidade preservada.
+
+---
+
+### `/simulacao` — Simulação Monte Carlo de patrimônio
+
+Projeta a evolução do patrimônio ao longo do tempo via Monte Carlo (GBM),
+usando parâmetros históricos da carteira (drift e volatilidade calculados pelo `/risco-carteira`).
+
+```powershell
+# Simulação padrão (1000 caminhos, 10 anos, aporte mensal do IPS)
+python sbwaa.py /simulacao
+
+# Horizonte e aporte personalizados
+python sbwaa.py /simulacao --anos 20 --aporte 2000
+
+# Salvar gráfico em vez de exibir
+python sbwaa.py /simulacao --salvar
+```
+
+**Flags:**
+
+| Flag | Padrão | Descrição |
+|------|--------|-----------|
+| `--anos N` | 10 | Horizonte de projeção em anos |
+| `--aporte N` | IPS | Aporte mensal em R$ (sobrescreve o IPS) |
+| `--salvar` | — | Salva gráfico em `vault/05-risk/simulacao-YYYY-MM-DD.png` |
+
+**Output:** gráfico com leque de cenários (P10/P50/P90) + tabela de patrimônio esperado por ano.
+
+> Requer `matplotlib` instalado. Parâmetros reutilizados do cache `logs/simulacao/params_cache.json`
+> gerado pelo `/risco-carteira`.
 
 ---
 
@@ -479,7 +545,7 @@ Resumo rápido das cadências:
 |----------|-------|------|
 | Diária (pré-abertura) | 5–10 min | `/morning-call` + `/snapshot` |
 | Semanal | 20–30 min | `/risco-carteira` + `/relatorio-semanal` + `/rebalancear` |
-| Mensal | 60–90 min | `/risco-carteira` + `/stress-test` + `/otimizar-expansao` + `/revisar-carteira` + `/rebalancear` |
+| Mensal | 60–90 min | `/risco-carteira` + `/stress-test` + `/simulacao` + `/otimizar-expansao` + `/revisar-carteira` + `/rebalancear` |
 | Trimestral (resultados) | 2–3h | `/earnings` por ativo + recalibração completa |
 | Anual | meio período | Revisão do IPS + reposicionamento |
 

@@ -117,6 +117,7 @@ class App(ctk.CTk):
             ("Snapshot Mercado", "/snapshot"),
             ("IPS", "/ips"),
             ("Metas", "/metas"),
+            ("Simulação MC", "/simulacao"),
         ]:
             ctk.CTkButton(row0b, text=label, width=150,
                           command=lambda s=slug: self._local([s])

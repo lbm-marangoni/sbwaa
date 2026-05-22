@@ -18,6 +18,7 @@
 - [/dividendos](#dividendos)
 - [/snapshot](#snapshot)
 - [/stress-test](#stress-test)
+- [/simulacao](#simulacao)
 - [/ips](#ips)
 - [/adicionar](#adicionar)
 - [/vender](#vender)
@@ -77,9 +78,37 @@ Atualiza cotações via Brapi e exibe o estado atual do portfólio.
   Total Investido  : R$ 18.500,00
   P&L Total        : R$ +1.374,00 (+7,4%)
   Última atualização: 2026-05-20 08:31
+
+══════════════════════════════════════════════════════
+  PROJEÇÃO — METAS FINANCEIRAS
+══════════════════════════════════════════════════════
+
+  📈 PATRIMÔNIO TOTAL
+     Alvo: R$ 500.000 | Atual: R$ 19.874
+     [##------------] 4%
+     Sem aporte : ~28,6 anos  (2054-11)
+     Com aporte : ~15,2 anos  (2041-07)  [ATENÇÃO — 5,2 a após o prazo]
+
+  💰 RENDA PASSIVA MENSAL
+     Alvo: R$ 3.000/mês | Atual: R$ 1.350/mês  (yield 8,1% a.a.)
+     [#######-------] 45%
+     Projeção patrimônio necessário: R$ 444.444
+     Com aporte : ~14,8 anos  (2041-03)
+
+  ──────────────────────────────────────────────────
+  METAS LIVRES
+  ──────────────────────────────────────────────────
+
+  🎯 Viagem Europa
+     Alvo: R$ 15.000 | Falta: R$ 12.900 | Aporte: R$ 500/mês
+     [#-------------] 14%
+     Previsão: Fev/2028  [ATENÇÃO — 8 meses após o prazo Jun/2027]
+══════════════════════════════════════════════════════
 ```
 
 > Proventos recebidos aparecem no Resumo quando `/dividendos` já foi executado no dia.
+> A seção PROJECAO aparece apenas quando `vault/00-portfolio/metas.md` existe e tem pelo menos uma meta configurada.
+> Projeções usam Monte Carlo (1k simulações, GBM) com parâmetros do cache `/risco-carteira`.
 
 ---
 
@@ -326,6 +355,44 @@ Simula o impacto de cenários históricos de crise na carteira atual.
 
 ---
 
+### /simulacao
+
+Projeta o patrimônio da carteira via Monte Carlo (GBM) com parâmetros históricos.
+
+**Campos:**
+
+| Campo | Descrição |
+|-------|-----------|
+| Horizonte | Anos de projeção configurados |
+| Aporte mensal | Valor mensal adicionado ao patrimônio |
+| P10 / P50 / P90 | Percentis de resultado ao final do horizonte |
+| Drift anual | Retorno esperado ajustado (μ - σ²/2) |
+| Volatilidade anual | Desvio padrão histórico anualizado |
+
+**Exemplo de output:**
+
+```
+══════════════════════════════════════════════════════
+  SIMULAÇÃO MONTE CARLO — 10 anos | Aporte: R$ 2.000/mês
+══════════════════════════════════════════════════════
+  Parâmetros: drift 12,3% a.a. | vol 18,7% a.a.
+  Simulações: 1.000 caminhos
+
+  Ano    P10         P50         P90
+  1      R$ 25.200   R$ 28.400   R$ 34.100
+  3      R$ 42.500   R$ 58.700   R$ 81.200
+  5      R$ 68.300   R$ 103.900  R$ 162.400
+  10     R$ 132.100  R$ 268.500  R$ 573.800
+
+  Patrimônio atual: R$ 19.874 | Patrimônio esperado (P50, 10a): R$ 268.500
+══════════════════════════════════════════════════════
+```
+
+> Parâmetros lidos do cache `logs/simulacao/params_cache.json` (gerado pelo `/risco-carteira`).
+> Com `--salvar`, grava gráfico em `vault/05-risk/simulacao-YYYY-MM-DD.png`.
+
+---
+
 ### /ips
 
 Exibe o Investment Policy Statement completo: perfil, alocação alvo, bandas e limites de risco.
@@ -344,6 +411,13 @@ Registra um novo ativo na carteira ou incrementa posição existente.
 **Comportamento:**
 - Ativo novo: cria entrada em `carteira.md` e pasta em `vault/01-ativos/TICKER/`
 - Ativo existente: recalcula preço médio ponderado e exibe P&L antes e depois
+
+**Renda Fixa (`renda-fixa` | `tesouro` | `debenture` | `cri-cra`):**
+- Validação de API pulada automaticamente (sem ticker em bolsa)
+- `--setor` = emissor (XP, BTG, Tesouro Nacional…)
+- Unidade exibida: "unidades" (não "ações")
+- Flags exclusivas RF: `--nome`, `--indexador` (CDI|IPCA|Selic|PRE|IGPM), `--taxa`, `--vencimento`
+- Nota `tese.md` gerada com tabela estruturada (indexador, taxa, vencimento, emissor) e `status: ativo`
 
 ---
 
