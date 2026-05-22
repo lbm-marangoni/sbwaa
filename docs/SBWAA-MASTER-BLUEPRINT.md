@@ -1,7 +1,7 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.8.6  
+**Versão de referência:** v2.8.7  
 **Data de geração:** 2026-05-22  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
@@ -2128,16 +2128,16 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.8.6 — 2026-05-22
+SBWAA v2.8.7 — 2026-05-22
 
 Módulos:
-  investments     v1.18.2 ✅ Operacional
+  investments     v1.18.3 ✅ Operacional
                           Econometrician (Etapa 6 do /analisar): GARCH, beta dinâmico, FF3F, macro BCB, rolling corr, drawdown avançado
                           /watchlist: veredictos cacheados com frescor
                           /vender: P&L realizado, remoção automática se qty=0
                           /otimizar-expansao: fronteira eficiente dual (carteira vs carteira+watchlist)
                           /simulacao: backtest 5 anos + Monte Carlo GBM 10/20/30 anos + fan chart
-                          /carteira: projeção integrada — 2 cenários (sem aporte / com aporte médio histórico)
+                          /carteira: projeção 2 cenários + seção METAS com quando cada meta será atingida
   heartbeat       v1.0.1  ✅ Operacional (sem alterações)
   knowledge-base  v1.2.0  ✅ Operacional (RAG ativo; referências Markowitz indexadas; ~1.200 chunks)
   interface       v2.3.1  ✅ Operacional
@@ -2150,7 +2150,7 @@ Modo de operação: Claude Code (sem API key)
   -> ANTHROPIC_API_KEY não necessária para comandos locais
 ```
 
-### Histórico de versões (v2.2.2 → v2.8.6)
+### Histórico de versões (v2.2.2 → v2.8.7)
 
 | Versão  | Data       | Descrição                                                        |
 |---------|------------|------------------------------------------------------------------|
@@ -2189,6 +2189,7 @@ Modo de operação: Claude Code (sem API key)
 | v2.8.4  | 2026-05-22 | Fix PROJECT_ROOT em ui.py confirmado; /metas em COMANDOS_IA de sbwaa.py |
 | v2.8.5  | 2026-05-22 | /simulacao (scripts/simulacao_carteira.py): backtest 5 anos proxy IPS + Monte Carlo GBM 10/20/30 anos; fan chart P5/P25/P50/P75/P95; params_cache.json; projeção integrada no /carteira (sem aportes); matplotlib>=3.9.0 adicionado ao requirements |
 | v2.8.6  | 2026-05-22 | Projeção /carteira com dois cenários: sem aporte e com aporte médio histórico (lê historico-trades.md); calcular_aporte_medio(); _mc_finais() iterativo; coluna "Ganho vs sem" no cenário com aporte |
+| v2.8.7  | 2026-05-22 | Seção METAS — PROJECAO no /carteira: projeta quando cada meta de metas.md será atingida; patrimônio (analítico + MC); renda passiva (yield real ou 6% default → MC); metas livres (linear por aporte); status OK/ATENCAO vs data_alvo |
 
 ### Diferenças do projeto original para o atual
 
@@ -2236,4 +2237,4 @@ python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-m
 
 ---
 
-*Blueprint atualizado em 2026-05-22 (v2.8.6). Para atualizar, editar este arquivo e bumpar VERSION.md.*
+*Blueprint atualizado em 2026-05-22 (v2.8.7). Para atualizar, editar este arquivo e bumpar VERSION.md.*
