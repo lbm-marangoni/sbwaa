@@ -74,7 +74,7 @@ TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": No
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.7.0                ║
+║            SBWAA — Referência de Comandos  v2.8.0                ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]
@@ -162,8 +162,9 @@ def exibir_help():
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   /analisar PETR4
-      Pipeline completo: 7 agentes em sequência do dado ao veredicto.
-      Market Researcher → Earnings → DCF → Valuation → Quant → Risk → PM.
+      Pipeline completo: 8 agentes em sequência do dado ao veredicto (10 etapas).
+      Researcher → Earnings → DCF → Valuation → Quant → Econometrician → Risk → PM.
+      Aceita múltiplos tickers: /analisar PETR4 VALE3 (batch com tabela comparativa).
       Output em vault/01-ativos/PETR4/.
 
   /tese PETR4

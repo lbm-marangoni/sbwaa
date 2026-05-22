@@ -3,7 +3,7 @@
 > Rotinas de uso do sistema por cadência e por fluxo oportunístico.
 > Para referência de comandos e sintaxe: [`GUIA-COMANDOS.md`](GUIA-COMANDOS.md)
 
-**Versão: v2.5.2**
+**Versão: v2.8.0**
 
 ---
 
@@ -289,7 +289,7 @@ Análise existe e tem < 60 dias?
   → /pm TICKER    (decisão atualizada com cache existente)
 
 Análise ausente ou > 60 dias?
-  → /analisar TICKER    (pipeline completo — 8 etapas)
+  → /analisar TICKER    (pipeline completo — 10 etapas, 8 agentes)
 
 Ativo da watchlist candidato MELHORA + análise recente?
   → /comparar TICKER TICKER_SIMILAR    (avaliar vs o que já tem)
@@ -477,7 +477,7 @@ O que olhar: valuation relativo, qualidade, risco. O novo ativo é melhor ou com
 **Camada 3 — Análise completa (se a tese e a comparação forem favoráveis)**
 
 ```
-/analisar TICKER    # pipeline completo: 7 agentes, 8 etapas (~30 min)
+/analisar TICKER    # pipeline completo: 8 agentes, 10 etapas (~30 min)
 ```
 
 Pós-análise:

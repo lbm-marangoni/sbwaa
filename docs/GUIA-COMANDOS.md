@@ -3,7 +3,7 @@
 > Referência completa de todos os comandos do sistema.
 > Para instalação e configuração inicial: [`README.md`](README.md)
 
-**Versão: v2.7.0**
+**Versão: v2.8.0**
 
 ---
 
@@ -11,7 +11,7 @@
 
 SBWAA é um sistema pessoal de gestão de portfólio e análise de ativos financeiros que combina:
 
-- **7 agentes de IA especializados** que analisam ativos do zero ao veredicto final
+- **8 agentes de IA especializados** que analisam ativos do zero ao veredicto final
 - **Pipeline de dados automático** via Brapi (BR) e Yahoo Finance (macro/internacional)
 - **Base de conhecimento RAG** com indexação semântica de PDFs, relatórios e notícias RSS
 - **Painel visual** customtkinter com todos os comandos acessíveis por botão
@@ -290,9 +290,9 @@ o terminal exibe a instrução de uso e o botão `/ui` copia para o clipboard.
 
 ---
 
-### `/analisar TICKER [TICKER2 ...]` — Pipeline completo de análise (8 etapas)
+### `/analisar TICKER [TICKER2 ...]` — Pipeline completo de análise (10 etapas, 8 agentes)
 
-Executa todos os 7 agentes em sequência para um ou mais ativos.
+Executa todos os 8 agentes em sequência para um ou mais ativos.
 
 ```
 /analisar PETR4
@@ -302,8 +302,10 @@ Executa todos os 7 agentes em sequência para um ou mais ativos.
 Em batch (2+ tickers): pipeline completo e isolado para cada ticker em sequência,
 output individual normal para cada um + tabela comparativa de veredictos ao final.
 
-Etapas: dados de mercado → Market Researcher → Earnings Reviewer →
-Model Builder (DCF) → Valuation Reviewer (incl. preço teto/chão) → Quant → Risk Engineer → Portfolio Manager.
+Etapas: dados de mercado (Brapi + Yahoo + BCB) → Market Researcher → Earnings Reviewer →
+Model Builder (DCF) → Valuation Reviewer (incl. preço teto/chão) → Quant → **Econometrician**
+(GARCH, beta dinâmico, Fama-French 3F, macro BCB, correlações rolling, drawdown avançado) →
+Risk Engineer → Portfolio Manager → Salvar nota.
 
 Output gerado em `vault/01-ativos/TICKER/`.
 
@@ -448,7 +450,7 @@ python sbwaa.py /status    # versão atual, modo e data
 
 ---
 
-## Os 7 agentes
+## Os 8 agentes
 
 | Agente             | Modelo            | Função                                         |
 |--------------------|-------------------|------------------------------------------------|

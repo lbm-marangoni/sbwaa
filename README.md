@@ -150,7 +150,7 @@ python sbwaa.py /ui
 
 ```
 /morning-call          # briefing pré-abertura com macro + alertas
-/analisar PETR4        # pipeline completo de análise (7 agentes, ~15 min)
+/analisar PETR4        # pipeline completo de análise (8 agentes, 10 etapas)
 /tese VALE3            # análise rápida com DCF e veredicto do PM
 /revisar-carteira      # PM revisa todas as posições: MANTER/AUMENTAR/REDUZIR/SAIR
 /rebalancear           # desvios vs IPS e sugestão de ajuste de alocação
@@ -228,7 +228,7 @@ sbwaa/
 │   └── splash.py
 │
 ├── .claude/
-│   ├── agents/               ← 7 agentes especializados (SKILL.md + runner)
+│   ├── agents/               ← 8 agentes especializados (SKILL.md + runner)
 │   │   └── quant-data-engineer/calculators/optimization.py  ← Fronteira Eficiente (Markowitz)
 │   └── commands/             ← scripts dos comandos locais
 │
@@ -252,7 +252,7 @@ sbwaa/
 
 ---
 
-## Os 7 agentes
+## Os 8 agentes
 
 | Agente | Modelo | Função |
 |--------|--------|--------|
@@ -261,6 +261,7 @@ sbwaa/
 | Model Builder | Opus | Construção de DCF e modelos de valuation |
 | Valuation Reviewer | Sonnet | Revisão crítica do modelo, equity research |
 | Quant / Data Eng. | Sonnet | Sharpe, VaR, correlação, métricas quant |
+| Econometrician | Sonnet | GARCH, beta dinâmico, Fama-French 3F, macro BCB, drawdown avançado |
 | Risk Engineer | Opus | VaR, CVaR, stress tests, circuit breakers |
 | Portfolio Manager | Opus | Decisão final: COMPRAR / AGUARDAR / EVITAR |
 

@@ -1837,7 +1837,7 @@ Módulos:
   investments     v1.17.0 ✅ Operacional (Econometrician: Etapa 6 do /analisar — GARCH, beta dinâmico, FF3F, macro BCB, rolling corr, drawdown avançado)
   heartbeat       v1.0.1  ✅ Operacional
   knowledge-base  v1.2.0  ✅ Operacional (RAG ativo em todos os agentes LLM; referências Markowitz indexadas)
-  interface       v2.3.0  ✅ Operacional (ui.py v2.7.0; botão Metas no Portfolio tab)
+  interface       v2.3.0  ✅ Operacional (ui.py v2.8.0; botão Metas no Portfolio tab)
 
 Modo de operação: Claude Code (sem API key)
   → Comandos locais rodam via Python puro
@@ -1920,4 +1920,4 @@ python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-m
 
 ---
 
-*Blueprint atualizado em 2026-05-22 (v2.7.0). Para atualizar, editar este arquivo e bumpar VERSION.md.*
+*Blueprint atualizado em 2026-05-22 (v2.8.0). Para atualizar, editar este arquivo e bumpar VERSION.md.*
