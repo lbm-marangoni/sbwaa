@@ -255,7 +255,7 @@ def exibir_projecao_metas(patrimonio: float, mu_anual: float, sigma_anual: float
     if not metas:
         return
 
-    hoje = datetime.now()
+    hoje        = datetime.now()
     drift_anual = mu_anual - 0.5 * sigma_anual ** 2
 
     def sem_aporte(meta_val: float) -> float | None:
@@ -264,6 +264,10 @@ def exibir_projecao_metas(patrimonio: float, mu_anual: float, sigma_anual: float
         if patrimonio >= meta_val:
             return 0.0
         return math.log(meta_val / patrimonio) / drift_anual
+
+    def barra(pct: float, largura: int = 15) -> str:
+        preench = min(int(pct / 100 * largura), largura)
+        return "#" * preench + "-" * (largura - preench)
 
     _fmtv = lambda v: f"R${v/1e6:.2f}M" if v >= 1e6 else f"R${v/1e3:.0f}k"
 
@@ -275,10 +279,13 @@ def exibir_projecao_metas(patrimonio: float, mu_anual: float, sigma_anual: float
     if "patrimonio_alvo" in metas:
         alvo   = metas["patrimonio_alvo"]
         da_str = metas.get("patrimonio_data_alvo")
+        pct    = min(patrimonio / alvo * 100, 100) if alvo > 0 else 0
+
         header = f"  Patrimonio {_fmtv(alvo)}"
         if da_str:
             header += f"  (prazo: {da_str[:7]})"
         print(header)
+        print(f"    Atual: {_fmtv(patrimonio)}  [{barra(pct)}] {pct:.0f}%")
         print(f"    Sem aporte:  {_fmt_projecao(sem_aporte(alvo), da_str, hoje)}")
         if aporte_mensal > 0:
             a_com = _anos_para_atingir_mc(patrimonio, alvo, mu_anual, sigma_anual, aporte_mensal)
@@ -289,22 +296,33 @@ def exibir_projecao_metas(patrimonio: float, mu_anual: float, sigma_anual: float
         alvo_mensal = metas["renda_passiva_alvo"]
         da_str      = metas.get("renda_passiva_data_alvo")
 
-        # Yield estimado: proventos / patrimônio (aproximação); fallback 6% a.a. (benchmark FII BR)
-        yield_anual = 0.06
-        yield_fonte = "estimado 6% a.a."
+        # Renda atual: total_no_ano / 12 — anualizado com base nos dividendos reais deste ano
+        # Yield: total_no_ano / patrimônio — correto porque total_no_ano já é ≈ 1 ano de dados
+        renda_atual: float | None = None
+        yield_anual  = 0.06
+        yield_fonte  = "estimado 6% a.a."
         if proventos_cache and patrimonio > 0:
-            tp = proventos_cache.get("total_recebido", 0)
-            if tp > 0:
-                y = tp / patrimonio
-                if 0.02 <= y <= 0.20:
+            total_ano = proventos_cache.get("total_no_ano", 0)
+            if total_ano > 0:
+                renda_atual = total_ano / 12
+                y = total_ano / patrimonio
+                if 0.005 <= y <= 0.30:
                     yield_anual = y
-                    yield_fonte = f"carteira {y*100:.1f}% a.a."
+                    yield_fonte = f"carteira {y*100:.1f}% a.a. ({hoje.year})"
 
         patrimonio_necessario = (alvo_mensal * 12) / yield_anual
+
         header = f"  Renda Passiva R${alvo_mensal:,.0f}/mes"
         if da_str:
             header += f"  (prazo: {da_str[:7]})"
         print(f"\n{header}")
+
+        if renda_atual is not None:
+            pct_rp = min(renda_atual / alvo_mensal * 100, 100) if alvo_mensal > 0 else 0
+            print(f"    Atual: R${renda_atual:,.0f}/mes  [{barra(pct_rp)}] {pct_rp:.0f}%")
+        else:
+            print(f"    Atual: execute /dividendos para calcular renda mensal real")
+
         print(f"    Yield {yield_fonte}  ->  precisa de {_fmtv(patrimonio_necessario)}")
         print(f"    Sem aporte:  {_fmt_projecao(sem_aporte(patrimonio_necessario), da_str, hoje)}")
         if aporte_mensal > 0:
@@ -313,18 +331,18 @@ def exibir_projecao_metas(patrimonio: float, mu_anual: float, sigma_anual: float
 
     # ── Metas Livres ──────────────────────────────────────────
     for meta in metas.get("metas_livres", []):
-        nome    = meta.get("nome", "Meta")
-        alvo    = meta.get("alvo", 0.0)
-        atual   = meta.get("atual", 0.0)
-        da_str  = meta.get("data_alvo")
-        faltam  = max(0.0, alvo - atual)
+        nome   = meta.get("nome", "Meta")
+        alvo   = meta.get("alvo", 0.0)
+        atual  = meta.get("atual", 0.0)
+        da_str = meta.get("data_alvo")
+        faltam = max(0.0, alvo - atual)
+        pct_ml = min(atual / alvo * 100, 100) if alvo > 0 else 0
 
         header = f"\n  {nome}  R${alvo:,.0f}"
-        if atual > 0:
-            header += f"  (atual: R${atual:,.0f})"
         if da_str:
             header += f"  prazo: {da_str[:7]}"
         print(header)
+        print(f"    Atual: R${atual:,.0f}  [{barra(pct_ml)}] {pct_ml:.0f}%")
 
         if faltam <= 0:
             print("    Ja atingida!")

@@ -2,6 +2,23 @@
 
 ---
 
+## [2.8.8] — 2026-05-22 — RENDA PASSIVA REAL + BARRA DE PROGRESSO NAS METAS
+
+### Fixed
+- **Renda Passiva**: yield calculado de `total_no_ano / patrimônio` (correto e anualizado) em vez de `total_recebido / patrimônio` (acumulado histórico distorcido pelo tempo de carteira)
+- **Renda atual**: `total_no_ano / 12` = renda mensal estimada real dos dividendos deste ano — antes não existia, usava só projeção
+
+### Added
+- Barra de progresso `[###---]` em todas as metas: patrimônio, renda passiva e metas livres
+- Linha "Atual: R$X/mes [barra] XX%" na renda passiva — mostra onde está hoje vs alvo
+- Linha "Atual: [barra] XX%" no patrimônio e nas metas livres
+
+### Changed
+- `investments`: v1.18.3 → **v1.18.4**
+- Global → **v2.8.8**
+
+---
+
 ## [2.8.7] — 2026-05-22 — PROJECAO DE METAS NO /CARTEIRA
 
 ### Added
