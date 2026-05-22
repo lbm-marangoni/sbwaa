@@ -66,6 +66,7 @@ COMANDOS_IA = {
     "/relatorio-mensal":    "relatorio-mensal",
     "/rebalancear":         "rebalancear",
     "/revisar-carteira":    "revisar-carteira",
+    "/metas":               "metas",
 }
 
 TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": None, "/help": None, "/status": None}

@@ -2,6 +2,18 @@
 
 ---
 
+## [2.8.4] — 2026-05-22 — FIX UI: PROJECT_ROOT + /METAS REGISTRADO
+
+### Fixed
+- `interface/ui.py`: `PROJECT_ROOT` corrigido de `.parent` para `.parent.parent` — comandos do painel apontavam para `interface/sbwaa.py` (inexistente) em vez do root do projeto
+- `sbwaa.py`: `/metas` adicionado ao dict `COMANDOS_IA` — estava documentado no `/help` e no painel mas não era roteado, causando "Comando não reconhecido"
+
+### Changed
+- `interface`: v2.3.0 → **v2.3.1**
+- Global → **v2.8.4**
+
+---
+
 ## [2.8.3] — 2026-05-22 — ECONOMETRICIAN EXPANDIDO + VEREDICTOS CONTEXTUAIS EM TODOS OS COMANDOS
 
 ### Added

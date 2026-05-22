@@ -14,7 +14,7 @@ from pathlib import Path
 import customtkinter as ctk
 
 os.environ["PYTHONUTF8"] = "1"
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 # pythonw.exe (usado pelo iniciar.bat) não tem stdout — usar python.exe explicitamente
 _exe = Path(sys.executable)
