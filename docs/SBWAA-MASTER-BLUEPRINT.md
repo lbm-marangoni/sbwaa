@@ -1,7 +1,7 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.8.0  
+**Versão de referência:** v2.8.6  
 **Data de geração:** 2026-05-22  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
@@ -36,10 +36,12 @@
 10. [Fase 6 — Comandos + Heartbeat + Alertas](#10-fase-6--comandos--heartbeat--alertas)
 11. [Fase 7 — RAG Knowledge Base](#11-fase-7--rag-knowledge-base)
 12. [Fase 8 — Interface Visual (customtkinter)](#12-fase-8--interface-visual-customtkinter)
-13. [sbwaa.py — Ponto de Entrada Atual](#13-sbwaapy--ponto-de-entrada-atual)
-14. [Correções Críticas Aplicadas](#14-correções-críticas-aplicadas)
-15. [Rotina de Testes](#15-rotina-de-testes)
-16. [Estado Atual e Versões](#16-estado-atual-e-versões)
+13. [Fase 9 — Econometrician](#13-fase-9--econometrician)
+14. [Fase 10 — Simulação de Carteira](#14-fase-10--simulação-de-carteira)
+15. [sbwaa.py — Ponto de Entrada Atual](#15-sbwaapy--ponto-de-entrada-atual)
+16. [Correções Críticas Aplicadas](#16-correções-críticas-aplicadas)
+17. [Rotina de Testes](#17-rotina-de-testes)
+18. [Estado Atual e Versões](#18-estado-atual-e-versões)
 
 ---
 
@@ -252,6 +254,7 @@ sbwaa/
 ├── CHANGELOG.md                      ← histórico de mudanças
 ├── README.md                         ← documentação principal
 ├── requirements.txt                  ← dependências
+├── iniciar.bat / iniciar.vbs         ← launchers Windows
 ├── .env                              ← ANTHROPIC_API_KEY (não commitar)
 ├── .gitignore
 │
@@ -283,33 +286,49 @@ sbwaa/
 │   │   │   └── calculators/
 │   │   │       ├── var.py
 │   │   │       └── stress_test.py
+│   │   ├── econometrician/               ← NOVO — Fase 9
+│   │   │   ├── SKILL.md
+│   │   │   ├── run_econometrician.py
+│   │   │   └── modules/
+│   │   │       ├── garch_model.py        ← GARCH(1,1) via arch
+│   │   │       ├── dynamic_beta.py       ← beta rolling OLS
+│   │   │       ├── factor_model.py       ← Fama-French 3F proxies BR
+│   │   │       ├── macro_regression.py   ← regressão vs BCB (Selic/IPCA/BRL/IBC-Br)
+│   │   │       ├── rolling_stats.py      ← correlações + vol rolling
+│   │   │       └── advanced_drawdown.py  ← Calmar / Ulcer / Pain Index
 │   │   └── portfolio-manager/
 │   │       ├── SKILL.md
-│   │       ├── run_pm.py
-│   │       └── run_analisar.py
+│   │       ├── run_pm.py                 ← Modo A/B + econometria + veredictos expandidos
+│   │       └── run_analisar.py           ← orquestrador (8 etapas + Econometrician)
 │   └── commands/
-│       ├── carteira.py
+│       ├── carteira.py                   ← + projeção Monte Carlo ao final
 │       ├── dividendos.py
 │       ├── stress_test.py
 │       ├── ips.py
 │       ├── risco_carteira.py
+│       ├── watchlist.py                  ← NOVO
 │       ├── morning_call.py
 │       ├── mundo_economico.py
 │       ├── investimento_do_dia.py
 │       ├── relatorio_semanal.py
 │       ├── relatorio_mensal.py
-│       ├── rebalancear.py
-│       ├── tese.py
+│       ├── rebalancear.py                ← + sinais econométricos
+│       ├── tese.py                       ← + Modo A/B
 │       └── comparar.py
 │
 ├── scripts/
 │   ├── data/
 │   │   ├── fetch_brapi.py            ← cotações BR (Brapi API)
 │   │   ├── fetch_yahoo.py            ← dados globais (Yahoo Finance)
+│   │   ├── fetch_bcb.py              ← NOVO — macro BCB (Selic, IPCA, BRL, IBC-Br)
+│   │   ├── fetch_consensus.py        ← NOVO — consenso de analistas
 │   │   ├── update_carteira.py        ← atualiza cotações na carteira.md
 │   │   ├── add_ativo.py              ← adiciona ativo ao vault
+│   │   ├── vender_ativo.py           ← NOVO — registra venda (parcial ou total)
 │   │   ├── market_snapshot.py        ← snapshot diário macro
+│   │   ├── optimize_expansao.py      ← fronteira dual carteira vs watchlist
 │   │   └── cache/                    ← JSONs com cache de 4h
+│   ├── simulacao_carteira.py         ← NOVO — backtest histórico + Monte Carlo
 │   ├── heartbeat/
 │   │   ├── heartbeat.py
 │   │   └── schedule_heartbeat.py
@@ -326,7 +345,7 @@ sbwaa/
 │   ├── indexed/
 │   │   └── index_log.json
 │   ├── sources/
-│   │   └── sources.json
+│   │   └── sources.json              ← Valor, InfoMoney, BCB, Bloomberg, Reuters
 │   ├── indexer.py
 │   ├── retriever.py
 │   ├── rss_collector.py
@@ -337,7 +356,8 @@ sbwaa/
 │   ├── 00-portfolio/
 │   │   ├── carteira.md               ← posições + cotações
 │   │   ├── ips.md                    ← Investment Policy Statement
-│   │   ├── historico-trades.md       ← log de operações
+│   │   ├── metas.md                  ← NOVO — metas financeiras (renda, reserva, patrimônio)
+│   │   ├── historico-trades.md       ← log de operações (COMPRA/VENDA)
 │   │   └── decisoes.md               ← decisões do PM
 │   ├── 01-ativos/
 │   │   └── {TICKER}/
@@ -364,9 +384,17 @@ sbwaa/
 │   └── assets/
 │       └── agents-pixel/             ← PNGs 64x64 dos agentes (opcional)
 │
+├── interface/
+│   ├── ui.py                         ← interface desktop customtkinter
+│   └── splash.py                     ← splash screen terminal
+│
 └── logs/
     ├── heartbeat.log
-    └── alerts.log
+    ├── alerts.log
+    └── simulacao/                    ← NOVO — PNGs backtest + Monte Carlo
+        ├── backtest_{DATA}.png
+        ├── montecarlo_{DATA}.png
+        └── params_cache.json         ← parâmetros μ/σ para /carteira
 ```
 
 ---
@@ -930,6 +958,12 @@ circuit_breakers = {
 
 ### SKILL.md — Portfolio Manager
 
+> **Atualização v2.8.x:** O PM agora opera em dois modos detectados automaticamente:
+> - **Modo A** — ativo não está na carteira → veredictos: COMPRAR / AGUARDAR / EVITAR
+> - **Modo B** — ativo já está na carteira → veredictos: AUMENTAR / MANTER / REDUZIR / SAIR
+>
+> Adicionalmente, o PM recebe e incorpora o output do **Econometrician** (cache JSON) em sua análise.
+
 ```markdown
 # Portfolio Manager — SBWAA
 
@@ -938,10 +972,16 @@ Você é o Portfolio Manager do SBWAA — o decisor final do sistema.
 Você NÃO é um assistente. Você é um gestor de portfólio experiente,
 crítico e direto, responsável por proteger e fazer crescer o capital.
 
-Sua decisão final é uma de três:
+**[MODO A — Novo ativo]** Sua decisão é uma de três:
 - **COMPRAR** — convicção suficiente, sizing e entrada definidos
 - **AGUARDAR** — tese válida mas entrada não favorável ainda
 - **EVITAR** — tese fraca, risco elevado ou melhor alocação disponível
+
+**[MODO B — Posição existente]** Sua decisão é uma de quatro:
+- **AUMENTAR** — tese se fortaleceu, há espaço no IPS, entry favorável
+- **MANTER** — posição adequada, sem catalisador para mudar
+- **REDUZIR** — risco subiu, tese deteriorou, concentração alta, ou oportunidade de custo
+- **SAIR** — tese quebrada, stop atingido, ou realocação prioritária
 
 Nunca retorne respostas ambíguas. Sempre conclua com veredicto claro.
 
@@ -951,8 +991,10 @@ Nunca retorne respostas ambíguas. Sempre conclua com veredicto claro.
 3. Output do Model Builder (DCF/preço justo)
 4. Output do Valuation Reviewer (múltiplos + equity research)
 5. Output do Quant/Data Engineer (métricas HF da carteira)
-6. Output do Risk Engineer (VaR, circuit breakers, stress tests)
-7. IPS do usuário (perfil, alocação alvo, limites)
+6. Output do Econometrician (GARCH, beta dinâmico, FF3F, macro BCB, drawdown avançado)
+7. Output do Risk Engineer (VaR, circuit breakers, stress tests)
+8. IPS do usuário (perfil, alocação alvo, limites)
+9. Posição atual na carteira (peso atual, P&L, data de entrada) — se Modo B
 
 ## Estrutura da Decisão
 
@@ -1057,24 +1099,42 @@ if __name__ == "__main__":
 ### Prompt de execução no Claude Code:
 > Crie o ponto de entrada sbwaa.py e todos os comandos em .claude/commands/. Também crie o heartbeat automático (scripts/heartbeat/heartbeat.py) e o sistema de alertas (scripts/alerts/check_alerts.py). sbwaa.py roteia slash commands para os scripts corretos.
 
-### Comandos implementados em `.claude/commands/`
+### Comandos implementados
 
-| Arquivo              | Comando            | Descrição                                        |
-|----------------------|--------------------|--------------------------------------------------|
-| carteira.py          | /carteira          | Atualiza e exibe posições, P&L e alocação vs IPS |
-| dividendos.py        | /dividendos        | Próximos dividendos (60d) e histórico do ano     |
-| stress_test.py       | /stress-test       | Simula choques de mercado na carteira            |
-| ips.py               | /ips               | Exibe o IPS do usuário                           |
-| risco_carteira.py    | /risco-carteira    | VaR, CVaR, Sharpe, drawdown, circuit breakers, Fronteira Eficiente |
-| optimize_expansao.py (scripts/data/) | /otimizar-expansao | Fronteira dual: carteira vs carteira + watchlist — candidatos MELHORA/NEUTRO/PIORA |
-| morning_call.py      | /morning-call      | Briefing pré-abertura com macro + alertas        |
-| mundo_economico.py   | /mundo-economico   | Análise macro do dia                             |
-| investimento_do_dia.py | /investimento-do-dia | Sugestão de 1-2 ativos para explorar          |
-| relatorio_semanal.py | /relatorio-semanal | P&L + métricas da semana, gera .md e .docx      |
-| relatorio_mensal.py  | /relatorio-mensal  | Relatório completo do mês com benchmarks         |
-| rebalancear.py       | /rebalancear       | Desvios vs IPS e sugestão de ajuste              |
-| tese.py              | /tese              | Research + DCF + PM (mais rápido que /analisar)  |
-| comparar.py          | /comparar          | Análise lado a lado de dois ativos               |
+**Locais** (`.claude/commands/` e `scripts/` — rodam via Python puro, sem IA):
+
+| Arquivo              | Comando              | Descrição                                        |
+|----------------------|----------------------|--------------------------------------------------|
+| carteira.py          | /carteira            | Atualiza cotações, exibe posições + P&L + alocação vs IPS + **projeção Monte Carlo** ao final |
+| dividendos.py        | /dividendos          | Próximos dividendos (60d), histórico do ano e Yield on Cost |
+| stress_test.py       | /stress-test         | Simula choques de mercado (4 cenários + custom)  |
+| ips.py               | /ips                 | Exibe o IPS completo do usuário                  |
+| watchlist.py         | /watchlist           | **NOVO** — lista ativos analisados + carteira com veredicto, data e frescor (atual/defasado/rever) |
+| risco_carteira.py    | /risco-carteira      | VaR, CVaR, Sharpe, drawdown, circuit breakers, Fronteira Eficiente |
+| simulacao_carteira.py (scripts/) | /simulacao | **NOVO** — backtest 5 anos + Monte Carlo 10/20/30a com fan chart; gera PNGs; atualiza cache de μ/σ |
+| add_ativo.py (scripts/) | /adicionar        | Adiciona ativo à carteira (valida na API, cria pasta vault) |
+| vender_ativo.py (scripts/) | /vender        | **NOVO** — registra venda parcial ou total; calcula P&L realizado |
+| optimize_expansao.py (scripts/) | /otimizar-expansao | Fronteira dual: carteira vs carteira + watchlist; candidatos MELHORA/NEUTRO/PIORA |
+| market_snapshot.py (scripts/) | /snapshot   | Snapshot diário macro (IBOV, S&P, DXY, commodities...) |
+| knowledge_cmd.py (knowledge/) | /knowledge  | Gerencia base RAG: status, adicionar, buscar, listar, coletar-rss |
+
+**IA** (chat do Claude Code — sem ANTHROPIC_API_KEY):
+
+| Skill/Comando          | Descrição                                        |
+|------------------------|--------------------------------------------------|
+| /analisar TICKER       | Pipeline completo: 8 agentes em sequência (inclui Econometrician como etapa 6) |
+| /tese TICKER           | Research + DCF + PM rápido; Modo A/B automático  |
+| /pm TICKER             | Só Portfolio Manager com dados cacheados         |
+| /earnings TICKER       | Resultado trimestral                             |
+| /comparar A B          | Análise lado a lado                              |
+| /morning-call          | Briefing pré-abertura + alertas econométricos    |
+| /mundo-economico       | Análise macro do dia                             |
+| /investimento-do-dia [cat] | Sugestão IPS-aware; filtro: fii/acao/etf/rf/td |
+| /metas                 | **NOVO** — dashboard: renda passiva, reserva, patrimônio, metas livres |
+| /relatorio-semanal     | P&L da semana, métricas e outlook                |
+| /relatorio-mensal      | Relatório completo do mês com benchmarks         |
+| /rebalancear           | Desvios vs IPS + sinais econométricos por ativo  |
+| /revisar-carteira      | **NOVO** — PM revisa cada posição: MANTER/AUMENTAR/REDUZIR/SAIR com sizing |
 
 ### Alertas implementados (`check_alerts.py`)
 ```python
@@ -1515,9 +1575,172 @@ if __name__ == "__main__":
 
 ---
 
-## 13. SBWAA.PY — PONTO DE ENTRADA ATUAL
+## 13. FASE 9 — ECONOMETRICIAN
 
-Estado atual do `sbwaa.py` (versão pós-correções):
+### O que é
+O Econometrician é o **8º agente** do pipeline `/analisar` (Etapa 6, após Quant e antes de Risk). Produz análise quantitativa avançada de um único ativo usando séries temporais e econometria aplicada. Resultado: JSON em cache (`econometria_{TICKER}_{DATA}.json`) consumido pelo PM e pelos comandos `/rebalancear` e `/revisar-carteira`.
+
+**Modelo:** `claude-sonnet-4-6` | **Effort:** medium
+
+### Módulos (`.claude/agents/econometrician/modules/`)
+
+| Módulo | Função |
+|--------|--------|
+| `garch_model.py` | GARCH(1,1) via biblioteca `arch`: volatilidade condicional, previsão 5 dias, regime de vol (BAIXA/NORMAL/ALTA) |
+| `dynamic_beta.py` | Beta rolling OLS 63d/126d/252d; detecta convergência/divergência; compara com beta ingênuo |
+| `factor_model.py` | Fama-French 3 Fatores com proxies BR: MKT=^BVSP, SMB=SMALL11.SA, HML=DIVO11.SA; R² e alfas |
+| `macro_regression.py` | Regressão vs variáveis macro do BCB: Selic, IPCA, BRL/USD, IBC-Br; sensibilidades e R² |
+| `rolling_stats.py` | Volatilidade rolling 21/63/252d; correlação rolling 63d vs IBOV + outros ativos da carteira |
+| `advanced_drawdown.py` | Calmar ratio (retorno/maxDD), Ulcer Index (profundidade média ao quadrado), Pain Index; série de drawdowns individuais |
+
+### Dependências novas
+- `arch>=7.0.0` — estimação GARCH
+- `fetch_bcb.py` — séries macro BCB (Selic diário série 11, IPCA mensal série 433, BRL/USD série 1, IBC-Br série 24363)
+
+### Output — estrutura do JSON de cache
+```json
+{
+  "ticker": "PETR4",
+  "data": "2026-05-22",
+  "garch": {
+    "vol_condicional_hoje": 0.018,
+    "vol_anualizada": 28.5,
+    "previsao_5d": 0.020,
+    "regime": "NORMAL",
+    "omega": 0.0001, "alpha": 0.09, "beta": 0.88
+  },
+  "beta_dinamico": {
+    "beta_63d": 1.12, "beta_126d": 1.08, "beta_252d": 1.05,
+    "tendencia": "ESTAVEL",
+    "beta_ingenuo_252d": 1.06
+  },
+  "factor_model": {
+    "alpha_anual": 0.02, "beta_mkt": 1.05, "beta_smb": 0.15, "beta_hml": -0.08,
+    "r2": 0.72, "periodo": "252d"
+  },
+  "macro_regression": {
+    "sensibilidade_selic": -0.35, "sensibilidade_ipca": 0.12,
+    "sensibilidade_brl": -0.28, "sensibilidade_ibc": 0.45,
+    "r2": 0.41
+  },
+  "rolling_stats": {
+    "vol_21d": 0.022, "vol_63d": 0.019, "vol_252d": 0.017,
+    "corr_ibov_63d": 0.68, "corr_ibov_252d": 0.71
+  },
+  "advanced_drawdown": {
+    "calmar_ratio": 1.42, "ulcer_index": 8.3, "pain_index": 4.1,
+    "max_drawdown": -0.21, "n_drawdowns": 7
+  },
+  "para_o_pm": [
+    "Vol GARCH ALTA — regime de estresse; PM deve aplicar sizing mais conservador",
+    "Beta dinâmico crescente (63d > 252d) — sensibilidade ao mercado aumentando",
+    "Calmar < 1 — retorno ajustado a drawdown abaixo do aceitável"
+  ]
+}
+```
+
+### Integração no Pipeline
+- **run_econometrician.py** rodado como Etapa 6 do `run_analisar.py`
+- Saída salva em `scripts/data/cache/econometria_{TICKER}_{DATA}.json`
+- Janela de cache: 8 dias (considerado "recente" para PM e comandos)
+- **run_pm.py** lê o cache e injeta bloco `ECONOMETRICIAN` no prompt do PM
+- **/rebalancear** e **/revisar-carteira** leem caches de todos os ativos da carteira e exibem tabela "Sinais Econométricos por Ativo"
+
+### Regras de incorporação no PM
+```
+GARCH ALTA           → sizing conservador, mencionar risco de vol
+Beta 63d > Beta 252d → sensibilidade crescente ao mercado
+Calmar < 0.5         → histórico de drawdown ruim
+Corr instável        → diversificação em risco
+Sinais positivos     → reforçam MANTER / AUMENTAR
+```
+
+---
+
+## 14. FASE 10 — SIMULAÇÃO DE CARTEIRA
+
+### O que é
+Sistema de análise de longo prazo com **backtest histórico** e **projeção Monte Carlo**. Tem dois pontos de acesso:
+
+1. **`python sbwaa.py /simulacao`** — script completo com download de dados, backtest 5 anos, Monte Carlo 10k simulações, gráficos PNG dark mode. Atualiza `logs/simulacao/params_cache.json`.
+2. **`/carteira`** — usa params_cache.json para exibir projeção inline ao final (sem rede, ~1 segundo).
+
+### `/simulacao` — `scripts/simulacao_carteira.py`
+
+**Proxies IPS (quando carteira vazia):**
+| Classe IPS | Proxy | Peso |
+|------------|-------|------|
+| Ações BR | BOVA11.SA | 25% |
+| FIIs | KNRI11.SA | 35% |
+| ETFs Internac. | IVVB11.SA | 8% |
+| Renda Fixa | CDI (BCB série 12) | 20% |
+| Tesouro Direto | IPCA + 5% a.a. (BCB série 433) | 12% |
+
+**Parte B — Backtest:**
+- Monta retornos diários ponderados pelas classes IPS
+- Benchmarks: ^BVSP (IBOV) e CDI diário (BCB)
+- Gráfico triplo: retorno acumulado / rolling 12m / drawdown
+- Métricas: retorno anualizado, volatilidade, Sharpe, max drawdown
+
+**Parte A — Monte Carlo:**
+- GBM paramétrico: drift = μ − σ²/2 (correção Itô)
+- 10.000 simulações por horizonte
+- Fan chart P5/P25/P50/P75/P95
+- Suporte a `--aporte` mensal (loop diário, +aporte a cada 22 dias)
+- Tabela de percentis finais (P5/P25/P50/P75/P95) por horizonte
+
+**Flags:**
+```bash
+python sbwaa.py /simulacao
+python sbwaa.py /simulacao --patrimonio 50000 --aporte 1000
+python sbwaa.py /simulacao --anos 5 10 20 --historico 5
+python sbwaa.py /simulacao --no-graficos   # só terminal, sem PNGs
+```
+
+**Outputs:**
+- `logs/simulacao/backtest_{DATA}.png`
+- `logs/simulacao/montecarlo_{DATA}.png`
+- `logs/simulacao/params_cache.json` — `{mu_anual, sigma_anual, data, historico_anos}`
+
+### Projeção no `/carteira`
+
+Ao final de todo output do `/carteira`, exibe automaticamente:
+
+```
+PROJECAO DE LONGO PRAZO
+  Patrimonio atual: R$ 50,000   |   mu: 11.2%  sigma: 7.2%  |  5,000 sims  |  base: 2026-05-22
+
+  Sem aportes adicionais:
+  Anos    P10 (pessim.)   P50 (esperado)  P90 (otimist.)
+  10            R$106k          R$142k          R$188k
+  20            R$264k          R$397k          R$600k
+  30            R$688k         R$1.13M         R$1.89M
+
+  Mantendo aporte medio de R$ 870/mes (6 meses de historico):
+  Anos    P10 (pessim.)   P50 (esperado)  P90 (otimist.)   Ganho vs sem
+  10            R$252k          R$317k          R$397k        +R$175k
+  20            R$768k         R$1.07M         R$1.50M        +R$669k
+  30           R$2.12M         R$3.21M         R$4.98M       +R$2.08M
+
+  Graficos + backtest historico:  python sbwaa.py /simulacao
+```
+
+**Como o aporte é calculado:**
+- Lê `vault/00-portfolio/historico-trades.md`
+- Filtra linhas com `COMPRA`, agrupa por mês (YYYY-MM)
+- Soma o `Total R$` por mês → média sobre meses com compras
+- Se sem histórico → mostra só cenário "sem aportes" com mensagem orientativa
+
+**Requisito:** rodar `/simulacao` pelo menos uma vez para criar o `params_cache.json`. Após isso, `/carteira` sempre exibe a projeção sem acesso à rede.
+
+### Dependência nova
+- `matplotlib>=3.9.0`
+
+---
+
+## 15. SBWAA.PY — PONTO DE ENTRADA ATUAL
+
+Estado atual do `sbwaa.py` (v2.8.6 — pós todas as fases):
 
 ```python
 #!/usr/bin/env python3
@@ -1536,6 +1759,7 @@ Comandos com IA (sem API key): use diretamente no chat do Claude Code
     /earnings MXRF11       /comparar A B       /pm PETR4
     /mundo-economico       /investimento-do-dia
     /relatorio-semanal     /relatorio-mensal   /rebalancear
+    /revisar-carteira      /metas
 """
 
 import sys
@@ -1544,6 +1768,7 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+# Forçar UTF-8 no stdout/stderr e em todos os subprocessos (Windows)
 os.environ["PYTHONUTF8"] = "1"
 os.environ["PYTHONIOENCODING"] = "utf-8"
 if hasattr(sys.stdout, "reconfigure"):
@@ -1555,17 +1780,23 @@ PROJECT_ROOT = Path(__file__).parent
 
 MODO_CLAUDE_CODE = True
 
+# Comandos que rodam localmente (sem IA / sem API key)
 COMANDOS_LOCAIS = {
-    "/carteira":        ".claude/commands/carteira.py",
-    "/adicionar":       "scripts/data/add_ativo.py",
-    "/risco-carteira":  ".claude/commands/risco_carteira.py",
-    "/dividendos":      ".claude/commands/dividendos.py",
-    "/stress-test":     ".claude/commands/stress_test.py",
-    "/ips":             ".claude/commands/ips.py",
-    "/snapshot":        "scripts/data/market_snapshot.py",
-    "/knowledge":       "knowledge/knowledge_cmd.py",
+    "/carteira":            ".claude/commands/carteira.py",
+    "/watchlist":           ".claude/commands/watchlist.py",
+    "/adicionar":           "scripts/data/add_ativo.py",
+    "/vender":              "scripts/data/vender_ativo.py",
+    "/risco-carteira":      ".claude/commands/risco_carteira.py",
+    "/dividendos":          ".claude/commands/dividendos.py",
+    "/stress-test":         ".claude/commands/stress_test.py",
+    "/simulacao":           "scripts/simulacao_carteira.py",
+    "/ips":                 ".claude/commands/ips.py",
+    "/snapshot":            "scripts/data/market_snapshot.py",
+    "/knowledge":           "knowledge/knowledge_cmd.py",
+    "/otimizar-expansao":   "scripts/data/optimize_expansao.py",
 }
 
+# Comandos de IA — redirecionados para Claude Code (sem API key)
 COMANDOS_IA = {
     "/analisar":            "analisar",
     "/tese":                "tese",
@@ -1579,13 +1810,15 @@ COMANDOS_IA = {
     "/relatorio-semanal":   "relatorio-semanal",
     "/relatorio-mensal":    "relatorio-mensal",
     "/rebalancear":         "rebalancear",
+    "/revisar-carteira":    "revisar-carteira",
+    "/metas":               "metas",
 }
 
 
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.2.x               ║
+║            SBWAA — Referência de Comandos  v2.8.6               ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]
@@ -1596,11 +1829,21 @@ def exibir_help():
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   python sbwaa.py /carteira
-  python sbwaa.py /adicionar --ticker PETR4 --tipo acao-pn \\
+      Atualiza cotações e exibe posições, P&L% e alocação vs IPS.
+      Ao final: projeção Monte Carlo 10/20/30 anos (2 cenários).
+
+  python sbwaa.py /watchlist
+      Lista todos os ativos analisados + carteira com último veredicto,
+      data da análise e frescor (OK / defasado / rever).
+      Flag: --rever   (mostra apenas os que precisam de nova análise)
+
+  python sbwaa.py /adicionar --ticker PETR4 --tipo acao-on \\
                              --quantidade 100 --preco-medio 38.50 \\
                              --setor energia
+  python sbwaa.py /vender --ticker PETR4 --quantidade 50 --preco 45.00
   python sbwaa.py /dividendos
   python sbwaa.py /risco-carteira
+  python sbwaa.py /otimizar-expansao
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   MERCADO  (local)
@@ -1610,6 +1853,10 @@ def exibir_help():
   python sbwaa.py /stress-test
   python sbwaa.py /stress-test covid-2020
   python sbwaa.py /stress-test custom -25
+  python sbwaa.py /simulacao
+      Backtest histórico 5 anos + Monte Carlo 10/20/30 anos com gráficos.
+      Salva PNGs em logs/simulacao/ e atualiza params_cache.json.
+      Flags: --patrimonio 50000  --aporte 1000  --no-graficos
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   KNOWLEDGE BASE  (local)
@@ -1625,24 +1872,26 @@ def exibir_help():
   ANÁLISE COM IA  (digitar no chat do Claude Code)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  /analisar PETR4       (pipeline completo: 7 agentes)
+  /analisar PETR4       (pipeline completo: 8 agentes, 10 etapas)
   /tese PETR4           (Research + DCF + PM — rápido)
   /earnings MXRF11      (resultado trimestral)
   /comparar PETR4 VALE3 (análise lado a lado)
-  /pm PETR4             (só Portfolio Manager)
+  /pm PETR4             (só Portfolio Manager, dados cacheados)
   /morning-call
   /mundo-economico
-  /investimento-do-dia
+  /investimento-do-dia [categoria]
+  /metas                (dashboard de metas financeiras)
   /relatorio-semanal
   /relatorio-mensal
   /rebalancear
+  /revisar-carteira     (PM revisa cada posição: MANTER/AUMENTAR/REDUZIR/SAIR)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   SISTEMA
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   python sbwaa.py /ips
-  python sbwaa.py /ui          (interface desktop)
+  python sbwaa.py /ui          (interface desktop customtkinter)
   python sbwaa.py /status
   python sbwaa.py /help
 
@@ -1654,7 +1903,7 @@ def exibir_status():
     versao_path = PROJECT_ROOT / "VERSION.md"
     print(f"\n{'═'*55}")
     print(f"SBWAA — Status do Sistema")
-    print(f"Modo: {'Claude Code (sem API key)' if MODO_CLAUDE_CODE else 'API key'}")
+    print(f"Modo: {'Claude Code (sem API key)' if MODO_CLAUDE_CODE else 'API key (anthropic)'}")
     print(f"Data: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print(f"{'═'*55}")
     if versao_path.exists():
@@ -1669,11 +1918,11 @@ def redirecionar_claude_code(comando, args_extra):
     print(f"""
   Este comando usa IA e roda no Claude Code (sem API key).
 
-  → Digite no chat do Claude Code:
+  -> Digite no chat do Claude Code:
     {exemplo}
 
   O Claude Code vai executar os scripts de dados e fazer
-  a análise completa sem precisar de ANTHROPIC_API_KEY.
+  a analise completa sem precisar de ANTHROPIC_API_KEY.
 """)
 
 
@@ -1683,35 +1932,41 @@ def main():
         return
 
     raw = sys.argv[1]
-    # Correção para Git Bash no Windows (expande /cmd para caminho absoluto)
+    # Git Bash no Windows expande /cmd para C:/Program Files/Git/cmd
+    # Normaliza extraindo só o nome base e prefixando com /
     if not raw.startswith("/") and "/" in raw:
         raw = "/" + Path(raw).name
     comando = raw.lower()
     args_extra = sys.argv[2:]
 
     if comando == "/help":
-        exibir_help(); return
+        exibir_help()
+        return
     if comando == "/status":
-        exibir_status(); return
+        exibir_status()
+        return
     if comando == "/ui":
-        interface_path = PROJECT_ROOT / "ui.py"
+        interface_path = PROJECT_ROOT / "interface" / "ui.py"
         if not interface_path.exists():
-            print("\n❌ Interface não encontrada.\n"); return
+            print("\n Interface nao encontrada.\n")
+            return
         subprocess.run([sys.executable, str(interface_path)])
         return
     if comando in COMANDOS_IA:
-        redirecionar_claude_code(comando, args_extra); return
+        redirecionar_claude_code(comando, args_extra)
+        return
     if comando not in COMANDOS_LOCAIS:
-        print(f"\n❌ Comando '{comando}' não reconhecido.")
-        print("   Use /help para ver todos os comandos disponíveis.\n")
+        print(f"\n Comando '{comando}' nao reconhecido.")
+        print("   Use /help para ver todos os comandos disponiveis.\n")
         return
 
     script_rel = COMANDOS_LOCAIS[comando]
     script_path = PROJECT_ROOT / script_rel
     if not script_path.exists():
-        print(f"\n❌ Script não encontrado: {script_rel}\n"); return
+        print(f"\n Script nao encontrado: {script_rel}\n")
+        return
 
-    subprocess.run([sys.executable, str(script_path)] + args_extra)
+    subprocess.run([sys.executable, "-u", str(script_path)] + args_extra)
 
 
 if __name__ == "__main__":
@@ -1781,6 +2036,38 @@ frame.grid(row=2, column=0, sticky="nsew", ...)
 **Problema:** Função `safe()` definida mas nunca chamada (só `safe_pct()` é usada).  
 **Solução:** Remover a função `safe()`.
 
+### Correção 8 — `PROJECT_ROOT` errado em `ui.py`
+**Problema:** `ui.py` foi movido para `interface/ui.py` mas ainda usava `PROJECT_ROOT = Path(__file__).parent` (apontava para `interface/` em vez da raiz do projeto). Todos os caminhos de scripts quebravam.  
+**Solução:**
+```python
+PROJECT_ROOT = Path(__file__).parent.parent  # interface/ -> raiz
+```
+
+### Correção 9 — `/metas` ausente em `COMANDOS_IA` no `sbwaa.py`
+**Problema:** O comando `/metas` foi adicionado ao sistema (v2.7.0) mas não foi incluído no dicionário `COMANDOS_IA` de `sbwaa.py`, causando "Comando não reconhecido" ao tentar redirecionar.  
+**Solução:** Adicionar ao `COMANDOS_IA`:
+```python
+"/metas": "metas",
+```
+
+### Correção 10 — Parsing errado de total em `calcular_aporte_medio()`
+**Problema:** O formato `{:,.2f}` do Python usa vírgula como separador de milhar e ponto como decimal (ex: `"1,200.00"`). O código inicial fazia `.replace(".", "").replace(",", ".")` invertendo separadores, resultando em `"1.200"` = 1.2 em vez de 1200.  
+**Solução:**
+```python
+# CORRETO — vírgula = milhar, ponto = decimal; remover só a vírgula
+total = float(total_str.replace(",", "").replace("R$", "").strip())
+```
+
+### Correção 11 — `UnicodeEncodeError` no Windows em `simulacao_carteira.py`
+**Problema:** Caracteres Unicode (`→`, `═`, `✅`) em `print()` causavam `charmap codec can't encode character` no terminal Windows (cp1252).  
+**Solução:** Adicionar no topo do script:
+```python
+import io, sys
+if sys.platform == "win32" and hasattr(sys.stdout, "buffer"):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+```
+E executar com `python -X utf8 sbwaa.py /simulacao` (ou via `sbwaa.py` que já define `PYTHONUTF8=1`).
+
 ---
 
 ## 15. ROTINA DE TESTES
@@ -1789,7 +2076,7 @@ Após reconstrução, executar nesta ordem:
 
 ```bash
 # 1. Dependências
-python -c "import anthropic, yfinance, chromadb, customtkinter, pandas, numpy, scipy; print('OK')"
+python -c "import anthropic, yfinance, chromadb, customtkinter, pandas, numpy, scipy, matplotlib, arch; print('OK')"
 
 # 2. sbwaa.py funcional
 python sbwaa.py /help
@@ -1800,29 +2087,39 @@ python scripts/data/fetch_brapi.py PETR4
 python scripts/data/fetch_yahoo.py
 python scripts/data/market_snapshot.py
 
-# 4. Adicionar ativo de teste e testar comandos
+# 4. Adicionar ativo de teste e testar comandos de portfólio
 python sbwaa.py /adicionar --ticker VALE3 --tipo acao-on --quantidade 50 --preco-medio 60.00 --setor mineracao
 python sbwaa.py /carteira
+python sbwaa.py /watchlist
 python sbwaa.py /risco-carteira
 python sbwaa.py /stress-test
 python sbwaa.py /dividendos
 python sbwaa.py /ips
+
+# 5. Simulação (gera params_cache.json e PNGs)
+python sbwaa.py /simulacao --no-graficos   # modo rápido sem janelas
+python sbwaa.py /carteira                  # deve exibir projeção ao final
+
+# 6. Knowledge base
 python sbwaa.py /knowledge --status
 
-# 5. Interface desktop
+# 7. Interface desktop
 python sbwaa.py /ui
 
-# 6. Limpar dados de teste
+# 8. Limpar dados de teste
 # (remover manualmente vault/01-ativos/VALE3/ e linha da carteira.md)
 ```
 
 **Checklist de validação:**
 - [ ] `fetch_brapi.py` retorna JSON (fallback para Yahoo se 401)
 - [ ] `update_carteira.py` atualiza cotações corretamente
-- [ ] `/carteira` exibe P&L% (não P&L R$) na coluna certa
+- [ ] `/carteira` exibe P&L% (não P&L R$) na coluna certa e projeção ao final
+- [ ] `/watchlist` lista ativos com veredicto e frescor corretos
 - [ ] `/stress-test` exibe impactos de todos os 4 cenários
 - [ ] `/risco-carteira` exibe VaR, CVaR e circuit breakers
-- [ ] `ui.py` abre, output cresce com a janela, auto-clear funciona
+- [ ] `/simulacao` gera `logs/simulacao/params_cache.json` + PNGs
+- [ ] `/carteira` usa params_cache.json para exibir dois cenários de projeção
+- [ ] `ui.py` abre com PROJECT_ROOT correto (raiz do projeto), output cresce com a janela
 - [ ] Comandos de IA redirecionam corretamente (não travam)
 - [ ] Knowledge base inicializa sem erro
 
@@ -1831,21 +2128,29 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.8.0 — 2026-05-22
+SBWAA v2.8.6 — 2026-05-22
 
 Módulos:
-  investments     v1.17.0 ✅ Operacional (Econometrician: Etapa 6 do /analisar — GARCH, beta dinâmico, FF3F, macro BCB, rolling corr, drawdown avançado)
-  heartbeat       v1.0.1  ✅ Operacional
-  knowledge-base  v1.2.0  ✅ Operacional (RAG ativo em todos os agentes LLM; referências Markowitz indexadas)
-  interface       v2.3.0  ✅ Operacional (ui.py v2.8.0; botão Metas no Portfolio tab)
+  investments     v1.18.2 ✅ Operacional
+                          Econometrician (Etapa 6 do /analisar): GARCH, beta dinâmico, FF3F, macro BCB, rolling corr, drawdown avançado
+                          /watchlist: veredictos cacheados com frescor
+                          /vender: P&L realizado, remoção automática se qty=0
+                          /otimizar-expansao: fronteira eficiente dual (carteira vs carteira+watchlist)
+                          /simulacao: backtest 5 anos + Monte Carlo GBM 10/20/30 anos + fan chart
+                          /carteira: projeção integrada — 2 cenários (sem aporte / com aporte médio histórico)
+  heartbeat       v1.0.1  ✅ Operacional (sem alterações)
+  knowledge-base  v1.2.0  ✅ Operacional (RAG ativo; referências Markowitz indexadas; ~1.200 chunks)
+  interface       v2.3.1  ✅ Operacional
+                          PROJECT_ROOT corrigido (interface/ui.py → raiz do projeto)
+                          Botões: Metas, Watchlist, Vender, Otimizar Expansão, Simulação
 
 Modo de operação: Claude Code (sem API key)
-  → Comandos locais rodam via Python puro
-  → Comandos de IA são executados via chat do Claude Code
-  → ANTHROPIC_API_KEY não necessária para comandos locais
+  -> Comandos locais rodam via Python puro
+  -> Comandos de IA são executados via chat do Claude Code
+  -> ANTHROPIC_API_KEY não necessária para comandos locais
 ```
 
-### Histórico de versões (v2.2.2 → v2.5.3)
+### Histórico de versões (v2.2.2 → v2.8.6)
 
 | Versão  | Data       | Descrição                                                        |
 |---------|------------|------------------------------------------------------------------|
@@ -1878,6 +2183,12 @@ Modo de operação: Claude Code (sem API key)
 | v2.6.2  | 2026-05-22 | /investimento-do-dia com filtro de categoria opcional: fii, acao, etf, etf-br, etf-intl, rf, td |
 | v2.7.0  | 2026-05-22 | Sistema de Metas Financeiras: vault/metas.md, /metas (dashboard + projeções + milestones), integração morning-call, seção Metas no IPS, botão UI |
 | v2.8.0  | 2026-05-22 | Agente Econometrician: GARCH(1,1), beta dinâmico rolling OLS, Fama-French 3F proxies BR, regressão macro BCB (Selic/IPCA/BRL/IBC-Br), correlações rolling, drawdown avançado (Calmar/Ulcer/Pain); Etapa 6 do /analisar; fetch_bcb.py; arch>=6.0.0 |
+| v2.8.1  | 2026-05-22 | PM veredictos contextuais: 7 veredictos (COMPRAR/AGUARDAR/EVITAR para Modo A; AUMENTAR/MANTER/REDUZIR/SAIR para Modo B); Econometrician expandido com recomendação de tamanho de posição |
+| v2.8.2  | 2026-05-22 | Correção PROJECT_ROOT em ui.py (interface/ → raiz); /metas adicionado a COMANDOS_IA em sbwaa.py |
+| v2.8.3  | 2026-05-22 | Econometrician expandido com veredicto interpretativo final; veredictos contextuais em todos os comandos de análise |
+| v2.8.4  | 2026-05-22 | Fix PROJECT_ROOT em ui.py confirmado; /metas em COMANDOS_IA de sbwaa.py |
+| v2.8.5  | 2026-05-22 | /simulacao (scripts/simulacao_carteira.py): backtest 5 anos proxy IPS + Monte Carlo GBM 10/20/30 anos; fan chart P5/P25/P50/P75/P95; params_cache.json; projeção integrada no /carteira (sem aportes); matplotlib>=3.9.0 adicionado ao requirements |
+| v2.8.6  | 2026-05-22 | Projeção /carteira com dois cenários: sem aporte e com aporte médio histórico (lê historico-trades.md); calcular_aporte_medio(); _mc_finais() iterativo; coluna "Ganho vs sem" no cenário com aporte |
 
 ### Diferenças do projeto original para o atual
 
@@ -1895,21 +2206,26 @@ Modo de operação: Claude Code (sem API key)
 ```bash
 # Manhã
 python sbwaa.py /snapshot          # atualizar dados macro
-python sbwaa.py /carteira          # ver posições atualizadas
+python sbwaa.py /carteira          # ver posições + projeção integrada ao final
 
 # Análise (no chat do Claude Code)
 /morning-call
 /analisar PETR4
 
 # Semana
-python sbwaa.py /risco-carteira    # verificar métricas HF + Fronteira Eficiente
-python sbwaa.py /watchlist         # ver veredictos e frescor das análises
+python sbwaa.py /risco-carteira    # métricas HF + Fronteira Eficiente
+python sbwaa.py /watchlist         # veredictos e frescor das análises
 # /relatorio-semanal               (no chat do Claude Code)
 
 # Mensal / expansão de carteira
 python sbwaa.py /otimizar-expansao # análise dual: carteira vs carteira+watchlist
+python sbwaa.py /simulacao         # atualizar backtest e params Monte Carlo
 # /revisar-carteira                (no chat do Claude Code)
 # /rebalancear                     (no chat do Claude Code)
+# /metas                           (no chat do Claude Code — dashboard de metas)
+
+# Vender / rebalancear posição
+python sbwaa.py /vender --ticker PETR4 --quantidade 50 --preco 45.00
 
 # Adicionar novo ativo
 python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-medio 9.80 --setor fiis
@@ -1920,4 +2236,4 @@ python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-m
 
 ---
 
-*Blueprint atualizado em 2026-05-22 (v2.8.0). Para atualizar, editar este arquivo e bumpar VERSION.md.*
+*Blueprint atualizado em 2026-05-22 (v2.8.6). Para atualizar, editar este arquivo e bumpar VERSION.md.*
