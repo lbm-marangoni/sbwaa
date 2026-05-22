@@ -2,6 +2,19 @@
 
 ---
 
+## [2.8.2] — 2026-05-22 — PM: VEREDICTOS CONTEXTUAIS PARA POSIÇÕES EXISTENTES
+
+### Changed
+- `.claude/agents/portfolio-manager/SKILL.md`: Passo 2 agora detecta explicitamente se o ativo já está na carteira (posição atual, P&L, data de entrada). Passo 3 dividido em dois modos:
+  - **Modo A** (não está na carteira): COMPRAR / AGUARDAR / EVITAR — comportamento anterior preservado
+  - **Modo B** (já está na carteira): AUMENTAR / MANTER / REDUZIR / SAIR — com critérios específicos para cada veredicto e instrução de mostrar posição atual → posição alvo (X.X% → Y.Y%)
+- Output template: frontmatter aceita os 7 veredictos; cabeçalho do Modo B inclui linha de contexto com posição atual, P&L e data de entrada; sizing em Modo B mostra transição de peso
+
+- `investments`: v1.17.1 → **v1.17.2**
+- Global → **v2.8.2**
+
+---
+
 ## [2.8.1] — 2026-05-22 — INTEGRAÇÃO PM↔ECONOMETRICIAN + BUGS
 
 ### Fixed

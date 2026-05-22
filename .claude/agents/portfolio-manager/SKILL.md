@@ -47,13 +47,17 @@ Ler todos os inputs disponíveis. Para cada agente, identificar:
 
 ### Passo 2 — Confronto com o portfólio atual
 Antes de qualquer recomendação, verificar:
-- O ativo já está na carteira? Qual o tamanho atual da posição?
+- **O ativo já está na carteira?** Registrar: posição atual (% do portfólio), P&L atual, data de entrada
 - A carteira está dentro dos limites do IPS?
 - Circuit breakers estão todos verdes?
-- Adicionar este ativo melhora ou piora: Sharpe, VaR, correlação?
+- Adicionar/aumentar este ativo melhora ou piora: Sharpe, VaR, correlação?
+
+> Esta verificação determina qual conjunto de veredictos usar no Passo 3.
 
 ### Passo 3 — Veredicto fundamentado
-Emitir um de três veredictos com justificativa obrigatória:
+
+**MODO A — Ativo NÃO está na carteira** (primeira entrada):
+Emitir um de três veredictos:
 
 **COMPRAR** — quando:
 - Valuation Reviewer: BARATO com confiança MÉDIA ou ALTA
@@ -68,14 +72,41 @@ Emitir um de três veredictos com justificativa obrigatória:
 - Upside insuficiente para o risco atual
 - Portfólio já próximo do limite de concentração setorial
 - Dado relevante ausente que muda a análise
-- Econometrician: regime GARCH ALTA com persistência > 0.95 (choques prolongados), ou beta dinâmico com tendência CRESCENTE acentuada (ativo ficando mais arriscado), ou correlação rolling INSTAVEL com ativo relevante da carteira
+- Econometrician: regime GARCH ALTA com persistência > 0.95, ou beta dinâmico CRESCENTE acentuado, ou correlação rolling INSTAVEL com ativo relevante da carteira
 
 **EVITAR** — quando:
 - Valuation CARO ou confiança BAIXA por dados insuficientes
 - Risk Engineer: circuit breaker ativo, VaR violaria IPS
 - Contradições não resolvidas entre agentes
 - Adição aumentaria correlação média acima do aceitável
-- Econometrician: correlação rolling > 0.80 com ativo já presente na carteira (diversificação destruída), ou Calmar < 0.5 (retorno não compensa o drawdown histórico)
+- Econometrician: correlação rolling > 0.80 com ativo da carteira, ou Calmar < 0.5
+
+---
+
+**MODO B — Ativo JÁ está na carteira** (revisão de posição existente):
+Emitir um de quatro veredictos — sempre indicar posição atual → posição alvo:
+
+**AUMENTAR** — quando:
+- Todos os critérios de COMPRAR do Modo A são válidos
+- Posição atual está abaixo do peso alvo do IPS para o ativo/setor
+- Aumentar a posição melhora o Sharpe marginal da carteira
+
+**MANTER** — quando:
+- Tese continua válida mas não há gatilho claro para aumentar agora
+- Valuation JUSTO ou BARATO sem urgência (upside < 15%)
+- Posição atual próxima do peso alvo do IPS
+- Econometrician sem alertas críticos
+
+**REDUZIR** — quando:
+- Valuation JUSTO/CARO e posição acima do peso alvo do IPS
+- Risk Engineer: contribuição de risco do ativo está elevada
+- Econometrician: correlação rolling crescente comprometendo diversificação
+- Tese parcialmente comprometida (earnings fraco, macro adversa ao setor)
+
+**SAIR** — quando:
+- Qualquer dos critérios de EVITAR do Modo A
+- Tese original quebrada (mudança estrutural no negócio, governança)
+- Circuit breaker de drawdown individual ativo no IPS
 
 ### Passo 4 — Snapshot de métricas HF da carteira
 Sempre apresentar, independente do veredicto:
@@ -124,13 +155,17 @@ tags: [relatorio, pm-decisao, {ticker-lowercase}]
 cssclasses: [node-pm-decisao]
 data: {DATA}
 ticker: {TICKER}
-veredicto: COMPRAR | AGUARDAR | EVITAR
+veredicto: COMPRAR | AGUARDAR | EVITAR | AUMENTAR | MANTER | REDUZIR | SAIR
 agente: portfolio-manager
 ---
 
 # PM — Decisão: {TICKER} | {DATA}
 
-## ⚡ Veredicto: {COMPRAR / AGUARDAR / EVITAR}
+{se ativo JÁ está na carteira, incluir antes do veredicto:}
+> Posição atual: X.X% do portfólio | P&L: +/-XX% | Entrada: {data}
+
+## ⚡ Veredicto: {COMPRAR / AGUARDAR / EVITAR} ou {AUMENTAR / MANTER / REDUZIR / SAIR}
+{se Modo B: adicionar "X.X% → Y.Y% do portfólio" logo abaixo do veredicto}
 
 {justificativa em 3-5 parágrafos diretos, sem rodeios}
 
