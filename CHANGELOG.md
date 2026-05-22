@@ -2,6 +2,16 @@
 
 ---
 
+## [2.6.2] — 2026-05-22 — /INVESTIMENTO-DO-DIA COM FILTRO DE CATEGORIA
+
+### Changed
+- `.claude/commands/investimento-do-dia.md`: aceita argumento opcional de categoria — `fii`, `acao`, `etf`, `etf-br`, `etf-intl`, `rf`, `td`. Sem argumento: comportamento padrão inalterado. Com argumento: restringe sugestões ao tipo correspondente
+- `docs/SBWAA-REFERENCIA.md`: `/investimento-do-dia` atualizado com sintaxe e tabela de categorias
+- `investments`: v1.15.1 → **v1.15.2**
+- Global → **v2.6.2**
+
+---
+
 ## [2.6.1] — 2026-05-22 — /ANALISAR EM BATCH: MÚLTIPLOS TICKERS
 
 ### Changed

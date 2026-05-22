@@ -1,8 +1,28 @@
 ---
-description: Sugestão de 1-2 ativos para explorar análise hoje, com base no IPS e no cenário macro
+description: Sugestão de 1-2 ativos para explorar análise hoje, com base no IPS e no cenário macro. Categoria opcional: fii, acao, etf, rf, td
 ---
 
-# /investimento-do-dia
+# /investimento-do-dia $ARGUMENTS
+
+## Detecção de categoria
+
+Verifique `$ARGUMENTS`:
+- **Vazio** → sugerir qualquer tipo de ativo (comportamento padrão)
+- **Valor presente** → restringir sugestões ao tipo correspondente:
+
+| Argumento | Restringe para |
+|-----------|---------------|
+| `fii` | Fundos Imobiliários (🟩 FII) |
+| `acao` | Ações ON e PN (🟦 AÇÃO ON / 🟦 AÇÃO PN) |
+| `etf` | ETFs brasileiros e internacionais (🟨 ETF BR / 🟥 ETF INTL) |
+| `etf-br` | Somente ETFs brasileiros (🟨 ETF BR) |
+| `etf-intl` | Somente ETFs internacionais (🟥 ETF INTL) |
+| `rf` | Renda Fixa e CRI/CRA (⬜ RF / 🟧 CRI/CRA) |
+| `td` | Tesouro Direto (🟪 TD) |
+
+Se `$ARGUMENTS` não corresponder a nenhuma categoria acima, ignorar e usar comportamento padrão.
+
+---
 
 ## Passo 1 — Coletar contexto
 

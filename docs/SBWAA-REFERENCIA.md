@@ -582,6 +582,21 @@ Análise macro do dia — cenário global e impacto no Brasil. Mais profundo que
 
 Sugere 1–2 ativos para explorar com análise, com base no IPS do usuário e no cenário macro atual.
 
+**Sintaxe:**
+```
+/investimento-do-dia
+/investimento-do-dia fii
+/investimento-do-dia acao
+/investimento-do-dia etf
+/investimento-do-dia etf-br
+/investimento-do-dia etf-intl
+/investimento-do-dia rf
+/investimento-do-dia td
+```
+
+Sem argumento: sugere qualquer tipo de ativo (comportamento padrão).
+Com argumento: restringe as sugestões à categoria informada.
+
 **Não é uma recomendação de compra** — é uma sugestão de onde focar a análise do dia.
 
 **Critérios usados:**
