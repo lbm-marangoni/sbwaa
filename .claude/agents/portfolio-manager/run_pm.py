@@ -148,6 +148,17 @@ def carregar_dcf(ticker: str, hoje: str) -> dict | None:
     return None
 
 
+def carregar_econometria(ticker: str, hoje: str) -> dict | None:
+    for d in range(8):
+        dt = (datetime.strptime(hoje, "%Y-%m-%d") - timedelta(days=d)).strftime("%Y-%m-%d")
+        path = CACHE_DIR / f"econometria_{ticker}_{dt}.json"
+        if path.exists():
+            if d > 0:
+                print(f"  [Econometrician] usando cache de {dt}")
+            return json.loads(path.read_text(encoding="utf-8"))
+    return None
+
+
 def carregar_market_researcher(hoje: str) -> str:
     for d in range(4):
         dt = (datetime.strptime(hoje, "%Y-%m-%d") - timedelta(days=d)).strftime("%Y-%m-%d")
@@ -222,6 +233,8 @@ def montar_prompt_pm(
     dcf: dict | None, valuation: str,
     quant: dict | None, risk: dict | None,
     pesos_publicos: dict, ips_conteudo: str,
+    posicao_atual: dict | None = None,
+    econometria: dict | None = None,
 ) -> str:
     def pct(v):
         return f"{v:.2f}%" if v is not None else "N/D"
@@ -270,9 +283,53 @@ def montar_prompt_pm(
 
     pesos_txt = json.dumps(pesos_publicos, ensure_ascii=False, indent=2) if pesos_publicos else "Carteira vazia."
 
+    # Bloco de posição existente (Modo B)
+    pos_txt = ""
+    if posicao_atual:
+        peso = posicao_atual.get("peso_pct", 0)
+        pl = posicao_atual.get("pl_pct", 0)
+        pos_txt = f"""
+═══════════════════════════════════════════════
+⚠️  MODO B — ATIVO JÁ ESTÁ NA CARTEIRA:
+Peso atual: {peso:.1f}% do portfólio
+P&L atual: {pl:+.1f}%
+→ Usar AUMENTAR / MANTER / REDUZIR / SAIR (não COMPRAR/AGUARDAR/EVITAR)
+→ Indicar peso atual → peso alvo no veredicto
+═══════════════════════════════════════════════
+"""
+
+    # Bloco econométrico
+    eco_txt = "Não disponível — executar /analisar para gerar cache econométrico."
+    if econometria:
+        garch = econometria.get("garch", {})
+        beta = econometria.get("beta_dinamico", {})
+        ff = econometria.get("fator_model", {})
+        macro_sens = econometria.get("macro_sensibilidade", {})
+        dd = econometria.get("drawdown_avancado", {})
+        eco_txt = (
+            f"GARCH: Vol {garch.get('vol_anualizada_atual_pct','N/D')}% | "
+            f"Regime {garch.get('regime_volatilidade','N/D')} | "
+            f"Persistência {garch.get('persistencia','N/D')} | "
+            f"Half-life {garch.get('half_life_dias','N/D')}d\n"
+            f"Beta: 60d={beta.get('beta_60d','N/D')} 126d={beta.get('beta_126d','N/D')} "
+            f"252d={beta.get('beta_252d','N/D')} | Tendência: {beta.get('tendencia','N/D')}\n"
+            f"Fama-French: Alpha {ff.get('alpha_anualizado_pct','N/D')}%a.a. "
+            f"(p={ff.get('p_valor_alpha','N/D')}) | R²={ff.get('r2_ajustado','N/D')}\n"
+            f"Macro driver: {macro_sens.get('principal_driver','N/D')} | R²={macro_sens.get('r2_ajustado','N/D')}\n"
+            f"Drawdown: Calmar={dd.get('calmar_ratio','N/D')} | "
+            f"Ulcer={dd.get('ulcer_index_pct','N/D')}% | "
+            f"Tempo médio recuperação={dd.get('tempo_medio_recuperacao_dias','N/D')}d"
+        )
+
+    modo_instrucao = (
+        "3. Veredicto fundamentado: AUMENTAR / MANTER / REDUZIR / SAIR (Modo B — posição existente)"
+        if posicao_atual else
+        "3. Veredicto fundamentado: COMPRAR / AGUARDAR / EVITAR (Modo A — nova posição)"
+    )
+
     return f"""DATA: {hoje}
 TICKER EM ANÁLISE: {ticker}
-
+{pos_txt}
 ═══════════════════════════════════════════════
 CONTEXTO MACRO (Market Researcher):
 {macro if macro else "Não disponível — executar run_market_researcher.py"}
@@ -294,6 +351,10 @@ MÉTRICAS QUANTITATIVAS (Quant/Data Engineer):
 {quant_txt}
 
 ═══════════════════════════════════════════════
+ECONOMETRICIAN:
+{eco_txt}
+
+═══════════════════════════════════════════════
 RISCO E CIRCUIT BREAKERS (Risk Engineer):
 {risk_txt}
 
@@ -309,7 +370,7 @@ IPS (RESUMO):
 Siga o processo do seu SKILL exatamente — Passos 1 a 4:
 1. Leitura crítica de cada agente (contradições, nível de confiança)
 2. Confronto com portfólio atual
-3. Veredicto fundamentado: COMPRAR / AGUARDAR / EVITAR
+{modo_instrucao}
 4. Bloco de métricas HF (use os dados acima; valor em R$ 100k normalizado)
 
 NÃO emita perguntas ao usuário — o fluxo interativo é conduzido pelo script.
@@ -339,6 +400,37 @@ Se o valor está acima do ideal, diga explicitamente e por quanto.
 """
 
 
+def montar_prompt_sizing_reducao(
+    ticker: str, valor_vender: float,
+    peso_atual: float, novo_peso: float,
+    novo_var: float | None, novo_sharpe: float | None,
+    sair_total: bool,
+) -> str:
+    var_txt = f"{novo_var:.2f}%" if novo_var else "N/D"
+    sharpe_txt = str(novo_sharpe) if novo_sharpe else "N/D"
+    if sair_total:
+        return f"""O usuário confirma saída total de {ticker}.
+
+Impacto calculado localmente:
+- Posição atual: {peso_atual:.1f}% do portfólio → 0% após saída
+- VaR estimado após saída: {var_txt}
+- Sharpe estimado após saída: {sharpe_txt}
+
+Emita o parecer de saída conforme Passo 5 do seu SKILL: confirme a operação,
+aponte o impacto no portfólio e oriente sobre o destino do capital liberado.
+"""
+    return f"""O usuário planeja vender R$ {valor_vender:,.0f} de {ticker}.
+
+Impacto calculado localmente:
+- Peso atual de {ticker}: {peso_atual:.1f}% → {novo_peso:.1f}% após redução
+- Novo VaR estimado 95% (1 dia): {var_txt}
+- Novo Sharpe estimado: {sharpe_txt}
+
+Emita o parecer de redução conforme Passo 5 do seu SKILL: confirme se o novo
+peso alvo é adequado, aponte o impacto no portfólio e oriente sobre o capital liberado.
+"""
+
+
 def montar_prompt_duvida(ticker: str, ponto: str) -> str:
     pontos = {"1": "Valuation", "2": "Risco", "3": "Timing", "4": "Outro"}
     label = pontos.get(ponto, "Outro")
@@ -352,7 +444,7 @@ def montar_prompt_duvida(ticker: str, ponto: str) -> str:
 # ─── Persistência ─────────────────────────────────────────────────────────────
 
 def extrair_veredicto(texto: str) -> str:
-    for v in ["COMPRAR", "AGUARDAR", "EVITAR"]:
+    for v in ["AUMENTAR", "MANTER", "REDUZIR", "SAIR", "COMPRAR", "AGUARDAR", "EVITAR"]:
         if v in texto.upper():
             return v
     return "—"
@@ -405,6 +497,7 @@ def main():
     valuation = carregar_valuation(ticker, hoje, args.versao)
     quant = carregar_json_cache("quant", hoje)
     risk = carregar_json_cache("risk", hoje)
+    econometria = carregar_econometria(ticker, hoje)
 
     # Dados privados — ficam locais para cálculo de sizing
     carteira_completa = carregar_carteira_completa()
@@ -412,6 +505,24 @@ def main():
     pesos_publicos = carregar_carteira_publica(carteira_completa)
     ips_conteudo = IPS_PATH.read_text(encoding="utf-8") if IPS_PATH.exists() else ""
     ips_limites = carregar_limites_ips()
+
+    # Detectar Modo A vs Modo B
+    em_carteira = ticker in carteira_completa
+    posicao_atual = None
+    if em_carteira:
+        pos = carteira_completa[ticker]
+        valor_pos = pos["qtd"] * pos["preco_atual"]
+        pl_pct = (pos["preco_atual"] / pos["preco_medio"] - 1) * 100 if pos["preco_medio"] > 0 else 0.0
+        peso_pct = (valor_pos / patrimonio * 100) if patrimonio > 0 else 0.0
+        posicao_atual = {"peso_pct": peso_pct, "pl_pct": pl_pct, "valor": valor_pos}
+        print(f"  [Modo B] {ticker} já está na carteira — {peso_pct:.1f}% | P&L {pl_pct:+.1f}%")
+    else:
+        print(f"  [Modo A] {ticker} não está na carteira — nova posição")
+
+    if econometria:
+        print(f"  [Econometrician] cache disponível ({econometria.get('data','?')})")
+    else:
+        print(f"  [Econometrician] sem cache — rodar /analisar {ticker} para gerar")
 
     # Alertas sobre dados faltantes
     faltando = [
@@ -452,6 +563,8 @@ def main():
         ticker, hoje, macro, earnings,
         dcf, valuation, quant, risk,
         pesos_publicos, ips_conteudo,
+        posicao_atual=posicao_atual,
+        econometria=econometria,
     )
     if contexto_rag:
         prompt = prompt + f"\n\n{contexto_rag}"
@@ -475,10 +588,17 @@ def main():
     valor_alocado = None
     sizing_ok = None
 
-    # ── Fluxo interativo ──────────────────────────────────────────────────────
+    # ── Fluxo interativo (Modo A ou Modo B) ──────────────────────────────────
     print(f"{'─'*40}")
-    print(f"PM: Você pretende investir em {ticker}?")
-    print(f"    [S] Sim  [N] Não  [D] Ainda em dúvida")
+    if veredicto in ("REDUZIR", "SAIR"):
+        print(f"PM: Você pretende executar a redução em {ticker}?")
+        print(f"    [S] Sim  [N] Não  [D] Ainda em dúvida")
+    elif veredicto == "MANTER":
+        print(f"PM: Registrar decisão de MANTER {ticker}?")
+        print(f"    [S] Sim  [N] Não  [D] Ainda em dúvida")
+    else:
+        print(f"PM: Você pretende investir em {ticker}?")
+        print(f"    [S] Sim  [N] Não  [D] Ainda em dúvida")
     print(f"{'─'*40}")
 
     try:
@@ -487,27 +607,71 @@ def main():
         resposta = "N"
 
     if resposta == "S":
-        print(f"\nPM: Qual valor você planeja alocar? (R$)")
-        try:
-            valor_str = input("R$ ").strip().replace(".", "").replace(",", ".")
-            valor_alocado = float(valor_str)
-        except (ValueError, EOFError):
-            print("Valor inválido. Pulando cálculo de sizing.")
-            valor_alocado = None
-
-        if valor_alocado and valor_alocado > 0:
-            novo_peso = calcular_novo_peso(valor_alocado, patrimonio)
-            novo_var = estimar_novo_var(risk or {}, novo_peso)
-            novo_sharpe = estimar_novo_sharpe(quant or {}, comprar=(veredicto == "COMPRAR"))
-            sizing_ideal = calcular_sizing_ideal(ips_limites, patrimonio)
-            conc_max = ips_limites.get("concentracao_maxima_pct", IPS_DEFAULTS["concentracao_maxima_pct"])
-            viola_ips = novo_peso > conc_max
-            sizing_ok = not viola_ips and valor_alocado <= sizing_ideal * 1.05
-
-            p_sizing = montar_prompt_sizing(
-                ticker, valor_alocado, novo_peso,
-                novo_var, novo_sharpe, sizing_ideal, ips_limites, viola_ips,
+        if veredicto == "SAIR":
+            # Saída total
+            peso_atual_pct = posicao_atual["peso_pct"] if posicao_atual else 0.0
+            novo_var = estimar_novo_var(risk or {}, -peso_atual_pct / 100)
+            novo_sharpe = estimar_novo_sharpe(quant or {}, comprar=False)
+            p_sizing = montar_prompt_sizing_reducao(
+                ticker, 0, peso_atual_pct, 0.0, novo_var, novo_sharpe, sair_total=True,
             )
+            sizing_ok = True
+            valor_alocado = -(posicao_atual["valor"] if posicao_atual else 0)
+
+        elif veredicto == "REDUZIR":
+            print(f"\nPM: Quanto você planeja vender? (R$)")
+            try:
+                valor_str = input("R$ ").strip().replace(".", "").replace(",", ".")
+                valor_alocado = -float(valor_str)
+            except (ValueError, EOFError):
+                print("Valor inválido. Pulando cálculo de sizing.")
+                valor_alocado = None
+
+            if valor_alocado and abs(valor_alocado) > 0:
+                peso_atual_pct = posicao_atual["peso_pct"] if posicao_atual else 0.0
+                novo_peso_pct = max(0.0, peso_atual_pct - (abs(valor_alocado) / patrimonio * 100)) if patrimonio > 0 else 0.0
+                novo_var = estimar_novo_var(risk or {}, -abs(valor_alocado) / patrimonio if patrimonio > 0 else 0)
+                novo_sharpe = estimar_novo_sharpe(quant or {}, comprar=False)
+                conc_max = ips_limites.get("concentracao_maxima_pct", IPS_DEFAULTS["concentracao_maxima_pct"])
+                viola_ips = False
+                sizing_ok = True
+                p_sizing = montar_prompt_sizing_reducao(
+                    ticker, abs(valor_alocado), peso_atual_pct, novo_peso_pct,
+                    novo_var, novo_sharpe, sair_total=False,
+                )
+            else:
+                p_sizing = None
+
+        elif veredicto == "MANTER":
+            print(f"\nPM: Decisão de MANTER {ticker} registrada.")
+            sizing_ok = True
+            p_sizing = None
+
+        else:
+            # COMPRAR ou AUMENTAR
+            print(f"\nPM: Qual valor você planeja alocar? (R$)")
+            try:
+                valor_str = input("R$ ").strip().replace(".", "").replace(",", ".")
+                valor_alocado = float(valor_str)
+            except (ValueError, EOFError):
+                print("Valor inválido. Pulando cálculo de sizing.")
+                valor_alocado = None
+
+            p_sizing = None
+            if valor_alocado and valor_alocado > 0:
+                novo_peso = calcular_novo_peso(valor_alocado, patrimonio)
+                novo_var = estimar_novo_var(risk or {}, novo_peso)
+                novo_sharpe = estimar_novo_sharpe(quant or {}, comprar=True)
+                sizing_ideal = calcular_sizing_ideal(ips_limites, patrimonio)
+                conc_max = ips_limites.get("concentracao_maxima_pct", IPS_DEFAULTS["concentracao_maxima_pct"])
+                viola_ips = novo_peso > conc_max
+                sizing_ok = not viola_ips and valor_alocado <= sizing_ideal * 1.05
+                p_sizing = montar_prompt_sizing(
+                    ticker, valor_alocado, novo_peso,
+                    novo_var, novo_sharpe, sizing_ideal, ips_limites, viola_ips,
+                )
+
+        if p_sizing:
             print(f"\n{'─'*55}")
             with client.messages.stream(
                 model="claude-opus-4-6",

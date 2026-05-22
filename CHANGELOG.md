@@ -2,6 +2,28 @@
 
 ---
 
+## [2.8.3] — 2026-05-22 — ECONOMETRICIAN EXPANDIDO + VEREDICTOS CONTEXTUAIS EM TODOS OS COMANDOS
+
+### Added
+- `run_pm.py`: `carregar_econometria()` — lê cache `econometria_{TICKER}_{DATA}.json` (janela de 8 dias); dados passados ao PM no bloco ECONOMETRICIAN do prompt
+- `run_pm.py`: `montar_prompt_sizing_reducao()` — parecer de sizing para REDUZIR (venda parcial) e SAIR (saída total); PM calcula peso atual → novo peso e impacto em VaR/Sharpe
+- `.claude/commands/rebalancear.md`: leitura de caches econométricos por ativo; tabela "Sinais Econométricos por Ativo" com regras de incorporação (GARCH ALTA → REDUZIR, Calmar < 0.5 → REDUZIR, corr instável → diversificação em risco, sinais positivos → reforçam MANTER/AUMENTAR)
+- `.claude/commands/revisar-carteira.md`: leitura de caches econométricos por ativo; PM instruído a usar sempre Modo B (todos os ativos já estão na carteira) e incorporar bullets "Para o PM" do Econometrician
+- `.claude/commands/morning-call.md`: seção "Alertas Econométricos" — exibe apenas alertas críticos (GARCH ALTA, beta crescente, correlação instável); omite silenciosamente se tudo normal
+
+### Changed
+- `run_pm.py`: detecção automática de Modo A vs Modo B — lê carteira e calcula peso atual + P&L; exibe "[Modo A]" ou "[Modo B]" no startup; passa `posicao_atual` ao prompt
+- `run_pm.py`: fluxo interativo adaptado por veredicto — COMPRAR/AUMENTAR pergunta "quanto alocar"; REDUZIR pergunta "quanto vender"; SAIR confirma saída total; MANTER registra sem sizing
+- `run_pm.py`: `extrair_veredicto()` reconhece os 7 veredictos: AUMENTAR/MANTER/REDUZIR/SAIR/COMPRAR/AGUARDAR/EVITAR
+- `run_pm.py`: `montar_prompt_pm()` aceita `posicao_atual` e `econometria`; inclui bloco "MODO B" e bloco "ECONOMETRICIAN" no prompt; instrução de veredicto adaptada ao modo
+- `.claude/commands/tese.md`: Passo 3 com detecção Modo A/B — verifica se ativo está na carteira antes de emitir veredicto
+- `.claude/commands/watchlist.py`: `VEREDICTO_COR` expandido com ícones para AUMENTAR (📈), MANTER (🔒), REDUZIR (📉), SAIR (🚪)
+
+- `investments`: v1.17.2 → **v1.18.0**
+- Global → **v2.8.3**
+
+---
+
 ## [2.8.2] — 2026-05-22 — PM: VEREDICTOS CONTEXTUAIS PARA POSIÇÕES EXISTENTES
 
 ### Changed

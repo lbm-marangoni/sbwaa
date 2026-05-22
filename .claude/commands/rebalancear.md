@@ -22,6 +22,9 @@ Leia:
 - Cache de expansão (se disponível) em `scripts/data/cache/optim_expansao_YYYY-MM-DD.json`
   — campos: `fronteira_base`, `fronteira_expandida`, `ganho_sharpe_expansao`,
     `candidatos` (ranking watchlist com classificação MELHORA/NEUTRO/PIORA)
+- **Cache econométrico por ativo:** para cada ticker em carteira, tentar carregar
+  `scripts/data/cache/econometria_{TICKER}_*.json` (arquivo mais recente disponível).
+  Anotar "sem cache — rodar /analisar {TICKER}" se não existir.
 
 ## Passo 2 — Análise de Rebalanceamento
 
@@ -60,6 +63,21 @@ Use os dados de `otimizacao` do cache quant para apresentar:
 
 - Pares com correlação > 0.7 (leia `pares_alta_correlacao` do cache)
 - Qual par mais reduz diversificação real e o que fazer a respeito
+
+**Sinais Econométricos por Ativo (cache econometria)**
+
+Para cada ativo com cache disponível, exibir tabela compacta:
+
+| Ticker | GARCH Regime | Beta Tendência | Calmar | Corr Rolling | Sinal PM |
+|--------|-------------|----------------|--------|--------------|----------|
+| ...    | NORMAL/ALTA | crescente/↓/= | X.XX   | ESTAVEL/INST | MANTER/REDUZIR |
+
+Regras de incorporação nas sugestões:
+- GARCH ALTA + persistência > 0.95 → reforça REDUZIR esse ativo
+- Beta dinâmico crescente acentuado → ativo ficando mais caro em termos de risco; considera reduzir para peso alvo mínimo do IPS
+- Calmar < 0.5 → retorno não compensa drawdown; reforça REDUZIR
+- Correlação rolling > 0.80 instável com outro ativo da carteira → diversificação comprometida; sugerir reduzir o de menor Sharpe
+- Sinais positivos (GARCH NORMAL, Calmar > 1.5, correlação ESTAVEL) → reforçam MANTER ou AUMENTAR se desvio IPS permitir
 
 **Candidatos da watchlist (se cache de expansão disponível)**
 

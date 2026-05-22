@@ -44,6 +44,17 @@ Mostre apenas posições que têm exposição relevante ao cenário do dia.
 ### Alertas Ativos
 Se houver alertas no `logs/alerts.log` com CRÍTICO ou ALTO, liste aqui.
 
+### Alertas Econométricos
+Ler os arquivos `scripts/data/cache/econometria_{TICKER}_*.json` mais recentes para cada ativo em carteira. Exibir **apenas** se houver pelo menos um sinal crítico — omitir a seção silenciosamente se tudo estiver normal:
+
+| Ticker | Sinal | Detalhe |
+|--------|-------|---------|
+| TICK1  | ⚠️ GARCH ALTA | Persistência 0.97 — choques demoram X dias para dissipar |
+| TICK2  | ⚠️ Corr instável | Correlação >0.80 com TICK3 — diversificação comprometida |
+| TICK3  | ⚠️ Beta crescente | Beta subiu de 0.X para 0.X em 60d — ativo mais arriscado |
+
+Sinais que disparam alerta: GARCH regime=ALTA, correlação rolling >0.80 com instabilidade, beta dinâmico tendência=crescente com delta >0.20, Calmar <0.5.
+
 ### Metas — Resumo Compacto
 
 Ler `vault/00-portfolio/metas.md` e exibir uma linha de status por meta. Destacar com ⚠️ qualquer milestone recém-atingido (25 / 50 / 75 / 100%) ou meta em risco de prazo.

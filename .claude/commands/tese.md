@@ -34,11 +34,16 @@ Produza em sequência:
 
 Leia `.claude/agents/portfolio-manager/SKILL.md`, `vault/00-portfolio/ips.md` e `vault/00-portfolio/carteira.md`.
 
+Verificar antes de emitir o veredicto: **$ARGUMENTS já está na carteira?**
+- **Não está** → Modo A: COMPRAR / AGUARDAR / EVITAR
+- **Já está** → Modo B: AUMENTAR / MANTER / REDUZIR / SAIR
+  Mostrar: `Posição atual: X.X% | P&L: +/-XX% → peso alvo: Y.Y%`
+
 Emita:
-- **Veredicto:** COMPRAR / AGUARDAR / EVITAR
-- **Sizing sugerido:** % do portfólio, se COMPRAR
-- **Gatilho de entrada:** preço ou evento específico, se AGUARDAR
-- **Razão principal:** 1 frase objetiva
+- **Veredicto:** [conforme o modo acima]
+- **Sizing:** % do portfólio (Modo A: aporte sugerido; Modo B: peso atual → alvo)
+- **Gatilho:** preço ou evento, se AGUARDAR
+- **Razão principal:** 1 frase objetiva com dado concreto
 
 ## Passo 4 — Salvar
 

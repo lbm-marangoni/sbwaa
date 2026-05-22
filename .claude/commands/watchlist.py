@@ -34,11 +34,18 @@ TIPO_LABEL = {
 }
 
 VEREDICTO_COR = {
+    # Modo A — ativo não está na carteira
     "COMPRAR":      "✅",
     "COMPRA":       "✅",
     "AGUARDAR":     "⏳",
     "AGUARDA":      "⏳",
     "EVITAR":       "🚫",
+    # Modo B — ativo já está na carteira
+    "AUMENTAR":     "📈",
+    "MANTER":       "🔒",
+    "REDUZIR":      "📉",
+    "SAIR":         "🚪",
+    # Valuation Reviewer
     "BARATO":       "✅",
     "JUSTO":        "⚖️",
     "CARO":         "🔴",

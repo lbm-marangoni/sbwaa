@@ -25,6 +25,10 @@ Leia:
 - `scripts/data/cache/optim_expansao_*.json` — análise de expansão com watchlist (se disponível)
   Use para adicionar seção "Oportunidades da Watchlist" ao final do painel, listando os
   candidatos MELHORA que ainda não estão em carteira.
+- **Cache econométrico por ativo:** para cada ticker em carteira, tentar carregar
+  `scripts/data/cache/econometria_{TICKER}_*.json` (arquivo mais recente).
+  Ler o bloco `## Para o Portfolio Manager` de cada nota do Econometrician disponível.
+  Se não existir cache: anotar "sem econometria" para aquele ativo.
 
 ## Passo 3 — Coletar análises existentes por ativo
 
@@ -34,7 +38,7 @@ Para cada ativo em `vault/00-portfolio/carteira.md`, leia os arquivos em `vault/
 
 Leia `.claude/agents/portfolio-manager/SKILL.md`.
 
-Você é o PM revisando toda a carteira de uma vez. Para cada posição, emita um veredicto independente com base no que existe de análise + dados de mercado atuais.
+Você é o PM revisando toda a carteira de uma vez. Todos os ativos já estão na carteira, portanto **usar sempre Modo B** (MANTER / AUMENTAR / REDUZIR / SAIR). Para cada posição, emita um veredicto independente com base no que existe de análise + dados de mercado atuais. Incorporar sinais do Econometrician (cache econometria) na justificativa quando disponível.
 
 ### Painel de Revisão (tabela obrigatória)
 
