@@ -20,7 +20,6 @@ feedparser>=6.0.11
 
 # === INTERFACE VISUAL ===
 customtkinter>=5.2.0
-plotly>=6.0.0
 
 # === ANTHROPIC ===
 anthropic>=0.50.0
