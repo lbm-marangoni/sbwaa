@@ -48,7 +48,38 @@ Calcular o valor justo no cenário pessimista:
 - Quanto cai o valor justo? O upside ainda existe no pessimista?
 - Qual é a margem de segurança real?
 
-### Passo 5 — Precificação do mercado
+### Passo 5 — Preço Teto / Chão
+
+Calcular os níveis de preço-limite usando fórmulas tradicionais, como referência
+adicional de triangulação — não substitui DCF nem múltiplos.
+
+**Para AÇÕES (Graham):**
+- Preço Teto Graham = √(22,5 × LPA × VPA)
+  - LPA = Lucro Por Ação (últimos 12 meses)
+  - VPA = Valor Patrimonial Por Ação
+  - Condição obrigatória: LPA > 0 e VPA > 0
+  - Se LPA ≤ 0 ou VPA ≤ 0: registrar "Graham não aplicável — ativo em prejuízo ou patrimônio negativo"
+- Calcular margens de segurança implícitas vs cotação atual: 10%, 15%, 20%
+  - Preço com 10% MS = Teto Graham × 0,90
+  - Preço com 15% MS = Teto Graham × 0,85
+  - Preço com 20% MS = Teto Graham × 0,80
+- Comparar Teto Graham com valor justo do DCF: convergem ou divergem?
+
+**Para FIIs (Bazin adaptado):**
+- DPA_anualizado = dividendo médio mensal × 12 (usar últimos 12 meses disponíveis)
+- Preço Teto = DPA_anualizado / DY_mínimo_alvo
+  - DY_mínimo_alvo padrão SBWAA: **8%** (FII de tijolo padrão)
+  - Ajustar para 7% em FIIs de papel high-grade ou 9% em FIIs mais arriscados, se justificável
+- Preço Chão = DPA_anualizado / DY_máximo_aceitável
+  - DY_máximo_aceitável padrão SBWAA: **12%** (abaixo disso = pânico exagerado, zona de compra forte)
+- Status vs cotação atual:
+  - Cotação < Preço Chão → **ZONA DE COMPRA FORTE** (DY implícito > 12%)
+  - Preço Chão ≤ Cotação ≤ Preço Teto → **ZONA DE COMPRA** (DY entre 8–12%)
+  - Cotação > Preço Teto → **ACIMA DO TETO** (DY implícito < 8%)
+
+Registrar no output o DY implícito real: DY_real = DPA_anualizado / Cotação_atual
+
+### Passo 6 — Precificação do mercado
 
 Ler o cache `consensus_{TICKER}_{DATA}.json`. Se disponível:
 - Comparar o price target do consenso com o valor justo do DCF e com os múltiplos
@@ -57,7 +88,7 @@ Ler o cache `consensus_{TICKER}_{DATA}.json`. Se disponível:
 
 Se não houver dados de consenso: registrar explicitamente "Sem cobertura de analistas disponível" e prosseguir.
 
-### Passo 6 — Veredicto final de valuation
+### Passo 7 — Veredicto final de valuation
 Emitir claramente:
 - BARATO (upside >20% no base, >0% no pessimista)
 - JUSTO (upside 0-20% no base)
@@ -92,6 +123,8 @@ agente: valuation-reviewer
 
 **DCF:** Valor Justo R$ XX.XX | Upside: +XX% | Confiança: ALTO/MÉDIO/BAIXO
 **WACC:** X.X% | **g:** X.X% | **Margem de segurança:** XX%
+**Preço Teto (Graham):** R$ XX,XX | MS 15%: R$ XX,XX | {ABAIXO/ACIMA DO TETO} _(apenas para ações)_
+**Preço Teto (Bazin 8%):** R$ XX,XX | Preço Chão (12%): R$ XX,XX | DY Real: X,X% | {ZONA DE COMPRA FORTE/ZONA DE COMPRA/ACIMA DO TETO} _(apenas para FIIs)_
 
 **RISCO PRINCIPAL:** {1 linha}
 
@@ -132,6 +165,33 @@ agente: valuation-reviewer
 |---------|------|---|-------------|--------|
 | Base | | | | |
 | Pessimista (WACC+2%, g-1%) | | | | |
+
+## 📐 Preço Teto / Chão
+
+_Para AÇÕES — Graham:_
+
+| Métrica | Valor |
+|---------|-------|
+| LPA (12m) | R$ |
+| VPA | R$ |
+| Teto Graham | R$ |
+| Teto c/ 10% MS | R$ |
+| Teto c/ 15% MS | R$ |
+| Teto c/ 20% MS | R$ |
+| Cotação atual | R$ |
+| Status | ABAIXO / ACIMA DO TETO |
+| Convergência c/ DCF | {convergem / divergem — 1 linha explicando} |
+
+_Para FIIs — Bazin:_
+
+| Métrica | Valor |
+|---------|-------|
+| DPA anualizado | R$ |
+| DY real (cotação atual) | % |
+| Preço Teto (DY 8%) | R$ |
+| Preço Chão (DY 12%) | R$ |
+| Cotação atual | R$ |
+| Status | ZONA DE COMPRA FORTE / ZONA DE COMPRA / ACIMA DO TETO |
 
 ## 📡 Precificação do Mercado
 

@@ -434,7 +434,7 @@ Pipeline completo de análise de um ativo — 8 etapas em sequência. O mais pes
 | 1 | Market Researcher | Contexto macro, setor, catalisadores do dia |
 | 2 | Earnings Reviewer | Revisão do resultado mais recente (QoQ, YoY, qualidade) |
 | 3 | Model Builder | DCF com premissas explícitas (WACC, g, FCL projetado) |
-| 4 | Valuation Reviewer | Crítica ao DCF + múltiplos + consenso de sell-side + veredicto BARATO/JUSTO/CARO |
+| 4 | Valuation Reviewer | Crítica ao DCF + múltiplos + **preço teto/chão (Graham/Bazin)** + consenso de sell-side + veredicto BARATO/JUSTO/CARO |
 | 5 | Quant | Sharpe, volatilidade, drawdown, beta, correlação com carteira |
 | 6 | Risk Engineer | VaR, CVaR, stress test, circuit breakers |
 | 7 | Portfolio Manager | Decisão final: COMPRAR / AGUARDAR / EVITAR + sizing + stop |

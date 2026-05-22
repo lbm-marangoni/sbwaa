@@ -2,6 +2,22 @@
 
 ---
 
+## [2.6.0] — 2026-05-22 — PREÇO TETO/CHÃO: GRAHAM (AÇÕES) + BAZIN (FIIS) NO VALUATION REVIEWER
+
+### Added
+- `.claude/agents/valuation-reviewer/SKILL.md`: novo **Passo 5 — Preço Teto / Chão** no pipeline do Valuation Reviewer, entre o stress test e a precificação do mercado (passos anteriores renumerados para 6 e 7)
+  - **Ações (Graham):** Preço Teto = √(22,5 × LPA × VPA); margens de segurança a 10%, 15% e 20%; comparação com DCF; não aplicável se LPA ou VPA negativos
+  - **FIIs (Bazin adaptado):** Preço Teto = DPA_anualizado / 8%; Preço Chão = DPA_anualizado / 12%; DY real vs cotação atual; status ZONA DE COMPRA FORTE / ZONA DE COMPRA / ACIMA DO TETO
+- Versão curta: linha de preço teto/chão adicionada ao bloco de valuation
+- Versão longa: nova seção `## 📐 Preço Teto / Chão` com tabela completa por tipo de ativo
+
+### Changed
+- `docs/SBWAA-REFERENCIA.md`: etapa 4 do `/analisar` atualizada para refletir novo entregável
+- `investments`: v1.14.0 → **v1.15.0**
+- Global → **v2.6.0**
+
+---
+
 ## [2.5.3] — 2026-05-20 — AUDITORIA DOCS: SBWAA-REFERENCIA, BLUEPRINT E UI
 
 ### Fixed
