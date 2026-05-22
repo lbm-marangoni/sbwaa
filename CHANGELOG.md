@@ -2,6 +2,24 @@
 
 ---
 
+## [2.8.7] — 2026-05-22 — PROJECAO DE METAS NO /CARTEIRA
+
+### Added
+- `carteira.py`: seção **METAS — PROJECAO** ao final do output do `/carteira`, logo após a projeção geral
+- `parse_metas()`: lê `vault/00-portfolio/metas.md` e extrai patrimônio alvo, renda passiva alvo e metas livres
+- `_anos_para_atingir_mc()`: MC iterativo (1k sims, tracking anual) que retorna o ano em que P50 cruza o alvo com aporte mensal
+- `_fmt_projecao()`: formata resultado de projeção com status vs prazo (OK / ATENCAO + anos de diferença)
+- `exibir_projecao_metas()`: renderiza projeção por tipo de meta:
+  - **Patrimônio Total**: analítico sem aporte (`ln(meta/P) / drift_anual`) + MC com aporte
+  - **Renda Passiva**: estima patrimônio necessário via yield (proventos/patrimônio ou default 6% a.a.) → mesmo MC
+  - **Metas Livres**: projeção linear `faltam / aporte_mensal` em meses, com status vs `data_alvo`
+
+### Changed
+- `investments`: v1.18.2 → **v1.18.3**
+- Global → **v2.8.7**
+
+---
+
 ## [2.8.6] — 2026-05-22 — PROJECAO COM APORTE HISTORICO NO /CARTEIRA
 
 ### Added

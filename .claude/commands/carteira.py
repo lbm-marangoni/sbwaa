@@ -4,20 +4,22 @@ Uso: python sbwaa.py /carteira
 """
 
 import json
+import math
 import re
 import sys
 import subprocess
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import numpy as np
 
-PROJECT_ROOT   = Path(__file__).parent.parent.parent
-VAULT_ROOT     = PROJECT_ROOT / "vault"
-SCRIPTS_DATA   = PROJECT_ROOT / "scripts" / "data"
-CARTEIRA_PATH  = VAULT_ROOT / "00-portfolio" / "carteira.md"
-HISTORICO_PATH = VAULT_ROOT / "00-portfolio" / "historico-trades.md"
-IPS_PATH       = VAULT_ROOT / "00-portfolio" / "ips.md"
+PROJECT_ROOT    = Path(__file__).parent.parent.parent
+VAULT_ROOT      = PROJECT_ROOT / "vault"
+SCRIPTS_DATA    = PROJECT_ROOT / "scripts" / "data"
+CARTEIRA_PATH   = VAULT_ROOT / "00-portfolio" / "carteira.md"
+HISTORICO_PATH  = VAULT_ROOT / "00-portfolio" / "historico-trades.md"
+IPS_PATH        = VAULT_ROOT / "00-portfolio" / "ips.md"
+METAS_PATH      = VAULT_ROOT / "00-portfolio" / "metas.md"
 PROVENTOS_CACHE = VAULT_ROOT / "00-portfolio" / ".proventos-cache.json"
 
 
@@ -141,6 +143,215 @@ def calcular_aporte_medio() -> tuple[float, int]:
     return sum(compras_por_mes.values()) / len(compras_por_mes), len(compras_por_mes)
 
 
+def parse_metas() -> dict:
+    """Lê metas.md e retorna dict com patrimônio_alvo, renda_passiva_alvo, metas_livres."""
+    if not METAS_PATH.exists():
+        return {}
+    conteudo = METAS_PATH.read_text(encoding="utf-8")
+    resultado: dict = {}
+
+    m = re.search(r"## Patrimônio Total.*?```(.*?)```", conteudo, re.DOTALL)
+    if m:
+        b = m.group(1)
+        av = re.search(r"alvo:\s*(\d+)", b)
+        da = re.search(r"data_alvo:\s*(\d{4}-\d{2}-\d{2})", b)
+        if av:
+            resultado["patrimonio_alvo"] = float(av.group(1))
+            resultado["patrimonio_data_alvo"] = da.group(1) if da else None
+
+    m = re.search(r"## Renda Passiva Mensal.*?```(.*?)```", conteudo, re.DOTALL)
+    if m:
+        b = m.group(1)
+        av = re.search(r"alvo_mensal:\s*(\d+)", b)
+        da = re.search(r"data_alvo:\s*(\d{4}-\d{2}-\d{2})", b)
+        if av:
+            resultado["renda_passiva_alvo"] = float(av.group(1))
+            resultado["renda_passiva_data_alvo"] = da.group(1) if da else None
+
+    m = re.search(r"## Metas Livres.*?```yaml(.*?)```", conteudo, re.DOTALL)
+    if m:
+        metas_livres: list[dict] = []
+        meta_atual: dict = {}
+        for linha in m.group(1).splitlines():
+            l = linha.strip()
+            if l.startswith("- nome:"):
+                if "nome" in meta_atual:
+                    metas_livres.append(meta_atual)
+                meta_atual = {"nome": re.sub(r'["\']', "", l.split(":", 1)[1].strip())}
+            elif l.startswith("alvo:") and "nome" in meta_atual:
+                try:
+                    meta_atual["alvo"] = float(l.split(":", 1)[1].strip())
+                except ValueError:
+                    pass
+            elif l.startswith("atual:") and "nome" in meta_atual:
+                try:
+                    meta_atual["atual"] = float(l.split(":", 1)[1].strip())
+                except ValueError:
+                    pass
+            elif l.startswith("data_alvo:") and "nome" in meta_atual:
+                v = l.split(":", 1)[1].strip()
+                meta_atual["data_alvo"] = v if re.match(r"\d{4}-\d{2}", v) else None
+        if "nome" in meta_atual:
+            metas_livres.append(meta_atual)
+        resultado["metas_livres"] = [m for m in metas_livres if "alvo" in m]
+
+    return resultado
+
+
+def _anos_para_atingir_mc(patrimonio: float, meta_val: float,
+                           mu_anual: float, sigma_anual: float,
+                           aporte_mensal: float, max_anos: int = 50) -> float | None:
+    """Anos para P50 atingir meta_val via MC com aporte mensal. None se não atingir."""
+    if patrimonio >= meta_val:
+        return 0.0
+    if aporte_mensal <= 0:
+        return None
+    mu_d   = (1 + mu_anual) ** (1 / 252) - 1
+    sigma_d = sigma_anual / np.sqrt(252)
+    drift   = mu_d - 0.5 * sigma_d ** 2
+    n_sim   = 1_000
+    rng     = np.random.default_rng(seed=99)
+    wealth  = np.full(n_sim, patrimonio, dtype=np.float64)
+    for d in range(max_anos * 252):
+        wealth *= np.exp(drift + sigma_d * rng.standard_normal(n_sim))
+        if (d + 1) % 22 == 0:
+            wealth += aporte_mensal
+        if (d + 1) % 252 == 0 and np.percentile(wealth, 50) >= meta_val:
+            return float((d + 1) // 252)
+    return None
+
+
+def _fmt_projecao(anos: float | None, data_alvo: str | None, hoje: datetime) -> str:
+    """Formata resultado de projeção com status vs prazo."""
+    if anos is None:
+        return "nao projeta atingir nos proximos 50 anos"
+    if anos < 1 / 12:
+        return "ja atingida"
+    anos_int  = int(anos)
+    meses_dec = round((anos % 1) * 12)
+    ano_prev  = hoje.year + anos_int + (1 if hoje.month + meses_dec > 12 else 0)
+    mes_prev  = (hoje.month + meses_dec - 1) % 12 + 1
+    resultado = f"~{anos:.1f} anos  ({ano_prev}-{mes_prev:02d})"
+    if data_alvo:
+        try:
+            da = datetime.strptime(data_alvo[:10], "%Y-%m-%d")
+            anos_prazo = (da - hoje).days / 365.25
+            diff = anos - anos_prazo
+            if diff <= -0.5:
+                resultado += f"  [OK — {abs(diff):.1f} a antes do prazo]"
+            elif diff <= 0.5:
+                resultado += "  [OK — dentro do prazo]"
+            else:
+                resultado += f"  [ATENCAO — {diff:.1f} a apos o prazo]"
+        except ValueError:
+            pass
+    return resultado
+
+
+def exibir_projecao_metas(patrimonio: float, mu_anual: float, sigma_anual: float,
+                           aporte_mensal: float, proventos_cache: dict | None):
+    """Projeta quando cada meta de metas.md será atingida, usando os params do MC."""
+    metas = parse_metas()
+    if not metas:
+        return
+
+    hoje = datetime.now()
+    drift_anual = mu_anual - 0.5 * sigma_anual ** 2
+
+    def sem_aporte(meta_val: float) -> float | None:
+        if patrimonio <= 0 or drift_anual <= 0:
+            return None
+        if patrimonio >= meta_val:
+            return 0.0
+        return math.log(meta_val / patrimonio) / drift_anual
+
+    _fmtv = lambda v: f"R${v/1e6:.2f}M" if v >= 1e6 else f"R${v/1e3:.0f}k"
+
+    print(f"\n{'─'*55}")
+    print("METAS — PROJECAO")
+    print(f"{'─'*55}")
+
+    # ── Patrimônio Total ──────────────────────────────────────
+    if "patrimonio_alvo" in metas:
+        alvo   = metas["patrimonio_alvo"]
+        da_str = metas.get("patrimonio_data_alvo")
+        header = f"  Patrimonio {_fmtv(alvo)}"
+        if da_str:
+            header += f"  (prazo: {da_str[:7]})"
+        print(header)
+        print(f"    Sem aporte:  {_fmt_projecao(sem_aporte(alvo), da_str, hoje)}")
+        if aporte_mensal > 0:
+            a_com = _anos_para_atingir_mc(patrimonio, alvo, mu_anual, sigma_anual, aporte_mensal)
+            print(f"    Com aporte:  {_fmt_projecao(a_com, da_str, hoje)}")
+
+    # ── Renda Passiva Mensal ──────────────────────────────────
+    if "renda_passiva_alvo" in metas:
+        alvo_mensal = metas["renda_passiva_alvo"]
+        da_str      = metas.get("renda_passiva_data_alvo")
+
+        # Yield estimado: proventos / patrimônio (aproximação); fallback 6% a.a. (benchmark FII BR)
+        yield_anual = 0.06
+        yield_fonte = "estimado 6% a.a."
+        if proventos_cache and patrimonio > 0:
+            tp = proventos_cache.get("total_recebido", 0)
+            if tp > 0:
+                y = tp / patrimonio
+                if 0.02 <= y <= 0.20:
+                    yield_anual = y
+                    yield_fonte = f"carteira {y*100:.1f}% a.a."
+
+        patrimonio_necessario = (alvo_mensal * 12) / yield_anual
+        header = f"  Renda Passiva R${alvo_mensal:,.0f}/mes"
+        if da_str:
+            header += f"  (prazo: {da_str[:7]})"
+        print(f"\n{header}")
+        print(f"    Yield {yield_fonte}  ->  precisa de {_fmtv(patrimonio_necessario)}")
+        print(f"    Sem aporte:  {_fmt_projecao(sem_aporte(patrimonio_necessario), da_str, hoje)}")
+        if aporte_mensal > 0:
+            a_com = _anos_para_atingir_mc(patrimonio, patrimonio_necessario, mu_anual, sigma_anual, aporte_mensal)
+            print(f"    Com aporte:  {_fmt_projecao(a_com, da_str, hoje)}")
+
+    # ── Metas Livres ──────────────────────────────────────────
+    for meta in metas.get("metas_livres", []):
+        nome    = meta.get("nome", "Meta")
+        alvo    = meta.get("alvo", 0.0)
+        atual   = meta.get("atual", 0.0)
+        da_str  = meta.get("data_alvo")
+        faltam  = max(0.0, alvo - atual)
+
+        header = f"\n  {nome}  R${alvo:,.0f}"
+        if atual > 0:
+            header += f"  (atual: R${atual:,.0f})"
+        if da_str:
+            header += f"  prazo: {da_str[:7]}"
+        print(header)
+
+        if faltam <= 0:
+            print("    Ja atingida!")
+        elif aporte_mensal > 0:
+            meses = math.ceil(faltam / aporte_mensal)
+            data_prev = hoje + timedelta(days=meses * 30)
+            linha = f"    Via aporte:  ~{meses} meses  ({data_prev.strftime('%Y-%m')})"
+            if da_str:
+                try:
+                    da = datetime.strptime(da_str[:10], "%Y-%m-%d")
+                    meses_prazo = (da - hoje).days / 30
+                    diff = meses - meses_prazo
+                    if diff <= -1:
+                        linha += f"  [OK — {int(abs(diff))} meses antes]"
+                    elif diff <= 1:
+                        linha += "  [OK — dentro do prazo]"
+                    else:
+                        linha += f"  [ATENCAO — {int(diff)} meses apos o prazo]"
+                except ValueError:
+                    pass
+            print(linha)
+        else:
+            print(f"    Faltam: R${faltam:,.0f}  (sem historico de aportes para projetar)")
+
+    print(f"{'─'*55}")
+
+
 def _mc_finais(patrimonio: float, mu_d: float, sigma_d: float,
                drift: float, anos: int, n_sim: int,
                aporte_mensal: float, rng) -> np.ndarray:
@@ -237,6 +448,10 @@ def exibir_projecao(patrimonio_str: str):
         print()
         print("  Graficos + backtest historico:  python sbwaa.py /simulacao")
         print(f"{'─'*55}")
+
+        # Projeção das metas
+        proventos = ler_proventos_cache()
+        exibir_projecao_metas(patrimonio, mu_anual, sigma_anual, aporte_medio, proventos)
 
     except Exception as e:
         print(f"  Projecao indisponivel: {e}")
