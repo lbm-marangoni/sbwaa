@@ -369,25 +369,7 @@ Projeta o patrimônio da carteira via Monte Carlo (GBM) com parâmetros históri
 | Drift anual | Retorno esperado ajustado (μ - σ²/2) |
 | Volatilidade anual | Desvio padrão histórico anualizado |
 
-**Exemplo de output:**
-
-```
-══════════════════════════════════════════════════════
-  SIMULAÇÃO MONTE CARLO — 10 anos | Aporte: R$ 2.000/mês
-══════════════════════════════════════════════════════
-  Parâmetros: drift 12,3% a.a. | vol 18,7% a.a.
-  Simulações: 1.000 caminhos
-
-  Ano    P10         P50         P90
-  1      R$ 25.200   R$ 28.400   R$ 34.100
-  3      R$ 42.500   R$ 58.700   R$ 81.200
-  5      R$ 68.300   R$ 103.900  R$ 162.400
-  10     R$ 132.100  R$ 268.500  R$ 573.800
-
-  Patrimônio atual: R$ 19.874 | Patrimônio esperado (P50, 10a): R$ 268.500
-══════════════════════════════════════════════════════
-```
-
+> Output: cabeçalho com parâmetros (drift, vol, nº de simulações) + tabela com P10/P50/P90 por ano + linha de resumo com patrimônio esperado no horizonte final.
 > Parâmetros lidos do cache `logs/simulacao/params_cache.json` (gerado pelo `/risco-carteira`).
 > Com `--salvar`, grava gráfico em `vault/05-risk/simulacao-YYYY-MM-DD.png`.
 
