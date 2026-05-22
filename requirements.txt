@@ -28,9 +28,6 @@ anthropic>=0.50.0
 arch>=7.0.0
 scipy>=1.14.0
 
-# === UTILITÁRIOS ===
-python-dotenv>=1.0.1
-
 # === LEGADO (interface Streamlit em _standby — não necessário para uso normal) ===
 # streamlit>=1.35.0
 # watchdog>=4.0.1
