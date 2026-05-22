@@ -10,11 +10,14 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent
-VAULT_ROOT = PROJECT_ROOT / "vault"
-SCRIPTS_DATA = PROJECT_ROOT / "scripts" / "data"
-CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
-IPS_PATH = VAULT_ROOT / "00-portfolio" / "ips.md"
+import numpy as np
+
+PROJECT_ROOT   = Path(__file__).parent.parent.parent
+VAULT_ROOT     = PROJECT_ROOT / "vault"
+SCRIPTS_DATA   = PROJECT_ROOT / "scripts" / "data"
+CARTEIRA_PATH  = VAULT_ROOT / "00-portfolio" / "carteira.md"
+HISTORICO_PATH = VAULT_ROOT / "00-portfolio" / "historico-trades.md"
+IPS_PATH       = VAULT_ROOT / "00-portfolio" / "ips.md"
 PROVENTOS_CACHE = VAULT_ROOT / "00-portfolio" / ".proventos-cache.json"
 
 
@@ -108,6 +111,138 @@ def parse_carteira() -> tuple[list[dict], dict]:
     return posicoes, resumo
 
 
+def calcular_aporte_medio() -> tuple[float, int]:
+    """
+    Calcula aporte mensal médio a partir das compras no historico-trades.md.
+    Retorna (aporte_medio, n_meses_com_compra).
+    """
+    if not HISTORICO_PATH.exists():
+        return 0.0, 0
+    compras_por_mes: dict[str, float] = {}
+    for linha in HISTORICO_PATH.read_text(encoding="utf-8").splitlines():
+        s = linha.strip()
+        if not s.startswith("|") or "Data" in s or s.startswith("|---"):
+            continue
+        cols = [c.strip() for c in s.split("|")[1:-1]]
+        if len(cols) < 7:
+            continue
+        data_str, operacao, total_str = cols[0], cols[3].upper(), cols[6]
+        if "COMPRA" not in operacao or len(data_str) < 7:
+            continue
+        try:
+            mes = data_str[:7]
+            # Formato Python {:,.2f}: vírgula = separador de milhar, ponto = decimal
+            total = float(total_str.replace(",", "").replace("R$", "").strip())
+            compras_por_mes[mes] = compras_por_mes.get(mes, 0.0) + total
+        except (ValueError, IndexError):
+            continue
+    if not compras_por_mes:
+        return 0.0, 0
+    return sum(compras_por_mes.values()) / len(compras_por_mes), len(compras_por_mes)
+
+
+def _mc_finais(patrimonio: float, mu_d: float, sigma_d: float,
+               drift: float, anos: int, n_sim: int,
+               aporte_mensal: float, rng) -> np.ndarray:
+    """Roda Monte Carlo para um horizonte e retorna array de valores finais."""
+    dias = int(anos * 252)
+    Z = rng.standard_normal((n_sim, dias))
+    if aporte_mensal <= 0:
+        return patrimonio * np.exp(np.sum(drift + sigma_d * Z, axis=1))
+    wealth = np.full(n_sim, patrimonio, dtype=np.float64)
+    for d in range(dias):
+        wealth *= np.exp(drift + sigma_d * Z[:, d])
+        if (d + 1) % 22 == 0:
+            wealth += aporte_mensal
+    return wealth
+
+
+def exibir_projecao(patrimonio_str: str):
+    """Projeção Monte Carlo rápida usando parâmetros cacheados da última simulação."""
+    cache_path = PROJECT_ROOT / "logs" / "simulacao" / "params_cache.json"
+    print(f"\n{'─'*55}")
+    print("PROJECAO DE LONGO PRAZO")
+    print(f"{'─'*55}")
+
+    if not cache_path.exists():
+        print("  Sem dados de simulacao. Execute primeiro:")
+        print("  python sbwaa.py /simulacao")
+        print(f"{'─'*55}")
+        return
+
+    try:
+        params      = json.loads(cache_path.read_text(encoding="utf-8"))
+        mu_anual    = params["mu_anual"]
+        sigma_anual = params["sigma_anual"]
+        data_calc   = params.get("data", "—")
+
+        pat_str    = patrimonio_str.replace(".", "").replace(",", ".")
+        patrimonio = float(pat_str) if pat_str else 0.0
+        exemplo    = False
+        if patrimonio <= 0:
+            patrimonio = 10_000.0
+            exemplo = True
+
+        aporte_medio, n_meses = calcular_aporte_medio()
+
+        N_SIM      = 5_000
+        ANOS_LISTA = [10, 20, 30]
+        rng        = np.random.default_rng(seed=42)
+        mu_d       = (1 + mu_anual) ** (1 / 252) - 1
+        sigma_d    = sigma_anual / np.sqrt(252)
+        drift      = mu_d - 0.5 * sigma_d ** 2
+
+        def _fmt(v: float) -> str:
+            if v >= 1e6:
+                return f"R${v/1e6:.2f}M"
+            return f"R${v/1e3:.0f}k"
+
+        if exemplo:
+            print("  (Carteira vazia — exemplo com R$ 10.000)")
+        else:
+            print(f"  Patrimonio atual: R$ {patrimonio:,.2f}")
+
+        print(f"  mu: {mu_anual*100:.1f}%  |  sigma: {sigma_anual*100:.1f}%  |  {N_SIM:,} simulacoes  |  base: {data_calc}")
+
+        # ── Cenário sem aporte ────────────────────────────────────────────
+        print()
+        print("  Sem aportes adicionais:")
+        print(f"  {'Anos':<6} {'P10 (pessim.)':>14} {'P50 (esperado)':>15} {'P90 (otimist.)':>15}")
+        print(f"  {'─'*6} {'─'*14} {'─'*15} {'─'*15}")
+        p50_sem = {}
+        for anos in ANOS_LISTA:
+            finais = _mc_finais(patrimonio, mu_d, sigma_d, drift, anos, N_SIM, 0.0, rng)
+            p10, p50, p90 = np.percentile(finais, [10, 50, 90])
+            p50_sem[anos] = p50
+            print(f"  {anos:<6} {_fmt(p10):>14} {_fmt(p50):>15} {_fmt(p90):>15}")
+
+        # ── Cenário com aporte ────────────────────────────────────────────
+        if aporte_medio > 0:
+            print()
+            print(f"  Mantendo aporte medio de R$ {aporte_medio:,.0f}/mes ({n_meses} meses de historico):")
+            print(f"  {'Anos':<6} {'P10 (pessim.)':>14} {'P50 (esperado)':>15} {'P90 (otimist.)':>15} {'Ganho vs sem':>14}")
+            print(f"  {'─'*6} {'─'*14} {'─'*15} {'─'*15} {'─'*14}")
+            rng2 = np.random.default_rng(seed=42)
+            for anos in ANOS_LISTA:
+                finais = _mc_finais(patrimonio, mu_d, sigma_d, drift, anos, N_SIM, aporte_medio, rng2)
+                p10, p50, p90 = np.percentile(finais, [10, 50, 90])
+                ganho = p50 - p50_sem[anos]
+                print(f"  {anos:<6} {_fmt(p10):>14} {_fmt(p50):>15} {_fmt(p90):>15} {'+'+_fmt(ganho):>14}")
+        else:
+            print()
+            if n_meses == 0:
+                print("  Sem historico de aportes ainda.")
+            print("  Para ver projecao com aportes: adicione compras e o calculo sera automatico.")
+
+        print()
+        print("  Graficos + backtest historico:  python sbwaa.py /simulacao")
+        print(f"{'─'*55}")
+
+    except Exception as e:
+        print(f"  Projecao indisponivel: {e}")
+        print(f"{'─'*55}")
+
+
 def exibir_alocacao_vs_ips(posicoes: list[dict], ips_alvo: dict):
     """Calcula e exibe alocação atual vs alvo IPS."""
     if not ips_alvo or not posicoes:
@@ -150,7 +285,8 @@ def main():
     ips_alvo = parse_ips_alvo()
 
     if not posicoes:
-        print("\n  Carteira vazia. Use /adicionar para incluir ativos.\n")
+        print("\n  Carteira vazia. Use /adicionar para incluir ativos.")
+        exibir_projecao("0")
         print(f"{'═'*55}\n")
         return
 
@@ -190,6 +326,9 @@ def main():
 
     # Alocação vs IPS
     exibir_alocacao_vs_ips(posicoes, ips_alvo)
+
+    # Projeção de longo prazo
+    exibir_projecao(resumo.get("patrimonio", "0"))
 
     print(f"\n{'═'*55}\n")
 

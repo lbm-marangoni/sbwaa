@@ -27,6 +27,7 @@ anthropic>=0.50.0
 # === QUANT / ECONOMETRIA ===
 arch>=7.0.0
 scipy>=1.14.0
+matplotlib>=3.9.0
 
 # === LEGADO (interface Streamlit em _standby — não necessário para uso normal) ===
 # streamlit>=1.35.0

@@ -2,6 +2,45 @@
 
 ---
 
+## [2.8.6] — 2026-05-22 — PROJECAO COM APORTE HISTORICO NO /CARTEIRA
+
+### Added
+- `carteira.py`: `calcular_aporte_medio()` — lê `historico-trades.md`, agrupa compras por mês (YYYY-MM) e retorna média mensal + n_meses de histórico
+- `carteira.py`: projeção agora exibe **dois cenários** lado a lado:
+  - *Sem aportes adicionais*: P10/P50/P90 para 10/20/30 anos
+  - *Mantendo aporte médio de R$ X/mes*: P10/P50/P90 + coluna "Ganho vs sem" (diferença das medianas)
+  - Se sem histórico de aportes: mensagem orientativa + cenário base mantido
+- `carteira.py`: `_mc_finais()` — Monte Carlo unificado com suporte a aporte mensal (loop diário quando aporte > 0, vetorizado quando = 0)
+
+### Changed
+- `investments`: v1.18.1 → **v1.18.2**
+- Global → **v2.8.6**
+
+---
+
+## [2.8.5] — 2026-05-22 — /SIMULACAO + PROJECAO INTEGRADA AO /CARTEIRA
+
+### Added
+- `scripts/simulacao_carteira.py`: análise quantitativa de longo prazo
+  - **Parte B (Backtest)**: 5 anos histórico com proxies IPS (BOVA11/KNRI11/IVVB11/CDI/IPCA+5%), vs IBOVESPA e CDI; painel triplo: retorno acumulado, rolling 12m, drawdown
+  - **Parte A (Monte Carlo)**: GBM com correção Itô (drift = μ − σ²/2), 10k simulações, fan chart P5/P25/P50/P75/P95, suporte a `--aporte` mensal
+  - `--no-graficos`: modo terminal sem geração de PNGs
+  - Salva `logs/simulacao/params_cache.json` com μ e σ anualizados para consumo pelo `/carteira`
+  - Gráficos dark mode em `logs/simulacao/backtest_YYYY-MM-DD.png` e `montecarlo_YYYY-MM-DD.png`
+- `/carteira` (`carteira.py`): seção **PROJECAO DE LONGO PRAZO** ao final do output
+  - Lê `params_cache.json`; roda Monte Carlo rápido em processo (5k sims, sem rede)
+  - Exibe P10 / P50 / P90 para 10, 20 e 30 anos com patrimônio real da carteira
+  - Carteira vazia: mostra projeção com R$ 10.000 de exemplo
+  - Sem cache: instrui executar `/simulacao` primeiro
+- `sbwaa.py`: `/simulacao` adicionado a `COMANDOS_LOCAIS`; help atualizado
+- `requirements.txt`: `matplotlib>=3.9.0` adicionado
+
+### Changed
+- `investments`: v1.18.0 → **v1.18.1**
+- Global → **v2.8.5**
+
+---
+
 ## [2.8.4] — 2026-05-22 — FIX UI: PROJECT_ROOT + /METAS REGISTRADO
 
 ### Fixed

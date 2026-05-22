@@ -45,6 +45,7 @@ COMANDOS_LOCAIS = {
     "/risco-carteira":  ".claude/commands/risco_carteira.py",
     "/dividendos":      ".claude/commands/dividendos.py",
     "/stress-test":     ".claude/commands/stress_test.py",
+    "/simulacao":       "scripts/simulacao_carteira.py",
     "/ips":             ".claude/commands/ips.py",
     "/snapshot":            "scripts/data/market_snapshot.py",
     "/knowledge":           "knowledge/knowledge_cmd.py",
@@ -138,6 +139,11 @@ def exibir_help():
 
   python sbwaa.py /stress-test custom -25
       Choque personalizado: qualquer percentual positivo ou negativo.
+
+  python sbwaa.py /simulacao
+      Backtest histórico (5 anos) + Monte Carlo (10/20/30 anos) com gráficos.
+      Salva PNGs em logs/simulacao/ e atualiza parâmetros para o /carteira.
+      Flags opcionais: --patrimonio 50000  --aporte 1000  --no-graficos
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   KNOWLEDGE BASE  (local — sem IA, sem API key)
