@@ -4,7 +4,7 @@
 > O guia cobre sintaxe e flags. Esta referência cobre **o que cada comando entrega**:
 > campos, estrutura do output e o que você pode esperar ver.
 
-**Versão: v2.5.3**
+**Versão: v2.8.0**
 
 ---
 
@@ -425,7 +425,7 @@ prazo positivo — monitorar se sustenta acima de US$ 79.
 
 ### /analisar
 
-Pipeline completo de análise — 8 etapas em sequência. Aceita **um ou mais tickers** separados por espaço.
+Pipeline completo de análise — 10 etapas em sequência (0–9). Aceita **um ou mais tickers** separados por espaço.
 
 **Sintaxe:**
 ```
@@ -439,14 +439,16 @@ Em batch (2+ tickers): executa o pipeline completo e isolado para cada ticker em
 
 | Etapa | Agente | O que entrega |
 |-------|--------|---------------|
-| 0 | Scripts | Coleta Brapi + Yahoo macro + consenso de analistas |
+| 0 | Scripts | Coleta Brapi + Yahoo macro + BCB (Selic/IPCA/BRL/IBC-Br) + consenso de analistas |
 | 1 | Market Researcher | Contexto macro, setor, catalisadores do dia |
 | 2 | Earnings Reviewer | Revisão do resultado mais recente (QoQ, YoY, qualidade) |
 | 3 | Model Builder | DCF com premissas explícitas (WACC, g, FCL projetado) |
 | 4 | Valuation Reviewer | Crítica ao DCF + múltiplos + **preço teto/chão (Graham/Bazin)** + consenso de sell-side + veredicto BARATO/JUSTO/CARO |
 | 5 | Quant | Sharpe, volatilidade, drawdown, beta, correlação com carteira |
-| 6 | Risk Engineer | VaR, CVaR, stress test, circuit breakers |
-| 7 | Portfolio Manager | Decisão final: COMPRAR / AGUARDAR / EVITAR + sizing + stop |
+| 6 | Econometrician | GARCH (vol dinâmica, persistência, half-life), beta dinâmico rolling (60d/126d/252d), Fama-French 3F proxies BR (alpha, SMB, HML), regressão macro BCB (Selic/IPCA/BRL/IBC-Br), correlações rolling vs carteira, drawdown avançado (Calmar/Ulcer/Pain) |
+| 7 | Risk Engineer | VaR, CVaR, stress test, circuit breakers |
+| 8 | Portfolio Manager | Decisão final: COMPRAR / AGUARDAR / EVITAR + sizing + stop |
+| 9 | Salvar | Nota `vault/01-ativos/TICKER/analise-TICKER-YYYY-MM-DD.md` com frontmatter + wikilinks |
 
 **Exemplo de output final (PM):**
 

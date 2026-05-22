@@ -1,7 +1,7 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.7.0  
+**Versão de referência:** v2.8.0  
 **Data de geração:** 2026-05-22  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
@@ -12,7 +12,7 @@
 **Second Brain Wealth + Asset + Assessor Individual** — sistema multi-agente de análise financeira pessoal que roda 100% local no seu computador. Nenhum dado privado (patrimônio, posições, custo médio) sai da máquina. APIs externas recebem apenas tickers públicos.
 
 **Arquitetura:**
-- 7 agentes de IA especializados em pipeline sequencial
+- 8 agentes de IA especializados em pipeline sequencial
 - Pipeline de dados (Brapi + Yahoo Finance) com cache local de 4h
 - Base de conhecimento RAG (ChromaDB + sentence-transformers)
 - Interface desktop (customtkinter) + terminal (slash commands)
@@ -1831,10 +1831,10 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.7.0 — 2026-05-22
+SBWAA v2.8.0 — 2026-05-22
 
 Módulos:
-  investments     v1.16.0 ✅ Operacional (/metas: dashboard metas financeiras + integração morning-call)
+  investments     v1.17.0 ✅ Operacional (Econometrician: Etapa 6 do /analisar — GARCH, beta dinâmico, FF3F, macro BCB, rolling corr, drawdown avançado)
   heartbeat       v1.0.1  ✅ Operacional
   knowledge-base  v1.2.0  ✅ Operacional (RAG ativo em todos os agentes LLM; referências Markowitz indexadas)
   interface       v2.3.0  ✅ Operacional (ui.py v2.7.0; botão Metas no Portfolio tab)
@@ -1877,6 +1877,7 @@ Modo de operação: Claude Code (sem API key)
 | v2.6.1  | 2026-05-22 | /analisar em batch: aceita múltiplos tickers separados por espaço; pipeline completo e isolado por ticker; tabela comparativa de veredictos ao final com prioridade de aporte |
 | v2.6.2  | 2026-05-22 | /investimento-do-dia com filtro de categoria opcional: fii, acao, etf, etf-br, etf-intl, rf, td |
 | v2.7.0  | 2026-05-22 | Sistema de Metas Financeiras: vault/metas.md, /metas (dashboard + projeções + milestones), integração morning-call, seção Metas no IPS, botão UI |
+| v2.8.0  | 2026-05-22 | Agente Econometrician: GARCH(1,1), beta dinâmico rolling OLS, Fama-French 3F proxies BR, regressão macro BCB (Selic/IPCA/BRL/IBC-Br), correlações rolling, drawdown avançado (Calmar/Ulcer/Pain); Etapa 6 do /analisar; fetch_bcb.py; arch>=6.0.0 |
 
 ### Diferenças do projeto original para o atual
 

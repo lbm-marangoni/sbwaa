@@ -54,6 +54,7 @@ Seguir este roteamento de modelos em todas as operações:
 | Earnings Reviewer       | claude-sonnet-4-6   | medium |
 | Valuation Reviewer      | claude-sonnet-4-6   | medium |
 | Quant / Data Engineer   | claude-sonnet-4-6   | medium |
+| Econometrician          | claude-sonnet-4-6   | medium |
 | Heartbeat / Alertas     | claude-sonnet-4-6   | medium |
 | Comandos diários        | claude-sonnet-4-6   | medium |
 

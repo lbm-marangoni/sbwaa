@@ -2,6 +2,28 @@
 
 ---
 
+## [2.8.0] — 2026-05-22 — AGENTE ECONOMETRICIAN
+
+### Added
+- `.claude/agents/econometrician/run_econometrician.py`: script principal do agente — baixa 3 anos de preços via yfinance, executa 6 módulos em sequência e salva `scripts/data/cache/econometria_{TICKER}_{DATA}.json`
+- `.claude/agents/econometrician/modules/garch_model.py`: GARCH(1,1) via biblioteca `arch`; entrega vol condicional anualizada, regime (BAIXA/NORMAL/ELEVADA/ALTA), persistência (α+β), half-life de choques; fallback para rolling std se `arch` não instalado
+- `.claude/agents/econometrician/modules/dynamic_beta.py`: beta dinâmico por rolling OLS em janelas de 60d/126d/252d e full; detecta tendência (crescente/decrescente/estável)
+- `.claude/agents/econometrician/modules/factor_model.py`: Fama-French 3 fatores com proxies brasileiros (SMLL11, BOVA11, DIVO11, IVVB11); alpha anualizado com p-valor e significância; R² ajustado
+- `.claude/agents/econometrician/modules/macro_regression.py`: regressão múltipla dos retornos mensais do ativo vs Δselic, IPCA, ΔBRL/USD e IBC-Br (dados BCB SGS); identifica driver principal
+- `.claude/agents/econometrician/modules/rolling_stats.py`: correlação rolling (60d/252d) entre o ativo analisado e todos os ativos da carteira; classifica estabilidade (ESTAVEL/MODERADA/INSTAVEL); alertas automáticos para corr > 0.80
+- `.claude/agents/econometrician/modules/advanced_drawdown.py`: Calmar Ratio, Ulcer Index, Pain Index, tempo médio de recuperação, duração máxima de drawdown, número de períodos de DD
+- `.claude/agents/econometrician/SKILL.md`: prompt de interpretação do agente Econometrician — traduz métricas em insights para o Portfolio Manager sem repetir o que o Quant já calculou
+- `scripts/data/fetch_bcb.py`: fetcher de dados macro do BCB SGS (Selic/11, IPCA/433, BRL-USD/1, IBC-Br/24363, etc.); salva `scripts/data/cache/bcb_{DATA}.json`
+- `requirements.txt`: `arch>=6.0.0` adicionado
+
+### Changed
+- `.claude/commands/analisar.md`: Econometrician inserido como **Etapa 6**; `fetch_bcb.py` adicionado à Etapa 0; Pipeline Manager renumerado de 7→8; Salvar Output renumerado de 8→9
+- `CLAUDE.md`: Econometrician adicionado à tabela de model routing (claude-sonnet-4-6, medium)
+- `investments`: v1.16.0 → **v1.17.0**
+- Global → **v2.8.0**
+
+---
+
 ## [2.7.0] — 2026-05-22 — SISTEMA DE METAS FINANCEIRAS
 
 ### Added

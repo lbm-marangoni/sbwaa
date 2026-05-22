@@ -43,11 +43,12 @@ Rode em sequência:
 $env:PYTHONUTF8 = "1"; cd "C:\Users\lbmma\Downloads\Local\SBWAA"
 python scripts/data/fetch_brapi.py {TICKER}
 python scripts/data/fetch_yahoo.py --macro
+python scripts/data/fetch_bcb.py
 python scripts/data/fetch_consensus.py {TICKER}
 python scripts/data/update_carteira.py
 ```
 
-> Em batch: `fetch_yahoo.py --macro` roda apenas uma vez para o primeiro ticker. Os demais aproveitam o cache do dia.
+> Em batch: `fetch_yahoo.py --macro` e `fetch_bcb.py` rodam apenas uma vez para o primeiro ticker. Os demais aproveitam o cache do dia.
 
 Leia os arquivos de cache gerados:
 - `scripts/data/cache/brapi_{TICKER}_*.json` — dados fundamentalistas BR
@@ -107,7 +108,26 @@ Leia o cache gerado `scripts/data/cache/quant_*.json` e apresente as métricas c
 
 ---
 
-### ETAPA 6 — Risk Engineer
+### ETAPA 6 — Econometrician
+
+Execute os modelos econométricos e estatísticos avançados:
+```powershell
+python .claude/agents/econometrician/run_econometrician.py {TICKER}
+```
+
+Leia `.claude/agents/econometrician/SKILL.md` e interprete o cache gerado
+`scripts/data/cache/econometria_{TICKER}_{DATA}.json`:
+
+- **GARCH**: regime de volatilidade, persistência de choques, half-life
+- **Beta dinâmico**: betas em 60d / 126d / 252d, tendência, R²
+- **Fama-French 3F (proxies BR)**: alpha anualizado, betas de fator (mercado, SMB, HML)
+- **Macro sensibilidade (BCB)**: Δselic, IPCA, ΔBRL/USD, IBC-Br — driver principal
+- **Correlações rolling**: estabilidade vs carteira, alertas de diversificação
+- **Drawdown avançado**: Calmar, Ulcer Index, Pain Index, tempo médio de recuperação
+
+---
+
+### ETAPA 7 — Risk Engineer
 
 Execute os scripts de risco (não precisam de API):
 ```powershell
@@ -121,7 +141,7 @@ Leia o cache gerado `scripts/data/cache/risk_*.json` e avalie:
 
 ---
 
-### ETAPA 7 — Portfolio Manager (Decisão Final)
+### ETAPA 8 — Portfolio Manager (Decisão Final)
 
 Leia `.claude/agents/portfolio-manager/SKILL.md` e tome a decisão final sobre **{TICKER}**:
 - Consolide os outputs das etapas anteriores
@@ -132,7 +152,7 @@ Leia `.claude/agents/portfolio-manager/SKILL.md` e tome a decisão final sobre *
 
 ---
 
-### ETAPA 8 — Salvar Output
+### ETAPA 9 — Salvar Output
 
 Salve a nota de análise em `vault/01-ativos/{TICKER}/analise-{TICKER}-YYYY-MM-DD.md` com:
 - Frontmatter YAML (tags, data, veredicto, preço-alvo)
