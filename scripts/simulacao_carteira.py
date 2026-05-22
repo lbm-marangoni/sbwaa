@@ -23,7 +23,7 @@ from datetime import date, timedelta
 
 # Força UTF-8 no terminal Windows (evita UnicodeEncodeError com caracteres especiais)
 if sys.platform == "win32" and hasattr(sys.stdout, "buffer"):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace", line_buffering=True)
 from pathlib import Path
 
 warnings.filterwarnings("ignore")
