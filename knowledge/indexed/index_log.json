@@ -71,6 +71,115 @@
       "chunks": 2,
       "idioma": "pt",
       "indexado_em": "2026-05-20 01:12"
+    },
+    {
+      "arquivo": "https://www.infomoney.com.br/politica/stf-nao-consegue-notificar-mario-frias-sobre-filme-de-bolsonaro/",
+      "nome": "STF não consegue notificar Mário Frias sobre filme de Bolsonaro",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.infomoney.com.br/politica/stf-nao-consegue-notificar-mario-frias-sobre-filme-de-bolsonaro/",
+      "chunks": 1,
+      "idioma": "pt",
+      "indexado_em": "2026-05-20 01:49"
+    },
+    {
+      "arquivo": "https://www.infomoney.com.br/mercados/tem-que-perguntar-para-o-flavio-diz-michelle-sobre-audios-de-senador-a-vorcaro/",
+      "nome": "‘Tem que perguntar para o Flávio’, diz Michelle sobre áudios de senador a Vorcar",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.infomoney.com.br/mercados/tem-que-perguntar-para-o-flavio-diz-michelle-sobre-audios-de-senador-a-vorcaro/",
+      "chunks": 1,
+      "idioma": "pt",
+      "indexado_em": "2026-05-20 01:49"
+    },
+    {
+      "arquivo": "https://www.infomoney.com.br/politica/para-zema-e-renan-santos-explicacoes-de-flavio-sobre-vorcaro-nao-sao-convincentes/",
+      "nome": "Para Zema e Renan Santos, explicações de Flávio sobre Vorcaro não são convincent",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.infomoney.com.br/politica/para-zema-e-renan-santos-explicacoes-de-flavio-sobre-vorcaro-nao-sao-convincentes/",
+      "chunks": 2,
+      "idioma": "pt",
+      "indexado_em": "2026-05-20 01:49"
+    },
+    {
+      "arquivo": "https://www.infomoney.com.br/politica/jose-dirceu-recebe-alta-do-hospital-apos-ser-internado-com-linfoma/",
+      "nome": "José Dirceu recebe alta do hospital após ser internado com linfoma",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.infomoney.com.br/politica/jose-dirceu-recebe-alta-do-hospital-apos-ser-internado-com-linfoma/",
+      "chunks": 2,
+      "idioma": "pt",
+      "indexado_em": "2026-05-20 01:49"
+    },
+    {
+      "arquivo": "https://www.infomoney.com.br/mundo/trump-participara-da-cupula-do-g7-na-franca-informa-axios/",
+      "nome": "Trump participará da cúpula do G7 na França, informa Axios",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.infomoney.com.br/mundo/trump-participara-da-cupula-do-g7-na-franca-informa-axios/",
+      "chunks": 1,
+      "idioma": "pt",
+      "indexado_em": "2026-05-20 01:49"
+    },
+    {
+      "arquivo": "https://www.bloomberg.com/news/videos/2026-05-20/aep-s-mcculloch-on-australia-s-energy-path-forward-video",
+      "nome": "AEP's McCulloch on Australia’s Energy Path Forward",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.bloomberg.com/news/videos/2026-05-20/aep-s-mcculloch-on-australia-s-energy-path-forward-video",
+      "chunks": 1,
+      "idioma": "en",
+      "indexado_em": "2026-05-20 01:49"
+    },
+    {
+      "arquivo": "https://www.bloomberg.com/news/articles/2026-05-19/gold-holds-losses-as-iran-impasse-keeps-rate-hike-bets-high",
+      "nome": "Gold Holds Losses as Iran Impasse Keeps Rate Hike Bets High",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.bloomberg.com/news/articles/2026-05-19/gold-holds-losses-as-iran-impasse-keeps-rate-hike-bets-high",
+      "chunks": 1,
+      "idioma": "en",
+      "indexado_em": "2026-05-20 01:49"
+    },
+    {
+      "arquivo": "https://www.bloomberg.com/news/articles/2026-05-19/latest-oil-market-news-and-analysis-for-may-20",
+      "nome": "Oil Holds Decline as Traders Weigh Trump’s Latest Iran Threats",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.bloomberg.com/news/articles/2026-05-19/latest-oil-market-news-and-analysis-for-may-20",
+      "chunks": 1,
+      "idioma": "en",
+      "indexado_em": "2026-05-20 01:49"
+    },
+    {
+      "arquivo": "https://www.bloomberg.com/news/articles/2026-05-20/japan-20-year-bond-sale-sees-firmer-demand-than-12-month-average-mpdilxr6",
+      "nome": "Japan’s 20-Year Bonds Gain After Sale Brings Short-Term Relief",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.bloomberg.com/news/articles/2026-05-20/japan-20-year-bond-sale-sees-firmer-demand-than-12-month-average-mpdilxr6",
+      "chunks": 1,
+      "idioma": "en",
+      "indexado_em": "2026-05-20 01:49"
+    },
+    {
+      "arquivo": "https://www.bloomberg.com/news/articles/2026-05-20/china-bonds-buck-global-rout-with-yields-hitting-nine-month-low",
+      "nome": "China Bonds Buck Global Rout With Yields Hitting Nine-Month Low",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.bloomberg.com/news/articles/2026-05-20/china-bonds-buck-global-rout-with-yields-hitting-nine-month-low",
+      "chunks": 1,
+      "idioma": "en",
+      "indexado_em": "2026-05-20 01:49"
+    },
+    {
+      "arquivo": "knowledge\\raw\\valuation\\metodos-preco-teto-chao.md",
+      "nome": "metodos-preco-teto-chao.md",
+      "tipo": "outro",
+      "md5": "f00bbeff5a28c2875c3167c8c88f9570",
+      "chunks": 5,
+      "idioma": "pt",
+      "indexado_em": "2026-05-22 01:11"
     }
   ]
 }
