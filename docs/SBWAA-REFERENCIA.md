@@ -4,7 +4,7 @@
 > O guia cobre sintaxe e flags. Esta referência cobre **o que cada comando entrega**:
 > campos, estrutura do output e o que você pode esperar ver.
 
-**Versão: v2.8.8**
+**Versão: v2.8.9**
 
 ---
 

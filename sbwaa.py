@@ -104,6 +104,25 @@ def exibir_help():
       Tipos: acao-on | acao-pn | fii | etf-br | etf-intl
              renda-fixa | tesouro | debenture | cri-cra
 
+  Para renda fixa (renda-fixa | tesouro | debenture | cri-cra):
+      --setor é o emissor (XP, BTG, Nubank, Tesouro Nacional...)
+      Flags opcionais exclusivas de RF:
+        --nome "CDB XP 110% CDI"     nome do produto
+        --indexador CDI              CDI | IPCA | Selic | PRE | IGPM
+        --taxa "110%"                taxa (110% CDI, +6% IPCA, 13.5% PRE)
+        --vencimento 2027-12-01      data de vencimento
+      Validação de API pulada automaticamente (sem ticker em bolsa).
+
+  Exemplos RF:
+    python sbwaa.py /adicionar --ticker CDB001 --tipo renda-fixa \\
+                               --quantidade 1 --preco-medio 5000 \\
+                               --setor XP --nome "CDB XP 110% CDI" \\
+                               --indexador CDI --taxa "110%" --vencimento 2027-12-01
+    python sbwaa.py /adicionar --ticker NTNB35 --tipo tesouro \\
+                               --quantidade 1 --preco-medio 3500 \\
+                               --setor "Tesouro Nacional" \\
+                               --indexador IPCA --taxa "+6.12%" --vencimento 2035-05-15
+
   python sbwaa.py /vender --ticker PETR4 --quantidade 50 --preco 45.00
       Registra venda parcial ou total. Calcula P&L realizado.
       Remove ativo da carteira se quantidade chegar a zero.

@@ -30,6 +30,12 @@ TIPOS_VALIDOS = {
     "cri-cra":    "🟧 CRI/CRA",
 }
 
+# Tipos off-exchange: não têm cotação em bolsa — validação de API pulada automaticamente
+TIPOS_OFF_EXCHANGE = {"renda-fixa", "tesouro", "debenture", "cri-cra"}
+
+# Indexadores válidos para RF
+INDEXADORES = ["CDI", "IPCA", "Selic", "PRE", "IGPM"]
+
 HISTORICO_HEADER = "| Data | Ticker | Tipo | Operação | Qtd | Preço | Total R$ | PM ant. | P&L ant. |"
 HISTORICO_SEP    = "|------|--------|------|----------|-----|-------|----------|---------|----------|"
 
@@ -175,31 +181,84 @@ def adicionar_historico(ticker: str, tipo: str, qtd: float, pm: float,
 
 # ── Nota do ativo ──────────────────────────────────────────────────────────────
 
-def criar_nota_ativo(ticker: str, tipo: str, setor: str, data_entrada: str):
+def criar_nota_ativo(ticker: str, tipo: str, setor: str, data_entrada: str,
+                     nome: str | None = None, indexador: str | None = None,
+                     taxa: str | None = None, vencimento: str | None = None):
     pasta = ATIVOS_DIR / ticker
     pasta.mkdir(parents=True, exist_ok=True)
     tese_path = pasta / "tese.md"
     if tese_path.exists():
         print(f"  Nota {tese_path} já existe — não sobrescrevendo.")
         return
-    conteudo = f"""---
-tags: [ativo, {tipo}, {ticker.lower()}]
-cssclasses: [node-{tipo}]
-ticker: {ticker}
-tipo: {tipo}
-setor: {setor}
-data_entrada: {data_entrada}
-status: aguardando-analise
----
 
-# {ticker} — Tese de Investimento
+    eh_rf = tipo in TIPOS_OFF_EXCHANGE
+    titulo = nome if nome else ticker
 
-> Análise pendente. Execute `/analisar {ticker}` para gerar.
+    # Frontmatter extra para RF/TD/DEB/CRI-CRA
+    extra_front = ""
+    if eh_rf:
+        if indexador:
+            extra_front += f"indexador: {indexador}\n"
+        if taxa:
+            extra_front += f"taxa: \"{taxa}\"\n"
+        if vencimento:
+            extra_front += f"vencimento: {vencimento}\n"
+        extra_front += f"emissor: {setor}\n"
+
+    # Descrição legível para RF
+    descricao_rf = ""
+    if eh_rf:
+        partes = []
+        if indexador and taxa:
+            partes.append(f"{indexador} {taxa}")
+        elif indexador:
+            partes.append(indexador)
+        elif taxa:
+            partes.append(taxa)
+        if vencimento:
+            partes.append(f"venc. {vencimento}")
+        if partes:
+            descricao_rf = f"\n**{' | '.join(partes)}**\n"
+
+    if eh_rf:
+        corpo = f"""> Ativo de renda fixa — sem pipeline de análise de ações.
+{descricao_rf}
+## Detalhes
+
+| Campo      | Valor           |
+|------------|-----------------|
+| Emissor    | {setor}         |
+| Indexador  | {indexador or '—'} |
+| Taxa       | {taxa or '—'}   |
+| Vencimento | {vencimento or '—'} |
+| Entrada    | {data_entrada}  |
 
 ## Links
 - [[carteira]] — posição atual
 - [[ips]] — adequação ao perfil
 """
+    else:
+        corpo = f"""> Análise pendente. Execute `/analisar {ticker}` para gerar.
+
+## Links
+- [[carteira]] — posição atual
+- [[ips]] — adequação ao perfil
+"""
+
+    conteudo = f"""---
+tags: [ativo, {tipo}, {ticker.lower()}]
+cssclasses: [node-{tipo}]
+ticker: {ticker}
+nome: "{titulo}"
+tipo: {tipo}
+setor: {setor}
+data_entrada: {data_entrada}
+{extra_front}status: {"ativo" if eh_rf else "aguardando-analise"}
+---
+
+# {titulo}
+
+{corpo}"""
     tese_path.write_text(conteudo, encoding="utf-8")
 
 
@@ -211,15 +270,27 @@ def main():
     parser.add_argument("--tipo",        required=True, choices=list(TIPOS_VALIDOS.keys()))
     parser.add_argument("--quantidade",  required=True, type=float)
     parser.add_argument("--preco-medio", required=True, type=float, dest="preco_medio")
-    parser.add_argument("--setor",       required=True)
+    parser.add_argument("--setor",       required=True,
+                        help="Setor (ações/FIIs) ou Emissor (RF/TD/DEB/CRI-CRA: ex. XP, BTG, Nubank)")
     parser.add_argument("--skip-validacao", action="store_true",
-                        help="Pular validação de ticker nas APIs")
-    parser.add_argument("--data", default=None,
+                        help="Pular validação de ticker nas APIs (automático para RF/TD/DEB/CRI-CRA)")
+    parser.add_argument("--data",        default=None,
                         help="Data de entrada YYYY-MM-DD (padrão: hoje)")
+    # Flags exclusivas de renda fixa
+    parser.add_argument("--nome",        default=None,
+                        help="Nome do produto (ex: 'CDB XP 110%% CDI'). Opcional.")
+    parser.add_argument("--indexador",   default=None, choices=INDEXADORES,
+                        help="Indexador: CDI | IPCA | Selic | PRE | IGPM")
+    parser.add_argument("--taxa",        default=None,
+                        help="Taxa (ex: '110%%' para CDI, '+6%%' para IPCA, '13.5%%' para PRE)")
+    parser.add_argument("--vencimento",  default=None,
+                        help="Data de vencimento YYYY-MM-DD (ex: 2029-01-01)")
     args = parser.parse_args()
 
     ticker = args.ticker.upper()
+    eh_rf  = args.tipo in TIPOS_OFF_EXCHANGE
 
+    # Validação de data de entrada
     if args.data:
         try:
             datetime.strptime(args.data, "%Y-%m-%d")
@@ -230,28 +301,42 @@ def main():
     else:
         data_entrada = datetime.now().strftime("%Y-%m-%d")
 
+    # Validação de vencimento
+    if args.vencimento:
+        try:
+            datetime.strptime(args.vencimento, "%Y-%m-%d")
+        except ValueError:
+            print("Erro: --vencimento deve estar no formato YYYY-MM-DD (ex: 2029-01-01)")
+            sys.exit(1)
+
+    # Aviso se flags de RF usadas em tipos de renda variável
+    if not eh_rf and any([args.nome, args.indexador, args.taxa, args.vencimento]):
+        print("Aviso: --nome/--indexador/--taxa/--vencimento são para RF/TD/DEB/CRI-CRA.")
+
     # Busca posição existente
     posicao_atual = buscar_posicao(ticker)
 
-    # Busca cotação atual (para mostrar P&L antes)
+    # Cotação — RF não tem cotação em bolsa: usa preco_medio como valor atual
     preco_atual = None
-    if not args.skip_validacao:
+    if eh_rf or args.skip_validacao:
+        if eh_rf:
+            print(f"  Tipo {args.tipo} — off-exchange, validacao de API pulada.")
+        preco_atual = args.preco_medio  # valor de face = custo de aquisição
+    else:
         valido, preco_atual = validar_ticker(ticker, args.tipo)
         if not valido:
             print(f"Erro: ticker {ticker} não encontrado na Brapi nem no Yahoo Finance.")
             print("Use --skip-validacao para adicionar mesmo assim.")
             sys.exit(1)
         print(f"  Ticker {ticker} validado.  Cotação atual: R$ {preco_atual:.2f}" if preco_atual else f"  Ticker {ticker} validado.")
-    else:
-        preco_atual = buscar_cotacao_atual(ticker, args.tipo)
 
     if posicao_atual:
-        # ── Compra adicional ──────────────────────────────────────────────────
+        # ── Compra adicional / aporte em RF ──────────────────────────────────
         qtd_ant = posicao_atual["qtd"]
         pm_ant  = posicao_atual["pm"]
 
         pl_antes_str = "—"
-        if preco_atual and pm_ant > 0:
+        if preco_atual and pm_ant > 0 and not eh_rf:
             pl_pct       = (preco_atual - pm_ant) / pm_ant * 100
             pl_rs        = round((preco_atual - pm_ant) * qtd_ant, 2)
             pl_antes_str = f"{pl_pct:+.1f}%"
@@ -259,17 +344,18 @@ def main():
         nova_qtd = qtd_ant + args.quantidade
         novo_pm  = (qtd_ant * pm_ant + args.quantidade * args.preco_medio) / nova_qtd
 
-        print(f"\n  [COMPRA ADICIONAL] {ticker}")
+        label_qtd = "unidades" if eh_rf else "ações"
+        print(f"\n  [{'APORTE' if eh_rf else 'COMPRA ADICIONAL'}] {ticker}")
         print(f"  {'─'*48}")
-        print(f"  Posição anterior : {int(qtd_ant) if qtd_ant == int(qtd_ant) else qtd_ant} ações @ P.M. R$ {pm_ant:.2f}")
-        if preco_atual:
+        print(f"  Posição anterior : {int(qtd_ant) if qtd_ant == int(qtd_ant) else qtd_ant} {label_qtd} @ P.M. R$ {pm_ant:.2f}")
+        if preco_atual and not eh_rf:
             pl_pct_disp = (preco_atual - pm_ant) / pm_ant * 100
             pl_rs_disp  = round((preco_atual - pm_ant) * qtd_ant, 2)
-            print(f"  Cotação atual    : R$ {preco_atual:.2f}  →  P&L antes: {pl_pct_disp:+.1f}%  (R$ {pl_rs_disp:+,.2f})")
-        print(f"  Esta compra      : {int(args.quantidade) if args.quantidade == int(args.quantidade) else args.quantidade} ações @ R$ {args.preco_medio:.2f}")
+            print(f"  Cotação atual    : R$ {preco_atual:.2f}  ->  P&L antes: {pl_pct_disp:+.1f}%  (R$ {pl_rs_disp:+,.2f})")
+        print(f"  Este aporte      : {int(args.quantidade) if args.quantidade == int(args.quantidade) else args.quantidade} {label_qtd} @ R$ {args.preco_medio:.2f}")
         print(f"  {'─'*48}")
         print(f"  Novo P. Médio    : R$ {novo_pm:.2f}")
-        print(f"  Nova quantidade  : {int(nova_qtd) if nova_qtd == int(nova_qtd) else nova_qtd} ações")
+        print(f"  Nova quantidade  : {int(nova_qtd) if nova_qtd == int(nova_qtd) else nova_qtd} {label_qtd}")
 
         atualizar_posicao(ticker, nova_qtd, novo_pm)
         adicionar_historico(ticker, args.tipo, args.quantidade, args.preco_medio,
@@ -277,14 +363,34 @@ def main():
         print(f"\n[OK] Posição de {ticker} atualizada.")
 
     else:
-        # ── Primeira compra ───────────────────────────────────────────────────
-        print(f"\n  [NOVA POSIÇÃO] {ticker}")
+        # ── Primeira entrada ──────────────────────────────────────────────────
+        label_qtd = "unidades" if eh_rf else "ações"
+        nome_display = args.nome or ticker
+        print(f"\n  [NOVA POSIÇÃO] {nome_display}")
+
+        # Para RF: mostrar resumo do produto
+        if eh_rf:
+            partes = []
+            if args.indexador and args.taxa:
+                partes.append(f"{args.indexador} {args.taxa}")
+            elif args.indexador:
+                partes.append(args.indexador)
+            elif args.taxa:
+                partes.append(args.taxa)
+            if args.vencimento:
+                partes.append(f"venc. {args.vencimento}")
+            if partes:
+                print(f"  {' | '.join(partes)}")
+            print(f"  Emissor: {args.setor}")
+
         inserir_linha_carteira(ticker, args.tipo, args.setor,
                                args.quantidade, args.preco_medio)
         adicionar_historico(ticker, args.tipo, args.quantidade, args.preco_medio,
                             data_entrada, None, "—")
-        criar_nota_ativo(ticker, args.tipo, args.setor, data_entrada)
-        print(f"\n[OK] {ticker} adicionado à carteira. Pasta criada em vault/01-ativos/{ticker}/")
+        criar_nota_ativo(ticker, args.tipo, args.setor, data_entrada,
+                         nome=args.nome, indexador=args.indexador,
+                         taxa=args.taxa, vencimento=args.vencimento)
+        print(f"\n[OK] {nome_display} adicionado. Pasta: vault/01-ativos/{ticker}/")
 
 
 if __name__ == "__main__":

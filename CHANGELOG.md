@@ -2,6 +2,25 @@
 
 ---
 
+## [2.8.9] — 2026-05-22 — /ADICIONAR COM CAMPOS DE RENDA FIXA
+
+### Added
+- `add_ativo.py`: flags opcionais para RF/TD/DEB/CRI-CRA:
+  - `--nome "CDB XP 110% CDI"` — nome legível do produto
+  - `--indexador CDI|IPCA|Selic|PRE|IGPM` — indexador da remuneração
+  - `--taxa "110%"` — taxa (110% CDI, +6% IPCA, 13.5% prefixado)
+  - `--vencimento YYYY-MM-DD` — data de vencimento
+  - `--setor` vira **emissor** para RF (XP, BTG, Nubank, Tesouro Nacional...)
+- Auto-skip de validação de API para tipos off-exchange (renda-fixa, tesouro, debenture, cri-cra) — nunca têm cotação em bolsa
+- Nota do ativo (`tese.md`) gerada com frontmatter estruturado (`indexador`, `taxa`, `vencimento`, `emissor`) e tabela de detalhes em vez de "análise pendente"
+- `/help` do `sbwaa.py` atualizado com flags RF e dois exemplos completos
+
+### Changed
+- `investments`: v1.18.4 → **v1.18.5**
+- Global → **v2.8.9**
+
+---
+
 ## [2.8.8] — 2026-05-22 — RENDA PASSIVA REAL + BARRA DE PROGRESSO NAS METAS
 
 ### Fixed
