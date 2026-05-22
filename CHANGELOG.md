@@ -2,6 +2,17 @@
 
 ---
 
+## [2.6.1] — 2026-05-22 — /ANALISAR EM BATCH: MÚLTIPLOS TICKERS
+
+### Changed
+- `.claude/commands/analisar.md`: aceita 1 ou mais tickers separados por espaço (`/analisar PETR4 VALE3 XPML11`). Em batch: pipeline completo e isolado por ticker em sequência, output individual normal para cada um, tabela comparativa de veredictos ao final com prioridade de aporte
+- `docs/SBWAA-REFERENCIA.md`: `/analisar` atualizado com nova sintaxe, modo batch e mockup da tabela comparativa
+- `docs/GUIA-COMANDOS.md`: `/analisar` atualizado com nova sintaxe e descrição do modo batch
+- `investments`: v1.15.0 → **v1.15.1**
+- Global → **v2.6.1**
+
+---
+
 ## [2.6.0] — 2026-05-22 — PREÇO TETO/CHÃO: GRAHAM (AÇÕES) + BAZIN (FIIS) NO VALUATION REVIEWER
 
 ### Added

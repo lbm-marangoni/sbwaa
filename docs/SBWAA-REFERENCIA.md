@@ -424,9 +424,17 @@ prazo positivo — monitorar se sustenta acima de US$ 79.
 
 ### /analisar
 
-Pipeline completo de análise de um ativo — 8 etapas em sequência. O mais pesado e completo do sistema.
+Pipeline completo de análise — 8 etapas em sequência. Aceita **um ou mais tickers** separados por espaço.
 
-**Etapas:**
+**Sintaxe:**
+```
+/analisar PETR4
+/analisar PETR4 VALE3 XPML11
+```
+
+Em batch (2+ tickers): executa o pipeline completo e isolado para cada ticker em sequência, gerando output individual normal para cada um, e uma **tabela comparativa de veredictos ao final**.
+
+**Etapas (por ticker):**
 
 | Etapa | Agente | O que entrega |
 |-------|--------|---------------|
@@ -454,7 +462,20 @@ resultado recente confirmou tendência de expansão de margem, risco controlado.
 📡 Consenso sell-side: 12 analistas | Target médio R$ 48,50 | COMPRA
 ```
 
-> Salvo em: `vault/01-ativos/TICKER/analise-TICKER-YYYY-MM-DD.md`
+> Salvo em: `vault/01-ativos/TICKER/analise-TICKER-YYYY-MM-DD.md` (um arquivo por ticker)
+
+**Exemplo de tabela comparativa final (batch):**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ticker  Tipo         Veredicto  Valuation  Upside DCF  P. Teto    Cotação   Sizing
+─────────────────────────────────────────────────────────────────────────────────
+PETR4   🟦 AÇÃO PN   COMPRAR    BARATO     +28%        R$ 89,00   R$ 38,00  8%
+XPML11  🟩 FII       AGUARDAR   JUSTO      +9%         R$ 115,00  R$ 106,00 —
+
+Prioridade de aporte: PETR4
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
 
 ---
 

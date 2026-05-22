@@ -3,7 +3,7 @@
 > Referência completa de todos os comandos do sistema.
 > Para instalação e configuração inicial: [`README.md`](README.md)
 
-**Versão: v2.6.0**
+**Versão: v2.6.1**
 
 ---
 
@@ -290,18 +290,20 @@ o terminal exibe a instrução de uso e o botão `/ui` copia para o clipboard.
 
 ---
 
-### `/analisar TICKER` — Pipeline completo de análise (8 etapas)
+### `/analisar TICKER [TICKER2 ...]` — Pipeline completo de análise (8 etapas)
 
-Executa todos os 7 agentes em sequência para um ativo.
+Executa todos os 7 agentes em sequência para um ou mais ativos.
 
 ```
 /analisar PETR4
-/analisar VALE3
-/analisar MXRF11
+/analisar PETR4 VALE3 XPML11
 ```
 
+Em batch (2+ tickers): pipeline completo e isolado para cada ticker em sequência,
+output individual normal para cada um + tabela comparativa de veredictos ao final.
+
 Etapas: dados de mercado → Market Researcher → Earnings Reviewer →
-Model Builder (DCF) → Valuation Reviewer → Quant → Risk Engineer → Portfolio Manager.
+Model Builder (DCF) → Valuation Reviewer (incl. preço teto/chão) → Quant → Risk Engineer → Portfolio Manager.
 
 Output gerado em `vault/01-ativos/TICKER/`.
 
