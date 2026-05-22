@@ -145,10 +145,11 @@ Leia o cache gerado `scripts/data/cache/risk_*.json` e avalie:
 
 Leia `.claude/agents/portfolio-manager/SKILL.md` e tome a decisão final sobre **{TICKER}**:
 - Consolide os outputs das etapas anteriores
+- Leia explicitamente `scripts/data/cache/econometria_{TICKER}_{DATA}.json` e incorpore os bullets de `## Para o Portfolio Manager` da nota do Econometrician na síntese — eles são inputs obrigatórios para o veredicto
 - Verifique adequação ao IPS (`vault/00-portfolio/ips.md`)
 - Verifique posição atual em `vault/00-portfolio/carteira.md`
 - Emita veredicto: **COMPRAR / AGUARDAR / EVITAR** com sizing sugerido
-- Justificativa em no máximo 5 bullets com dados concretos
+- Justificativa em no máximo 5 bullets com dados concretos — pelo menos 1 bullet deve referenciar dados do Econometrician (regime GARCH, beta dinâmico, alpha ou correlação rolling)
 
 ---
 

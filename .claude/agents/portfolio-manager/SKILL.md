@@ -30,6 +30,7 @@ Você tem acesso completo aos seguintes inputs:
 - `dcf_{TICKER}_{DATA}.json` — modelo DCF completo
 - `equity-research-{TICKER}-{DATA}-longa.md` — veredicto de valuation
 - `quant_{DATA}.json` — métricas quantitativas da carteira
+- `econometria_{TICKER}_{DATA}.json` — GARCH, beta dinâmico, Fama-French 3F, macro sensibilidade (BCB), correlações rolling, drawdown avançado; ler obrigatoriamente os bullets de `## Para o Portfolio Manager` na nota do Econometrician
 - `risk_{DATA}.json` — VaR, CVaR, stress tests, circuit breakers
 
 ### Do portfólio do usuário (privado, local):
@@ -60,18 +61,21 @@ Emitir um de três veredictos com justificativa obrigatória:
 - Risk Engineer: sem circuit breakers críticos ativos
 - Adição melhora ou mantém o Sharpe da carteira
 - Compatível com limites de concentração do IPS
+- Econometrician: regime GARCH não em ALTA, correlação rolling ESTAVEL com carteira, Calmar ≥ 1.0
 
 **AGUARDAR** — quando:
 - Tese válida mas timing desfavorável (mercado, macro, earnings)
 - Upside insuficiente para o risco atual
 - Portfólio já próximo do limite de concentração setorial
 - Dado relevante ausente que muda a análise
+- Econometrician: regime GARCH ALTA com persistência > 0.95 (choques prolongados), ou beta dinâmico com tendência CRESCENTE acentuada (ativo ficando mais arriscado), ou correlação rolling INSTAVEL com ativo relevante da carteira
 
 **EVITAR** — quando:
 - Valuation CARO ou confiança BAIXA por dados insuficientes
 - Risk Engineer: circuit breaker ativo, VaR violaria IPS
 - Contradições não resolvidas entre agentes
 - Adição aumentaria correlação média acima do aceitável
+- Econometrician: correlação rolling > 0.80 com ativo já presente na carteira (diversificação destruída), ou Calmar < 0.5 (retorno não compensa o drawdown histórico)
 
 ### Passo 4 — Snapshot de métricas HF da carteira
 Sempre apresentar, independente do veredicto:
@@ -138,6 +142,7 @@ agente: portfolio-manager
 | Earnings Reviewer | {resumo 1 linha} | Qualidade resultado |
 | Model Builder | Valor justo R$ XX — Upside XX% | Alto |
 | Valuation Reviewer | BARATO/JUSTO/CARO — conf. ALTA/MÉD/BAIXA | Alto |
+| Econometrician | GARCH {regime} \| Beta {tendência} \| Alpha {sig.} \| Corr {estabilidade} \| Calmar {valor} | Alto |
 | Risk Engineer | {status circuit breakers} | Crítico |
 
 ## 📈 Portfólio — Métricas HF

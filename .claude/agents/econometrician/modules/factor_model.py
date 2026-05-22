@@ -27,10 +27,16 @@ FATORES_BR = {
 
 def _baixar_precos(ticker_ou_lista, periodo: str = "2y") -> Optional[pd.Series]:
     """Aceita string ou lista de tickers (tenta em ordem até encontrar dados)."""
+    import io, sys
     tickers = [ticker_ou_lista] if isinstance(ticker_ou_lista, str) else ticker_ou_lista
     for ticker in tickers:
         try:
-            dados = yf.download(ticker, period=periodo, auto_adjust=True, progress=False)
+            stderr_orig = sys.stderr
+            sys.stderr = io.StringIO()
+            try:
+                dados = yf.download(ticker, period=periodo, auto_adjust=True, progress=False)
+            finally:
+                sys.stderr = stderr_orig
             if not dados.empty:
                 return dados["Close"].squeeze()
         except Exception:

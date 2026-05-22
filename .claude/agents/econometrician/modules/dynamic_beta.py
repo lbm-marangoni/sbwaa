@@ -35,11 +35,14 @@ def _ols_beta(r_ativo: pd.Series, r_bench: pd.Series) -> tuple[float, float]:
 
 
 def _tendencia_beta(betas: list[float]) -> str:
-    """Detecta tendência nos últimos betas calculados."""
+    """Detecta tendência nos betas [60d, 126d, 252d].
+    validos[0]=60d (mais recente), validos[-1]=252d (mais antigo).
+    Positivo = beta subiu ao longo do tempo (crescente).
+    """
     validos = [b for b in betas if not np.isnan(b)]
     if len(validos) < 2:
         return "indefinida"
-    delta = validos[-1] - validos[0]
+    delta = validos[0] - validos[-1]  # recente - antigo
     if delta > 0.10:
         return "crescente"
     if delta < -0.10:

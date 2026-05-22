@@ -2,6 +2,24 @@
 
 ---
 
+## [2.8.1] — 2026-05-22 — INTEGRAÇÃO PM↔ECONOMETRICIAN + BUGS
+
+### Fixed
+- `.claude/agents/econometrician/modules/dynamic_beta.py`: `_tendencia_beta` comparava `validos[-1] - validos[0]` (252d - 60d), produzindo "crescente" quando o beta caiu de 1.1 para 0 — corrigido para `validos[0] - validos[-1]` (recente - antigo)
+- `.claude/agents/econometrician/modules/factor_model.py`: yfinance imprimia HTTP 404 no stderr ao tentar SMLL11.SA (delisted) — suprimido com redirecionamento temporário de sys.stderr na função `_baixar_precos`
+
+### Changed
+- `.claude/agents/portfolio-manager/SKILL.md`:
+  - `econometria_{TICKER}_{DATA}.json` adicionado à lista de inputs obrigatórios com instrução de leitura dos bullets "Para o Portfolio Manager"
+  - Critérios de COMPRAR / AGUARDAR / EVITAR expandidos com sinais econométricos: regime GARCH, tendência de beta, alpha Fama-French, correlação rolling, Calmar Ratio
+  - Linha do Econometrician adicionada à tabela `## Síntese da Equipe` do output template
+- `.claude/commands/analisar.md`: Etapa 8 (PM) expandida — instrução explícita de ler o cache econometria e incorporar os bullets do Econometrician; requisito de ao menos 1 bullet na justificativa referenciando dado econométrico
+
+- `investments`: v1.17.0 → **v1.17.1**
+- Global → **v2.8.1**
+
+---
+
 ## [2.8.0] — 2026-05-22 — AGENTE ECONOMETRICIAN
 
 ### Added
