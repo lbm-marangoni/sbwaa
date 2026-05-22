@@ -74,7 +74,7 @@ TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": No
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.5.3                ║
+║            SBWAA — Referência de Comandos  v2.7.0                ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]
@@ -184,8 +184,13 @@ def exibir_help():
   /mundo-economico
       Panorama do cenário econômico global e impactos no Brasil.
 
-  /investimento-do-dia
+  /investimento-do-dia [categoria]
       Sugere 1-2 ativos com base no IPS e cenário macro atual.
+      Categorias opcionais: fii | acao | etf | etf-br | etf-intl | rf | td
+
+  /metas
+      Dashboard de progresso das metas financeiras (renda passiva, reserva,
+      patrimônio total e metas livres). Configure em vault/00-portfolio/metas.md.
 
   /relatorio-semanal
       P&L da semana, métricas e outlook. Gera .md e .docx.

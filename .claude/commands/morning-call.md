@@ -23,6 +23,7 @@ Leia todos estes arquivos:
 - `vault/02-relatorios/diarios/snapshot-YYYY-MM-DD.md` (snapshot gerado acima)
 - `vault/00-portfolio/carteira.md` (posições e P&L atual)
 - `vault/00-portfolio/ips.md` (limites do investidor)
+- `vault/00-portfolio/metas.md` (metas financeiras — para o bloco de metas)
 - `logs/alerts.log` se existir (alertas ativos)
 
 ## Passo 3 — Gerar Morning Call
@@ -42,6 +43,17 @@ Mostre apenas posições que têm exposição relevante ao cenário do dia.
 
 ### Alertas Ativos
 Se houver alertas no `logs/alerts.log` com CRÍTICO ou ALTO, liste aqui.
+
+### Metas — Resumo Compacto
+
+Ler `vault/00-portfolio/metas.md` e exibir uma linha de status por meta. Destacar com ⚠️ qualquer milestone recém-atingido (25 / 50 / 75 / 100%) ou meta em risco de prazo.
+
+```
+📊 Metas: Renda Passiva ████████░░░░░░░ XX% | Reserva ████████████░░░ XX% | Patrimônio ████░░░░░░░░░░░ XX%
+{metas livres com nome abreviado e % — ex: Viagem Europa ██░░░░░░░░░░░░░ 14%}
+```
+
+Se `metas.md` não existir ou não tiver metas configuradas: omitir esta seção silenciosamente.
 
 ### Ponto de Atenção do Dia
 1 único insight acionável: um ativo, setor ou evento específico para monitorar hoje.

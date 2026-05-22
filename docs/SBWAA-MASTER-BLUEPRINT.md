@@ -1,7 +1,7 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.6.0  
+**Versão de referência:** v2.7.0  
 **Data de geração:** 2026-05-22  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
@@ -1831,13 +1831,13 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.6.0 — 2026-05-22
+SBWAA v2.7.0 — 2026-05-22
 
 Módulos:
-  investments     v1.15.0 ✅ Operacional (preço teto/chão Graham+Bazin no Valuation Reviewer)
+  investments     v1.16.0 ✅ Operacional (/metas: dashboard metas financeiras + integração morning-call)
   heartbeat       v1.0.1  ✅ Operacional
   knowledge-base  v1.2.0  ✅ Operacional (RAG ativo em todos os agentes LLM; referências Markowitz indexadas)
-  interface       v2.2.1  ✅ Operacional (ui.py v2.5.3; botão Otimizar Expansão no Portfolio tab)
+  interface       v2.3.0  ✅ Operacional (ui.py v2.7.0; botão Metas no Portfolio tab)
 
 Modo de operação: Claude Code (sem API key)
   → Comandos locais rodam via Python puro
@@ -1874,6 +1874,9 @@ Modo de operação: Claude Code (sem API key)
 | v2.5.2  | 2026-05-20 | docs/SBWAA-WORKFLOW.md: workflow operacional completo (6 cadências, 5 fluxos oportunísticos, árvores de decisão) |
 | v2.5.3  | 2026-05-20 | Auditoria docs: SBWAA-REFERENCIA.md (versão + /otimizar-expansao + mockup fronteira), SBWAA-MASTER-BLUEPRINT.md (versão + Estado Atual), ui.py (versão + botão Otimizar Expansão) |
 | v2.6.0  | 2026-05-22 | Preço teto/chão no Valuation Reviewer: Graham (ações) √(22,5×LPA×VPA) com MS 10/15/20%; Bazin (FIIs) DPA/8% teto + DPA/12% chão; novo Passo 5 no pipeline; tabelas curta e longa atualizadas |
+| v2.6.1  | 2026-05-22 | /analisar em batch: aceita múltiplos tickers separados por espaço; pipeline completo e isolado por ticker; tabela comparativa de veredictos ao final com prioridade de aporte |
+| v2.6.2  | 2026-05-22 | /investimento-do-dia com filtro de categoria opcional: fii, acao, etf, etf-br, etf-intl, rf, td |
+| v2.7.0  | 2026-05-22 | Sistema de Metas Financeiras: vault/metas.md, /metas (dashboard + projeções + milestones), integração morning-call, seção Metas no IPS, botão UI |
 
 ### Diferenças do projeto original para o atual
 
@@ -1916,4 +1919,4 @@ python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-m
 
 ---
 
-*Blueprint atualizado em 2026-05-22 (v2.6.0). Para atualizar, editar este arquivo e bumpar VERSION.md.*
+*Blueprint atualizado em 2026-05-22 (v2.7.0). Para atualizar, editar este arquivo e bumpar VERSION.md.*

@@ -32,6 +32,7 @@
 - [/comparar](#comparar)
 - [/mundo-economico](#mundo-economico)
 - [/investimento-do-dia](#investimento-do-dia)
+- [/metas](#metas)
 - [/relatorio-semanal](#relatorio-semanal)
 - [/relatorio-mensal](#relatorio-mensal)
 - [/rebalancear](#rebalancear)
@@ -604,6 +605,56 @@ Com argumento: restringe as sugestões à categoria informada.
 - Alinhamento com a alocação alvo do IPS (qual classe está sub-alocada?)
 - Contexto macro favorável para qual setor?
 - Ativos da watchlist com análise recente que podem ter melhorado de patamar
+
+---
+
+### /metas
+
+Dashboard de progresso das metas financeiras. Sem API key — leitura local.
+
+**Configuração:** editar `vault/00-portfolio/metas.md` com os valores-alvo.
+
+**Metas suportadas:**
+
+| Meta | Cálculo | Atualização |
+|------|---------|-------------|
+| Renda Passiva Mensal | Dividendos reais da carteira (DPA × cotas) | Automático |
+| Reserva de Emergência | Saldo de RF + TD na carteira | Automático |
+| Patrimônio Total | Valor total da carteira a mercado | Automático |
+| Metas Livres | Campo `atual` no arquivo | Manual pelo usuário |
+
+**Exemplo de output:**
+
+```
+══════════════════════════════════════════════════════════
+METAS FINANCEIRAS — 2026-05-22
+══════════════════════════════════════════════════════════
+
+💰 RENDA PASSIVA MENSAL
+   Alvo: R$ 3.000/mês | Atual: R$ 1.350/mês
+   ███████░░░░░░░░ 45%
+   → Projeção: Jun/2028 (no ritmo atual)
+
+🏦 RESERVA DE EMERGÊNCIA
+   Alvo: R$ 50.000 | Atual: R$ 40.000
+   ████████████░░░ 80% ⭐⭐⭐ Reta final
+
+📈 PATRIMÔNIO TOTAL
+   Alvo: R$ 500.000 | Atual: R$ 160.000
+   ████░░░░░░░░░░░ 32%
+
+──────────────────────────────────────────────────────────
+METAS LIVRES
+──────────────────────────────────────────────────────────
+
+🎯 Viagem Europa
+   Alvo: R$ 15.000 | Atual: R$ 2.100 | Prazo: Jun/2027
+   ██░░░░░░░░░░░░░ 14%  ⚠️ em risco de prazo
+══════════════════════════════════════════════════════════
+```
+
+> Integrado ao `/morning-call`: exibe resumo compacto com % por meta e alertas de milestone.
+> Configurar metas em `vault/00-portfolio/metas.md`. Agentes de análise **não leem** este arquivo.
 
 ---
 

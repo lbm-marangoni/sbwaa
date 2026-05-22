@@ -2,6 +2,24 @@
 
 ---
 
+## [2.7.0] — 2026-05-22 — SISTEMA DE METAS FINANCEIRAS
+
+### Added
+- `vault/00-portfolio/metas.md`: arquivo de configuração das metas financeiras — renda passiva mensal, reserva de emergência, patrimônio total e metas livres com data. Agentes de análise não leem este arquivo
+- `.claude/commands/metas.md`: novo comando `/metas` — dashboard completo com barra de progresso por meta, cálculo automático (dividendos reais / saldo RF+TD / patrimônio total), projeção de prazo, alertas de milestone (25/50/75/100%) e status "no prazo / em risco"
+- `vault/00-portfolio/ips.md`: nova seção "Metas Financeiras" linkando para `metas.md` e explicando a separação entre IPS (decisões) e metas (informativo)
+- `.claude/commands/morning-call.md`: novo bloco "Metas — Resumo Compacto" adicionado ao briefing diário — uma linha por meta com barra de progresso e alertas de milestone
+
+### Changed
+- `interface/ui.py`: botão "Metas" adicionado à aba Portfólio (linha 2); versão atualizada para v2.7.0
+- `sbwaa.py`: `/metas` e `/investimento-do-dia [categoria]` adicionados ao `/help`; versão atualizada
+- `docs/SBWAA-REFERENCIA.md`: `/metas` adicionado ao índice e com seção completa (campos, mockup de output)
+- `investments`: v1.15.2 → **v1.16.0**
+- `interface`: v2.2.1 → **v2.3.0**
+- Global → **v2.7.0**
+
+---
+
 ## [2.6.2] — 2026-05-22 — /INVESTIMENTO-DO-DIA COM FILTRO DE CATEGORIA
 
 ### Changed
