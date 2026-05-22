@@ -53,7 +53,7 @@ class App(ctk.CTk):
             row=0, column=0, padx=14, pady=10)
         ctk.CTkLabel(h, text="Second Brain Wealth + Asset + Assessor Individual",
                      text_color="gray60").grid(row=0, column=1, padx=4, sticky="w")
-        ctk.CTkLabel(h, text="v2.8.0", text_color="gray50",
+        ctk.CTkLabel(h, text="v2.8.9", text_color="gray50",
                      font=ctk.CTkFont(size=11)).grid(row=0, column=2, padx=14)
 
     def _build_tabs(self):
@@ -144,6 +144,10 @@ class App(ctk.CTk):
         self.f_data.grid(row=1, column=3, padx=(0, 6), pady=(6, 0))
         ctk.CTkLabel(form, text="(vazio = hoje)", text_color="gray55",
                      font=ctk.CTkFont(size=10)).grid(row=1, column=4, padx=(0, 4), sticky="w")
+
+        ctk.CTkLabel(form, text="Nome (RF)").grid(row=1, column=5, padx=(8, 2), sticky="w")
+        self.f_nome = ctk.CTkEntry(form, placeholder_text="CDB XP 110% CDI", width=160)
+        self.f_nome.grid(row=1, column=6, columnspan=2, padx=(0, 6), pady=(6, 0))
 
         ctk.CTkButton(form, text="Adicionar", width=100,
                       command=self._adicionar).grid(row=1, column=8, columnspan=2, padx=4, pady=(6, 0))
@@ -361,6 +365,7 @@ class App(ctk.CTk):
         pm     = self.f_pm.get().strip()
         setor  = self.f_setor.get().strip()
         data   = self.f_data.get().strip()
+        nome   = self.f_nome.get().strip()
         if not all([ticker, tipo, qtd, pm, setor]):
             self._append("Preencha todos os campos antes de adicionar.\n")
             return
@@ -368,6 +373,8 @@ class App(ctk.CTk):
                 "--quantidade", qtd, "--preco-medio", pm, "--setor", setor]
         if data:
             args += ["--data", data]
+        if nome:
+            args += ["--nome", nome]
         if self.f_skip.get():
             args.append("--skip-validacao")
         self._local(args)
