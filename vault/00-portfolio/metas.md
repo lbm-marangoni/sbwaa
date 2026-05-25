@@ -20,8 +20,8 @@ atualizado: 2026-05-22
 > Calculado automaticamente a partir dos dividendos reais da carteira (DPA × cotas).
 
 ```
-alvo_mensal: 3000        # R$/mês — meta de renda passiva recorrente
-data_alvo: 2028-12-31    # opcional — deixe vazio se não tiver prazo
+alvo_mensal: 500         # R$/mês — meta de renda passiva recorrente
+data_alvo: 2028-07-31    # opcional — deixe vazio se não tiver prazo
 ```
 
 ---
@@ -31,8 +31,8 @@ data_alvo: 2028-12-31    # opcional — deixe vazio se não tiver prazo
 > Calculado automaticamente: soma dos ativos de tipo renda-fixa e tesouro na carteira.
 
 ```
-alvo: 50000              # R$ total mantido em RF + TD
-data_alvo:               # opcional
+alvo: 10000              # R$ total mantido em RF + TD
+data_alvo: 2028-07-31    # opcional
 ```
 
 ---
@@ -42,8 +42,8 @@ data_alvo:               # opcional
 > Calculado automaticamente: valor total da carteira (todas as classes).
 
 ```
-alvo: 500000             # R$ total investido
-data_alvo: 2030-12-31    # opcional
+alvo: 50000              # R$ total investido
+data_alvo: 2028-07-31    # opcional
 ```
 
 ---
@@ -56,12 +56,12 @@ data_alvo: 2030-12-31    # opcional
 
 ```yaml
 metas_livres:
-  - nome: "Viagem Europa"
-    alvo: 15000
-    atual: 0              # atualizar manualmente
-    data_alvo: 2027-06-30
-    classe: renda-fixa    # onde o dinheiro está guardado (opcional)
-    notas: ""
+  # - nome: "Viagem Europa"
+  #   alvo: 15000
+  #   atual: 0              # atualizar manualmente
+  #   data_alvo: 2027-06-30
+  #   classe: renda-fixa    # onde o dinheiro está guardado (opcional)
+  #   notas: ""
 
   # Para adicionar mais metas, copie o bloco acima e edite os valores.
   # Exemplo:

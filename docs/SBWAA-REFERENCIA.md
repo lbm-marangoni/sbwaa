@@ -4,7 +4,7 @@
 > O guia cobre sintaxe e flags. Esta referência cobre **o que cada comando entrega**:
 > campos, estrutura do output e o que você pode esperar ver.
 
-**Versão: v2.8.9**
+**Versão: v2.10.0**
 
 ---
 
@@ -603,6 +603,10 @@ Decisão do Portfolio Manager para um ativo específico, usando análises já ex
 
 **Diferença vs `/analisar`:** não reconstrói o modelo — usa o que já existe. Mais rápido, menos contexto consumido.
 
+**Saving automático (pós-veredicto):**
+- Acrescenta linha na tabela de `vault/00-portfolio/decisoes.md` — histórico permanente
+- Cria `vault/01-ativos/TICKER/pm-decisao-TICKER-YYYY-MM-DD.md` com frontmatter (`tags`, `veredicto`, `ticker`, `data`, `sizing`) e output completo da decisão
+
 ---
 
 ### /comparar
@@ -732,6 +736,7 @@ Relatório de performance da semana. Agente: Portfolio Manager.
 | Outlook Próxima Semana | 2–3 eventos/catalisadores a acompanhar |
 
 > Salvo em: `vault/02-relatorios/semanais/semana-YYYY-WNN.md`
+> Gera também: `vault/05-risk/snapshots/risk-YYYY-MM-DD.md` — tabela de métricas vs limites IPS (VaR, CVaR, drawdown, concentração, circuit breakers)
 
 ---
 
@@ -841,14 +846,16 @@ Estrutura de pastas:
 
 ```
 vault/
-├── 00-portfolio/        → carteira.md, ips.md, historico-trades.md
-├── 01-ativos/TICKER/    → tese, análise completa, DCF, earnings, equity research
+├── 00-portfolio/        → carteira.md, ips.md, historico-trades.md, decisoes.md
+├── 01-ativos/TICKER/    → tese, analise, earnings, equity-research, pm-decisao
 ├── 02-relatorios/
 │   ├── diarios/         → morning-call, snapshot
 │   ├── semanais/        → relatorio-semanal
 │   ├── mensais/         → relatorio-mensal
 │   └── revisoes/        → revisar-carteira
-├── 03-macro/            → notas de cenário macro
+├── 03-macro/            → notas de cenário macro (mundo-economico)
 ├── 04-knowledge/        → documentos indexados na base RAG
-└── 05-risk/             → snapshots de risco
+├── 05-risk/snapshots/   → risk snapshots semanais (gerados pelo /relatorio-semanal)
+└── _templates/          → 11 templates Obsidian (tese, analise, earnings, equity-research,
+                           pm-decisao, snapshot, morning-call, macro, risk-snapshot, semana, mensal)
 ```

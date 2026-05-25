@@ -3,7 +3,7 @@
 > Referência completa de todos os comandos do sistema.
 > Para instalação e configuração inicial: [`README.md`](README.md)
 
-**Versão: v2.8.9**
+**Versão: v2.10.0**
 
 ---
 
@@ -446,6 +446,10 @@ Retorna veredicto COMPRAR / AGUARDAR / EVITAR com sizing sugerido.
 
 > O sizing é calculado localmente (sem enviar patrimônio à API).
 
+Após emitir o veredicto, salva automaticamente:
+- **Uma linha** na tabela de `vault/00-portfolio/decisoes.md` (histórico permanente de decisões do PM)
+- **`vault/01-ativos/TICKER/pm-decisao-TICKER-YYYY-MM-DD.md`** com frontmatter estruturado (`veredicto`, `ticker`, `data`, `sizing`)
+
 ---
 
 ### `/morning-call` — Briefing pré-abertura
@@ -486,7 +490,9 @@ P&L da semana, métricas de performance e outlook. Gera `.md` e `.docx`.
 /relatorio-semanal
 ```
 
-Output em: `vault/02-relatorios/semanais/`
+Output em: `vault/02-relatorios/semanais/semana-YYYY-WNN.md`
+
+Gera também **risk snapshot semanal** em `vault/05-risk/snapshots/risk-YYYY-MM-DD.md` — tabela de métricas (VaR, CVaR, drawdown, concentração) vs limites do IPS, com status de circuit breakers.
 
 ---
 

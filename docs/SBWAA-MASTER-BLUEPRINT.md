@@ -1,8 +1,8 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.8.9  
-**Data de geração:** 2026-05-22  
+**Versão de referência:** v2.10.0  
+**Data de geração:** 2026-05-25  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
 ---
@@ -2128,10 +2128,12 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.8.9 — 2026-05-22
+SBWAA v2.10.0 — 2026-05-25
 
 Módulos:
-  investments     v1.18.5 ✅ Operacional
+  investments     v1.19.0 ✅ Operacional
+                          /pm: Passo 3 salva linha em decisoes.md + pm-decisao-*.md no ativo
+                          /relatorio-semanal: Passo 4 gera risk snapshot em vault/05-risk/snapshots/
                           Econometrician (Etapa 6 do /analisar): GARCH, beta dinâmico, FF3F, macro BCB, rolling corr, drawdown avançado
                           /watchlist: veredictos cacheados com frescor
                           /vender: P&L realizado, remoção automática se qty=0
@@ -2140,9 +2142,14 @@ Módulos:
                           /carteira: projeção 2 cenários + METAS com renda passiva real (total_no_ano/12) e barra de progresso
   heartbeat       v1.0.1  ✅ Operacional (sem alterações)
   knowledge-base  v1.2.0  ✅ Operacional (RAG ativo; referências Markowitz indexadas; ~1.200 chunks)
-  interface       v2.3.1  ✅ Operacional
-                          PROJECT_ROOT corrigido (interface/ui.py → raiz do projeto)
-                          Botões: Metas, Watchlist, Vender, Otimizar Expansão, Simulação
+  interface       v2.5.0  ✅ Operacional
+                          vault/_templates/: 11 templates Obsidian (tese, analise, earnings, equity-research,
+                            pm-decisao, snapshot, morning-call, macro, risk-snapshot, semana, mensal)
+                          Obsidian app.json: templateFolder configurado para _templates
+                          graph.json: color group #screening adicionado
+                          workspace.json: lastOpenFiles limpo (30+ refs estagnadas removidas)
+                          UI v2.4.0: Rebranding terminal (ciano, sidebar, header live), /status,
+                            RF fields no form, investimento-do-dia combobox, /simulacao flags
 
 Modo de operação: Claude Code (sem API key)
   -> Comandos locais rodam via Python puro
@@ -2192,6 +2199,8 @@ Modo de operação: Claude Code (sem API key)
 | v2.8.7  | 2026-05-22 | Seção METAS — PROJECAO no /carteira: projeta quando cada meta de metas.md será atingida; patrimônio (analítico + MC); renda passiva (yield real ou 6% default → MC); metas livres (linear por aporte); status OK/ATENCAO vs data_alvo |
 | v2.8.8  | 2026-05-22 | Renda passiva real: renda_atual = total_no_ano/12 (dividendos reais do ano); yield = total_no_ano/patrimônio (correto, anualizado); barra de progresso [###---] em patrimônio, renda passiva e metas livres |
 | v2.8.9  | 2026-05-22 | /adicionar RF: --nome, --indexador, --taxa, --vencimento; auto-skip API; setor vira emissor; nota com tabela e frontmatter estruturado; TIPOS_OFF_EXCHANGE |
+| v2.9.0  | 2026-05-25 | Rebranding completo UI (ciano, sidebar, header live); /watchlist --rever, /ips --editar, /simulacao flags, /status, RF fields no form, investimento-do-dia combobox; /analisar Etapa 9 separada por tipo |
+| v2.10.0 | 2026-05-25 | vault/_templates/ com 11 templates Obsidian; /pm Passo 3 salva decisoes.md + pm-decisao-*.md; /relatorio-semanal Passo 4 gera risk snapshot semanal; Obsidian app.json configurado; graph.json #screening |
 
 ### Diferenças do projeto original para o atual
 
@@ -2239,4 +2248,4 @@ python sbwaa.py /adicionar --ticker MXRF11 --tipo fii --quantidade 200 --preco-m
 
 ---
 
-*Blueprint atualizado em 2026-05-22 (v2.8.9). Para atualizar, editar este arquivo e bumpar VERSION.md.*
+*Blueprint atualizado em 2026-05-25 (v2.10.0). Para atualizar, editar este arquivo e bumpar VERSION.md.*

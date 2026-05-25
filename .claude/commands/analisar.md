@@ -155,10 +155,32 @@ Leia `.claude/agents/portfolio-manager/SKILL.md` e tome a decisão final sobre *
 
 ### ETAPA 9 — Salvar Output
 
-Salve a nota de análise em `vault/01-ativos/{TICKER}/analise-{TICKER}-YYYY-MM-DD.md` com:
+Salve os arquivos abaixo. Regra geral:
+- **Específico do ativo** → `vault/01-ativos/{TICKER}/`
+- **Geral / não vinculado a um ativo** → `vault/02-relatorios/diarios/` (como já estava)
+
+#### 9a — Market Researcher (geral)
+Salve em `vault/02-relatorios/diarios/market-researcher-YYYY-MM-DD.md`
+usando o formato definido no SKILL do Market Researcher.
+> Em batch: apenas um arquivo por dia — não duplicar se já existir.
+
+#### 9b — Earnings Reviewer (específico do ativo)
+Salve em `vault/01-ativos/{TICKER}/earnings-{TICKER}-{TRIMESTRE}.md`
+usando o formato definido no SKILL do Earnings Reviewer.
+
+#### 9c — Equity Research / Valuation Reviewer (específico do ativo)
+Salve em `vault/01-ativos/{TICKER}/equity-research-{TICKER}-YYYY-MM-DD.md`
+usando a **versão longa** definida no SKILL do Valuation Reviewer.
+
+#### 9d — PM — Decisão (específico do ativo)
+Salve em `vault/01-ativos/{TICKER}/pm-decisao-{TICKER}-YYYY-MM-DD.md`
+usando o formato definido no SKILL do Portfolio Manager.
+
+#### 9e — Nota consolidada (específico do ativo)
+Salve em `vault/01-ativos/{TICKER}/analise-{TICKER}-YYYY-MM-DD.md` com:
 - Frontmatter YAML (tags, data, veredicto, preço-alvo)
-- Seções de cada etapa resumidas
-- Wikilinks para: `[[carteira]]`, `[[ips]]`, todos os ativos relacionados mencionados
+- Resumo de 2-3 linhas por etapa (não repetir o conteúdo completo — já está nos arquivos individuais)
+- Wikilinks para todos os arquivos salvos acima + `[[carteira]]`, `[[ips]]`
 - Use os labels de tipo de ativo definidos no CLAUDE.md
 
 ---
