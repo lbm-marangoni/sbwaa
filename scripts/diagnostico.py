@@ -1,77 +1,84 @@
 #!/usr/bin/env python3
 """SBWAA — Diagnóstico de scripts."""
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
 
 scripts_necessarios = {
+    # --- Coleta de dados ---
     "scripts/data/fetch_fundamentals.py": "Busca dados BR via Yahoo Finance",
-    "scripts/data/fetch_investidor10.py": "Dados complementares via scraping Investidor10 (vacância, DPA, LPA, VPA, liquidez)",
-    "scripts/data/fetch_yahoo.py": "Busca dados globais via Yahoo",
-    "scripts/data/update_carteira.py": "Atualiza cotacoes na carteira",
-    "scripts/data/add_ativo.py": "Adiciona ativo a carteira",
-    "scripts/data/market_snapshot.py": "Snapshot diario de mercado",
+    "scripts/data/fetch_investidor10.py": "Dados complementares via scraping Investidor10",
+    "scripts/data/fetch_yahoo.py": "Busca dados globais via Yahoo Finance",
+    "scripts/data/fetch_bcb.py": "Busca macro BR via BCB (Selic, IPCA, BRL/USD)",
+    "scripts/data/fetch_consensus.py": "Consenso de analistas",
+    "scripts/data/update_carteira.py": "Atualiza cotações na carteira",
+    "scripts/data/add_ativo.py": "Adiciona ativo à carteira",
+    "scripts/data/market_snapshot.py": "Snapshot diário de mercado",
+
+    # --- Agentes — SKILLs (arquitetura atual: .md) ---
     ".claude/agents/market-researcher/SKILL.md": "SKILL do Market Researcher",
-    ".claude/agents/market-researcher/run_market_researcher.py": "Runner Market Researcher",
     ".claude/agents/earnings-reviewer/SKILL.md": "SKILL do Earnings Reviewer",
-    ".claude/agents/earnings-reviewer/run_earnings_reviewer.py": "Runner Earnings Reviewer",
     ".claude/agents/model-builder/SKILL.md": "SKILL do Model Builder",
-    ".claude/agents/model-builder/run_model_builder.py": "Runner Model Builder",
-    ".claude/agents/valuation-reviewer/SKILL.md": "SKILL Valuation Reviewer",
-    ".claude/agents/valuation-reviewer/run_valuation_reviewer.py": "Runner Valuation",
-    ".claude/agents/quant-data-engineer/SKILL.md": "SKILL Quant",
+    ".claude/agents/valuation-reviewer/SKILL.md": "SKILL do Valuation Reviewer",
+    ".claude/agents/quant-data-engineer/SKILL.md": "SKILL do Quant/Data Engineer",
+    ".claude/agents/risk-engineer/SKILL.md": "SKILL do Risk Engineer",
+    ".claude/agents/portfolio-manager/SKILL.md": "SKILL do Portfolio Manager",
+    ".claude/agents/econometrician/SKILL.md": "SKILL do Econometrician",
+
+    # --- Agentes — runners Python (apenas os que ainda existem) ---
     ".claude/agents/quant-data-engineer/run_quant.py": "Runner Quant",
     ".claude/agents/quant-data-engineer/calculators/returns.py": "Calculadora retornos",
-    ".claude/agents/quant-data-engineer/calculators/portfolio_metrics.py": "Metricas portfolio",
-    ".claude/agents/quant-data-engineer/calculators/correlation.py": "Correlacao",
-    ".claude/agents/risk-engineer/SKILL.md": "SKILL Risk Engineer",
-    ".claude/agents/risk-engineer/run_risk_engineer.py": "Runner Risk",
+    ".claude/agents/quant-data-engineer/calculators/portfolio_metrics.py": "Métricas portfólio",
+    ".claude/agents/quant-data-engineer/calculators/correlation.py": "Correlação",
+    ".claude/agents/risk-engineer/run_risk_engineer.py": "Runner Risk Engineer",
     ".claude/agents/risk-engineer/calculators/var.py": "Calculadora VaR/CVaR",
     ".claude/agents/risk-engineer/calculators/stress_test.py": "Stress test",
-    ".claude/agents/portfolio-manager/SKILL.md": "SKILL Portfolio Manager",
-    ".claude/agents/portfolio-manager/run_pm.py": "Runner PM",
-    ".claude/agents/portfolio-manager/run_analisar.py": "Orquestrador /analisar",
-    ".claude/commands/morning_call.py": "Comando /morning-call",
-    ".claude/commands/mundo_economico.py": "Comando /mundo-economico",
-    ".claude/commands/investimento_do_dia.py": "Comando /investimento-do-dia",
-    ".claude/commands/carteira.py": "Comando /carteira",
-    ".claude/commands/risco_carteira.py": "Comando /risco-carteira",
-    ".claude/commands/relatorio_semanal.py": "Comando /relatorio-semanal",
-    ".claude/commands/relatorio_mensal.py": "Comando /relatorio-mensal",
-    ".claude/commands/stress_test.py": "Comando /stress-test",
-    ".claude/commands/rebalancear.py": "Comando /rebalancear",
-    ".claude/commands/dividendos.py": "Comando /dividendos",
-    ".claude/commands/tese.py": "Comando /tese",
-    ".claude/commands/ips.py": "Comando /ips",
-    ".claude/commands/comparar.py": "Comando /comparar",
-    "scripts/heartbeat/heartbeat.py": "Heartbeat automatico",
+    ".claude/agents/econometrician/run_econometrician.py": "Runner Econometrician",
+
+    # --- Comandos — skills (arquitetura atual: .md) ---
+    ".claude/commands/analisar.md": "Skill /analisar",
+    ".claude/commands/tese.md": "Skill /tese",
+    ".claude/commands/pm.md": "Skill /pm",
+    ".claude/commands/morning-call.md": "Skill /morning-call",
+    ".claude/commands/investimento-do-dia.md": "Skill /investimento-do-dia",
+    ".claude/commands/mundo-economico.md": "Skill /mundo-economico",
+    ".claude/commands/relatorio-semanal.md": "Skill /relatorio-semanal",
+    ".claude/commands/relatorio-mensal.md": "Skill /relatorio-mensal",
+    ".claude/commands/rebalancear.md": "Skill /rebalancear",
+    ".claude/commands/comparar.md": "Skill /comparar",
+    ".claude/commands/revisar-carteira.md": "Skill /revisar-carteira",
+    ".claude/commands/earnings.md": "Skill /earnings",
+    ".claude/commands/metas.md": "Skill /metas",
+
+    # --- Interface desktop ---
+    "interface/ui.py": "Painel customtkinter (interface atual)",
+    "interface/splash.py": "Splash screen",
+
+    # --- Alertas e heartbeat ---
+    "scripts/heartbeat/heartbeat.py": "Heartbeat automático",
     "scripts/heartbeat/schedule_heartbeat.py": "Agendador heartbeat",
     "scripts/alerts/check_alerts.py": "Sistema de alertas",
-    "scripts/run_research_pipeline.py": "Pipeline integrado",
+
+    # --- Knowledge base ---
     "knowledge/indexer.py": "Indexador RAG",
     "knowledge/retriever.py": "Retriever RAG",
     "knowledge/rss_collector.py": "Coletor RSS",
     "knowledge/knowledge_cmd.py": "Comando /knowledge",
-    "knowledge/save_synthesis.py": "Salvador de sinteses",
+    "knowledge/save_synthesis.py": "Salvador de sínteses",
     "knowledge/sources/sources.json": "Config fontes RSS",
-    "interface/app.py": "Dashboard Streamlit",
-    "interface/pages/01_carteira.py": "Pagina carteira",
-    "interface/pages/02_analisar.py": "Pagina analise",
-    "interface/pages/03_morning_call.py": "Pagina morning call",
-    "interface/pages/04_risco.py": "Pagina risco",
-    "interface/pages/05_relatorios.py": "Pagina relatorios",
-    "interface/pages/06_knowledge.py": "Pagina knowledge",
-    "interface/pages/07_agentes.py": "Pagina agentes",
-    "interface/components/metricas_hf.py": "Componente metricas HF",
-    "interface/components/pixel_art.py": "Componente pixel art",
-    "interface/components/alerts_bar.py": "Barra alertas",
-    "interface/components/sidebar.py": "Sidebar",
-    "interface/style/sbwaa.css": "CSS customizado",
+
+    # --- Documentação obrigatória ---
+    "docs/GUIA-COMANDOS.md": "Guia de comandos",
+    "docs/SBWAA-WORKFLOW.md": "Workflow e cadências",
+    "docs/SBWAA-REFERENCIA.md": "Referência técnica",
+    "docs/SBWAA-GLOSSARIO.md": "Glossário de termos e siglas",
+    "docs/SBWAA-MASTER-BLUEPRINT.md": "Blueprint de arquitetura",
+    "VERSION.md": "Controle de versão",
+    "CHANGELOG.md": "Histórico de mudanças",
 }
 
 print(f"\n{'='*60}")
-print("SBWAA — DIAGNOSTICO DE SCRIPTS")
+print("SBWAA — DIAGNÓSTICO DE SCRIPTS")
 print(f"{'='*60}")
 
 faltando = []
@@ -83,13 +90,16 @@ for path_rel, descricao in scripts_necessarios.items():
     else:
         faltando.append((path_rel, descricao))
 
-print(f"\n✅ EXISTEM ({len(existindo)} scripts):")
+print(f"\n✅ EXISTEM ({len(existindo)} arquivos):")
 for p, d in existindo:
     print(f"   {p}")
 
-print(f"\n❌ FALTANDO ({len(faltando)} scripts):")
-for p, d in faltando:
-    print(f"   {p} — {d}")
+if faltando:
+    print(f"\n❌ FALTANDO ({len(faltando)} arquivos):")
+    for p, d in faltando:
+        print(f"   {p} — {d}")
+else:
+    print(f"\n✅ Nenhum arquivo faltando.")
 
 print(f"\n{'='*60}")
 print(f"Total: {len(existindo)}/{len(scripts_necessarios)} presentes")
