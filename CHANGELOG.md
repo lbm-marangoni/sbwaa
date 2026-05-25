@@ -2,6 +2,50 @@
 
 ---
 
+## [2.10.0] — 2026-05-25 — VAULT OBSIDIAN: TEMPLATES + SAVING + RISK SNAPSHOTS
+
+### Added
+- **`vault/_templates/`** — 11 templates Obsidian prontos para uso via Insert Template:
+  `tese-ativo`, `analise-ativo`, `earnings`, `equity-research`, `pm-decisao`,
+  `snapshot-diario`, `morning-call`, `macro-mundo`, `risk-snapshot`, `semana`, `mensal`
+- **`/pm` Passo 3** — após emitir veredicto, agora salva automaticamente:
+  - Linha na tabela de `vault/00-portfolio/decisoes.md` (histórico permanente de decisões)
+  - Arquivo `vault/01-ativos/{TICKER}/pm-decisao-{TICKER}-YYYY-MM-DD.md` com frontmatter estruturado
+- **`/relatorio-semanal` Passo 4** — gera risk snapshot semanal em `vault/05-risk/snapshots/risk-YYYY-MM-DD.md`
+  com tabela de métricas vs limites IPS (VaR, CVaR, drawdown, concentração, circuit breakers)
+- **Obsidian `app.json`** — configurado `templateFolder: "_templates"` (plugin Templates agora funciona)
+- **`graph.json` `#screening`** — cor amarelo-claro (rgb 16761095) adicionada ao color group do graph view
+
+### Changed
+- **`workspace.json`** — removidas 30+ referências a arquivos inexistentes (`lastOpenFiles` limpo)
+- `investments`: v1.18.5 → **v1.19.0**
+- `interface`: v2.4.0 → **v2.5.0**
+- Global → **v2.10.0** (MINOR bump — novas funcionalidades)
+
+---
+
+## [2.9.0] — 2026-05-25 — REBRANDING PAINEL + 6 FEATURES DE UI
+
+### Added
+- **Rebranding completo** do painel (`interface/ui.py`): estética terminal financeiro com paleta ciano (#00D4FF), fundo profundo (#09090F), fontes Consolas
+- **Sidebar** com navegação por página (Portfólio / Análise / Mercado / Relatórios / Knowledge)
+- **Header live**: IBOV, BRL/USD, SELIC, PATRIMÔNIO, PROVENTOS + relógio em tempo real
+- **Toast notifications**: feedback visual no canto superior direito (sem poluir o output)
+- **Distinção visual local vs IA**: botões cinza (local) vs ciano com tag `[IA]` (clipboard)
+- `/watchlist --rever` — botão na seção de Ações Rápidas em Portfólio
+- `/ips --editar` — botão IA junto ao IPS em Ações Rápidas
+- **Simulação MC com flags opcionais**: campos `--patrimonio`, `--aporte` e checkbox `--no-graficos` em seção dedicada em Portfólio
+- `/status` — botão no rodapé da sidebar (acesso rápido)
+- **RF fields no form de Adicionar**: Indexador (combo CDI/IPCA/Selic/PRE/IGPM), Taxa (%) e Vencimento — repassados como flags ao `/adicionar`
+- **Investimento do Dia com categoria**: combobox `qualquer/fii/acao/etf-br/etf-intl/rf/td` na página Mercado
+- **`/analisar` Etapa 9**: outputs separados por tipo — específicos do ativo em `vault/01-ativos/{TICKER}/` (earnings, valuation, pm-decisao, consolidado), geral em `vault/02-relatorios/diarios/` (market-researcher)
+
+### Changed
+- `interface`: v2.3.1 → **v2.4.0**
+- Global → **v2.9.0** (MINOR bump — nova funcionalidade)
+
+---
+
 ## [2.8.9] — 2026-05-22 — /ADICIONAR COM CAMPOS DE RENDA FIXA
 
 ### Added
