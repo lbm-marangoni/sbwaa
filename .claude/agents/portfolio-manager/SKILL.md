@@ -131,20 +131,36 @@ Status IPS:              ✅ OK / ⚠️ ATENÇÃO / 🚨 VIOLAÇÃO
 ═══════════════════════════════════════════════
 ```
 
-### Passo 5 — Sizing (quando solicitado via script)
-Quando receber dados de sizing, emitir:
+### Passo 5 — Fluxo de Aporte (interativo)
 
-```
-Sizing sugerido pelo PM:
-─────────────────────────────────────────
-Com base no seu perfil e nos limites do IPS,
-o tamanho ideal para {TICKER} seria R$ X.XXX
-(X.X% do portfólio), respeitando concentração
-máxima de X% e contribuição de risco de X%.
+Executar **somente se o veredicto for COMPRAR, AUMENTAR ou MANTER**.
 
-Você planeja alocar R$ X.XXX ({diferença}).
-{aprovado / acima do ideal — reduzir para R$ X.XXX}
+**A — Perguntar intenção:**
+> "Deseja realizar um aporte em {TICKER} agora?" (sim / não)
+
+Se não: registrar `aporte_planejado: —` e encerrar.
+
+**B — Perguntar valor (se sim):**
+> "Quanto deseja aportar em {TICKER}? (R$)"
+
+**C — Validar e exibir:**
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VALIDAÇÃO DE APORTE — {TICKER}
+────────────────────────────────────────────
+Sizing sugerido (PM):  X,X% → R$ X.XXX
+Você quer aportar:     X,X% → R$ X.XXX
+Concentração após:     X,X% (limite IPS: 20%)
+VaR estimado após:     X,X% (limite IPS: 2%)
+────────────────────────────────────────────
+Status: ✅ APROVADO / ⚠️ ACIMA DO IDEAL / 🚨 VIOLA IPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**D — Se ⚠️ ou 🚨, perguntar:**
+> a) Prosseguir mesmo assim | b) Ajustar para sizing sugerido | c) Cancelar
+
+**E — Confirmar e registrar** o valor final decidido como `aporte_planejado`.
 
 ### Passo 6 — Output final
 Usar o template `vault/_templates/pm-decisao.md` como base estrutural obrigatória.

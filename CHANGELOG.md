@@ -2,6 +2,24 @@
 
 ---
 
+## [2.10.3] — 2026-05-25 — FLUXO INTERATIVO DE APORTE EM /PM E /ANALISAR
+
+### Added
+- **Fluxo de aporte interativo** em `/pm` (Passo 3) e `/analisar` (Etapa 8b):
+  - **A** — "Deseja aportar agora?" → Não: encerra | Sim: continua
+  - **B** — "Quanto deseja aportar?" (R$)
+  - **C** — Validação do PM: sizing sugerido vs planejado, concentração após, VaR estimado após; status ✅/⚠️/🚨
+  - **D** — Confirmação adicional se acima do ideal ou em violação do IPS (a/b/c)
+  - **E** — Bloco de confirmação final + registro do `aporte_planejado` no frontmatter do pm-decisao
+- Campo `aporte_planejado` adicionado ao frontmatter de `pm-decisao-*.md` e à tabela `decisoes.md`
+- PM SKILL.md: Passo 5 reescrito para refletir fluxo interativo (antes era "quando solicitado via script")
+
+### Changed
+- `investments`: v1.19.2 → **v1.19.3**
+- Global → **v2.10.3**
+
+---
+
 ## [2.10.2] — 2026-05-25 — INVESTIDOR10: SCRAPING DE DADOS COMPLEMENTARES
 
 ### Added

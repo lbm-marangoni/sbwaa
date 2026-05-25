@@ -156,6 +156,65 @@ Leia `.claude/agents/portfolio-manager/SKILL.md` e tome a decisão final sobre *
 
 ---
 
+### ETAPA 8b — Fluxo de Aporte (interativo)
+
+Execute **somente se o veredicto for COMPRAR, AUMENTAR ou MANTER**.
+Se for AGUARDAR, EVITAR, REDUZIR ou SAIR: pular direto para ETAPA 9.
+
+**Etapa A — Intenção**
+Perguntar ao usuário:
+> **Deseja realizar um aporte em {TICKER} agora?** (sim / não)
+
+Se **não**: registrar `aporte_planejado: —` e ir para ETAPA 9.
+
+**Etapa B — Valor**
+Se **sim**, perguntar:
+> **Quanto deseja aportar em {TICKER}? (R$)**
+
+**Etapa C — Validação do PM**
+Com o valor informado (`V`), calcular e exibir:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VALIDAÇÃO DE APORTE — {TICKER}
+────────────────────────────────────────────
+Sizing sugerido (PM):  X,X% → R$ X.XXX
+Você quer aportar:     X,X% → R$ X.XXX
+Concentração após:     X,X% (limite IPS: 20%)
+VaR estimado após:     X,X% (limite IPS: 2%)
+────────────────────────────────────────────
+Status: ✅ APROVADO / ⚠️ ACIMA DO IDEAL / 🚨 VIOLA IPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+- ✅ APROVADO: aporte ≤ sizing sugerido E concentração ≤ 20% E VaR ≤ 2%
+- ⚠️ ACIMA DO IDEAL: aporte > sizing sugerido mas sem violação de limites
+- 🚨 VIOLA IPS: concentração > 20% OU VaR > 2%
+
+**Etapa D — Confirmação (somente se ⚠️ ou 🚨)**
+Perguntar:
+> **a)** Prosseguir com R$ X.XXX mesmo assim
+> **b)** Ajustar para o sizing sugerido de R$ X.XXX
+> **c)** Cancelar
+
+**Etapa E — Confirmação final**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+APORTE REGISTRADO — {TICKER}
+────────────────────────────────────────────
+Valor:       R$ X.XXX
+% portfólio: X,X%
+Sizing OK:   Sim / Não
+────────────────────────────────────────────
+Próximo passo: execute a ordem na sua corretora.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+> Em batch (2+ tickers): executar o fluxo de aporte para cada ativo com veredicto COMPRAR,
+> na ordem de prioridade da tabela comparativa.
+
+---
+
 ### ETAPA 9 — Salvar Output
 
 Salve os arquivos abaixo. Regra geral:
@@ -178,6 +237,8 @@ usando a **versão longa** definida no SKILL do Valuation Reviewer.
 #### 9d — PM — Decisão (específico do ativo)
 Salve em `vault/01-ativos/{TICKER}/pm-decisao-{TICKER}-YYYY-MM-DD.md`
 usando o formato definido no SKILL do Portfolio Manager.
+Incluir no frontmatter: `aporte_planejado: R$ X.XXX` (ou `—` se não houve aporte).
+Incluir o bloco de validação de aporte (Etapa 8b) após a seção de Sizing.
 
 #### 9e — Nota consolidada (específico do ativo)
 Salve em `vault/01-ativos/{TICKER}/analise-{TICKER}-YYYY-MM-DD.md` usando o template `vault/_templates/analise-ativo.md` como base. Preencher TODAS as seções com o conteúdo das etapas anteriores.
