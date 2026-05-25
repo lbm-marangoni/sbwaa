@@ -1,7 +1,7 @@
 # SBWAA — VERSION CONTROL
 
 ## Global
-**v2.10.3** — 2026-05-25 — Fluxo interativo de aporte em /pm e /analisar
+**v2.10.4** — 2026-05-25 — Glossário técnico SBWAA
 
 ## Módulos
 | Módulo          | Versão  | Última alteração                                              |

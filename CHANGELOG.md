@@ -2,6 +2,17 @@
 
 ---
 
+## [2.10.4] — 2026-05-25 — GLOSSÁRIO TÉCNICO SBWAA
+
+### Added
+- **`docs/SBWAA-GLOSSARIO.md`** — guia de referência de todos os termos e siglas técnicas do sistema em português:
+  - 11 seções cobrindo ~80+ termos: sistema SBWAA, agentes do pipeline, mercado financeiro BR, tipos de ativo, indicadores fundamentalistas, valuation, risco e métricas quantitativas, econometria, macro global, termos operacionais e conceitos de investimento
+
+### Changed
+- Global → **v2.10.4**
+
+---
+
 ## [2.10.3] — 2026-05-25 — FLUXO INTERATIVO DE APORTE EM /PM E /ANALISAR
 
 ### Added

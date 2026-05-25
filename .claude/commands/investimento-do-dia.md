@@ -51,4 +51,6 @@ Para cada sugestão:
 Termine com:
 > Execute `/tese TICKER` para análise rápida ou `/analisar TICKER` para pipeline completo.
 
-Não salva arquivo — resposta direta no chat.
+## Passo 3 — Salvar
+
+Salve em `vault/02-relatorios/diarios/investimento-do-dia-YYYY-MM-DD.md` com o conteúdo completo da sugestão e wikilinks para os tickers mencionados.
