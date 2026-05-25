@@ -77,62 +77,71 @@ Um ativo entra na watchlist quando você rodou `/tese` ou `/analisar` e o PM emi
 
 ## Cadência Diária
 
-### Pré-abertura — O que você precisa saber antes de olhar os preços (5–10 min)
+### Pré-abertura — O que você precisa saber antes de olhar os preços (5–15 min)
 
-O objetivo não é ver quanto subiu ou desceu — é entender se o ambiente mudou desde ontem e se há algo que exige ação hoje.
+O objetivo não é ver quanto subiu ou desceu — é entender se o ambiente mudou e se há algo que exige ação hoje. O modelo de camadas evita escalar para análise pesada sem necessidade.
 
 ---
 
-**1. Briefing completo**
+**Camada 1 — Briefing (obrigatório, 5 min)**
 
 ```
 /morning-call
 ```
 
-O que olhar no output:
-- **Alertas ativos:** algum ativo da carteira disparou alerta de queda/alta ou correlação?
+O que olhar:
+- **Alertas ativos:** ativo da carteira disparou alerta de queda/alta ou correlação?
 - **Macro adverso:** juros, câmbio, commodity afetando seu setor principal?
-- **Eventos do dia:** resultado, COPOM, Fed, dado de inflação?
+- **Eventos do dia:** resultado, COPOM, Fed, inflação?
+- **Oportunidade setorial:** macro favorece uma classe de ativo hoje?
 
-Árvore de ação:
+Se nenhum alerta e macro estável → encerrar aqui. Camadas 2 e 3 só se necessário.
+
+---
+
+**Camada 2 — Triagem por ativo (se Camada 1 identificou algo, 5 min)**
+
 ```
 Alerta em TICKER específico?
-  → Sim:
-      Ativo na carteira ou watchlist com análise < 60 dias?
-        → Sim: /pm TICKER          (atualiza veredicto com contexto do dia)
-        → Não (análise ≥ 60d):    /analisar TICKER    (recalibrar tudo)
-        → Ativo novo, nunca analisado: /tese TICKER    (triagem rápida)
-  → Não:
-      Macro sugere oportunidade setorial?
-        → Sim: /investimento-do-dia [categoria]    (ex: /investimento-do-dia fii)
-        → Não: briefing suficiente
+  → Ativo na carteira/watchlist + análise < 60 dias → /pm TICKER
+  → Análise ≥ 60 dias                               → /tese TICKER  (mais rápido que /analisar)
+  → Ativo nunca analisado                           → /tese TICKER
 
-Macro mudou muito? (juros, câmbio, commodity fora da banda histórica)
-  → Sim: rodar /mundo-economico em seguida
-  → Não: briefing suficiente
+Macro sugere oportunidade setorial, sem ativo claro?
+  → /investimento-do-dia [categoria]    (ex: /investimento-do-dia fii)
+```
+
+Se /tese ou /pm retornar EVITAR ou AGUARDAR sem urgência → encerrar aqui.
+
+---
+
+**Camada 3 — Análise completa (se Camada 2 confirmar oportunidade real)**
+
+```
+/tese retornou COMPRAR ou tese forte?   → /analisar TICKER
+/pm retornou AUMENTAR com margem clara? → avaliar /rebalancear
+Macro mudou estruturalmente?            → /mundo-economico → /revisar-carteira
 ```
 
 ---
 
-**2. Snapshot diário**
+**2. Snapshot diário (obrigatório, 1 min)**
 
 ```powershell
 ! python sbwaa.py /snapshot
 ```
 
-Salva o estado do dia em `vault/02-relatorios/diarios/`. Sem ação necessária — é dado histórico para os relatórios semanais e mensais usarem. Rodar mesmo em dias sem evento.
+Salva o estado do dia em `vault/02-relatorios/diarios/`. Sem ação necessária — é dado histórico para relatórios semanais e mensais. Rodar mesmo em dias sem evento.
 
 ---
 
 ### Pós-fechamento — Alimentar a base (3 min, opcional)
 
-Não é obrigatório diariamente, mas melhora a qualidade das análises ao longo do tempo.
-
 ```powershell
 ! python sbwaa.py /knowledge --coletar-rss
 ```
 
-Indexa notícias do dia dos feeds configurados (Valor Econômico, InfoMoney, BCB, Bloomberg, Reuters). O próximo `/morning-call` ou `/analisar` vai encontrar contexto mais atualizado na RAG.
+Indexa notícias do dia (Valor Econômico, InfoMoney, BCB, Bloomberg, Reuters). O próximo `/morning-call` ou `/analisar` encontra contexto mais atualizado na RAG.
 
 ---
 
@@ -140,109 +149,74 @@ Indexa notícias do dia dos feeds configurados (Valor Econômico, InfoMoney, BCB
 
 ### Sexta (fechamento) ou domingo (revisão) — 20–30 min
 
-Objetivo: verificar se a semana mudou o posicionamento e identificar o que precisa de atenção na semana seguinte.
+Objetivo: verificar se a semana mudou o posicionamento e identificar o que precisa de atenção na semana seguinte. Só escalar para análise por ativo se as métricas indicarem necessidade.
 
 ---
 
-**1. Situação da carteira**
+**Camada 1 — Dados e métricas (obrigatório, 5 min)**
 
 ```powershell
-! python sbwaa.py /carteira
+! python sbwaa.py /carteira         # P&L, concentração, dividendos recebidos
+! python sbwaa.py /risco-carteira   # Sharpe, VaR, circuit breakers
+! python sbwaa.py /dividendos       # ex-dates nos próximos 15 dias
 ```
 
 O que olhar:
-- P&L total e por ativo. Qual divergiu mais da semana?
-- Algum ativo chegou perto do limite de concentração (20%)?
-- Dividendos recebidos na semana?
+- Circuit breaker disparado? → ir direto para Fluxo 3 (Circuit Breaker)
+- Algum ativo chegou perto do limite de concentração (> 18%)?
+- Ex-date relevante nos próximos 15 dias? → não vender sem verificar Yield on Cost
+- Sharpe caindo há 3 semanas? → anotar para /revisar-carteira na sessão
+
+Se métricas OK e sem anomalia → Camada 2 suficiente, pular Camada 3.
 
 ---
 
-**2. Risco e métricas quantitativas**
-
-```powershell
-! python sbwaa.py /risco-carteira
-```
-
-O que olhar: Sharpe estável ou caindo? VaR dentro do limite do IPS? Circuit breakers todos OK? Fronteira eficiente: ajuste sugerido > 5% em algum ativo?
-
-Árvore de ação:
-```
-Circuit breaker disparado?
-  → Sim: ir para Fluxo — Circuit Breaker (seção abaixo)
-  → Não: continuar
-
-Sharpe < 0.3 por 3 semanas seguidas?
-  → Sim: incluir /revisar-carteira na próxima sessão semanal
-  → Não: continuar
-
-Fronteira eficiente sugere ajuste > 5% num ativo?
-  → Sim: anotar para /rebalancear discutir com o IPS
-  → Não: continuar
-```
-
----
-
-**3. Próximos dividendos**
-
-```powershell
-! python sbwaa.py /dividendos
-```
-
-O que olhar: algum ex-date importante nos próximos 15 dias? Se sim, não vender esse ativo antes do ex-date sem verificar o impacto no Yield on Cost.
-
----
-
-**4. Ativos defasados**
-
-```powershell
-! python sbwaa.py /watchlist --rever
-```
-
-Lista ativos com análise > 45 dias. Para cada um, avaliar:
-```
-Houve evento relevante desde a última análise?
-  → Sim (resultado, macro, notícia relevante):
-      Análise < 60 dias? → /pm TICKER    (atualiza com contexto novo)
-      Análise ≥ 60 dias? → /analisar TICKER    (recalibração completa)
-
-  → Não:
-      Ativo em carteira, análise < 60 dias → /pm TICKER (manter frescor)
-      Ativo em carteira, análise ≥ 60 dias → /analisar TICKER (dados stale)
-      Só na watchlist → aguardar evento ou próxima rotina mensal
-```
-
----
-
-**5. Relatório da semana**
+**Camada 2 — Relatório e ativos defasados (10 min)**
 
 ```
 /relatorio-semanal
 ```
 
-P&L da semana, Sharpe, drawdown e outlook. Salvo em `vault/02-relatorios/semanais/`. Ler o output: houve regressão vs semana anterior em alguma métrica-chave?
+P&L da semana, Sharpe, drawdown, outlook. Ler antes de avançar — o relatório mostra padrões que as métricas brutas não mostram.
+
+```powershell
+! python sbwaa.py /watchlist --rever
+```
+
+Lista ativos com análise > 45 dias. Para cada um:
+```
+Houve evento relevante desde a última análise?
+  → Sim + análise < 60 dias  → /pm TICKER           (Camada 3)
+  → Sim + análise ≥ 60 dias  → /analisar TICKER     (Camada 3)
+  → Não + em carteira < 60d  → /pm TICKER           (Camada 3, baixa prioridade)
+  → Não + em carteira ≥ 60d  → /analisar TICKER     (Camada 3)
+  → Não + só na watchlist    → aguardar, não escalar
+```
+
+Se nenhum ativo sinalizado → encerrar aqui.
 
 ---
 
-**6. Verificar rebalanceamento**
+**Camada 3 — Ação nos ativos sinalizados + rebalanceamento (se necessário)**
 
+Para cada ativo sinalizado na Camada 2:
+```
+/pm TICKER          (análise < 60d)
+/analisar TICKER    (análise ≥ 60d ou evento relevante)
+```
+
+Após rodar o PM nos sinalizados:
 ```
 /rebalancear
 ```
-
-O que olhar:
-- Alguma classe de ativo saiu da banda do IPS (mínimo/máximo)?
-- Candidato da watchlist classificado MELHORA que ainda não está em carteira?
-- Fronteira eficiente + IPS indicam ajuste viável?
-
-Árvore de ação:
 ```
 Desvio vs IPS > 5% numa classe?
-  → Sim: anotar ação (aportar/reduzir) para executar na semana
+  → Sim: plano concreto de ajuste para a semana
   → Não: aguardar
 
-Candidato MELHORA na watchlist?
-  → Com análise recente (<60d): /pm TICKER para ver se o veredicto mantém
-  → Sem análise ou >60d: agendar /analisar TICKER no próximo mês
+Candidato MELHORA na watchlist com análise recente?
+  → /pm TICKER para confirmar veredicto antes de entrar
+  → Análise ≥ 60d: agendar /analisar TICKER no próximo mês
 ```
 
 ---
@@ -251,93 +225,76 @@ Candidato MELHORA na watchlist?
 
 ### Primeiro fim de semana do mês — 60–90 min
 
-Objetivo: decisões de portfólio com visão completa — performance, risco, otimização e revisão de cada posição.
+Objetivo: decisões de portfólio com visão completa. O modelo de camadas garante que análise por ativo só ocorre quando o relatório e a revisão identificam necessidade real.
 
 ---
 
-**Bloco 1 — Dados (15 min)**
+**Camada 1 — Dados completos (15 min, obrigatório)**
 
-Rodar tudo antes de abrir qualquer comando de IA. Os agentes vão usar esses caches.
+Rodar tudo antes de abrir qualquer comando de IA:
 
 ```powershell
-# Atualizar carteira e proventos
-! python sbwaa.py /carteira
-! python sbwaa.py /dividendos
-
-# Métricas de risco + fronteira eficiente
-! python sbwaa.py /risco-carteira
-
-# Stress test completo (todos os cenários históricos)
-! python sbwaa.py /stress-test
-
-# Simulação Monte Carlo de patrimônio (10 anos, parâmetros da carteira)
-! python sbwaa.py /simulacao
-
-# Fronteira eficiente expandida com watchlist
-! python sbwaa.py /otimizar-expansao
-
-# Watchlist completa (carteira + ativos analisados)
-! python sbwaa.py /watchlist
+! python sbwaa.py /carteira           # P&L, posições, proventos
+! python sbwaa.py /dividendos         # calendário de proventos
+! python sbwaa.py /risco-carteira     # Sharpe, VaR, circuit breakers, fronteira
+! python sbwaa.py /stress-test        # impacto nos cenários históricos extremos
+! python sbwaa.py /simulacao          # Monte Carlo 10 anos com parâmetros atuais
+! python sbwaa.py /otimizar-expansao  # fronteira eficiente expandida com watchlist
+! python sbwaa.py /watchlist          # lista completa: carteira + analisados
 ```
 
-O que notar antes de continuar:
-- `/risco-carteira`: circuit breakers OK? Sharpe do mês?
-- `/stress-test`: no pior cenário histórico, qual seria o impacto?
-- `/otimizar-expansao`: há candidatos MELHORA na watchlist que o scipy colocaria no portfólio?
+Sinaleiros que determinam o que escalar:
+- Circuit breaker disparado → Fluxo 3 imediatamente, antes de continuar
+- Sharpe do mês abaixo de 0.3 → priorizar /revisar-carteira (Camada 2)
+- `/otimizar-expansao` mostra candidato MELHORA → anotar para Camada 3
+- Stress test: impacto pior cenário > 20%? → revisar concentração (Camada 2)
 
 ---
 
-**Bloco 2 — Relatório (10 min)**
+**Camada 2 — Relatório e revisão do PM (20–30 min)**
 
 ```
 /relatorio-mensal
 ```
 
-Performance completa com benchmarks (IBOV, CDI). Gera `.md` e `.docx` em `vault/02-relatorios/mensais/`. Ler antes de tomar qualquer decisão — o relatório mostra padrões que a visão semanal não captura.
-
----
-
-**Bloco 3 — Revisão do PM (20–30 min)**
+Performance com benchmarks (IBOV, CDI). Ler antes de qualquer decisão — o relatório mostra padrões que a visão semanal não captura.
 
 ```
 /revisar-carteira
 ```
 
-O PM recebe tudo (carteira, IPS, quant, risk, análises por ativo, cache de expansão) e emite MANTER / AUMENTAR / REDUZIR / SAIR para cada posição, com sizing alvo e prioridades imediatas.
+PM recebe tudo (carteira, IPS, quant, risk, análises, cache de expansão) e emite MANTER / AUMENTAR / REDUZIR / SAIR por posição.
 
 O que olhar no output:
-- Quais posições receberam REDUZIR ou SAIR? → ir para Fluxo de Saída
-- Quais receberam AUMENTAR? → verificar banda do IPS antes de executar
-- Seção "Oportunidades da Watchlist": candidatos MELHORA com análise disponível?
-- Alertas de IPS: alguma violação iminente?
+- REDUZIR ou SAIR em algum ativo? → Fluxo 4 (Saída)
+- AUMENTAR em algum ativo? → verificar banda IPS, anotar para Camada 3
+- Candidatos MELHORA na watchlist com análise disponível? → Camada 3
+- Violação iminente de IPS? → Camada 3 prioritária
+
+Se `/revisar-carteira` retornar tudo MANTER e sem candidatos → ir direto para /rebalancear e encerrar.
 
 ---
 
-**Bloco 4 — Plano de ajuste (10 min)**
+**Camada 3 — Ação por ativo + plano de ajuste (conforme sinalizado na Camada 2)**
+
+Para cada ativo sinalizado pelo `/revisar-carteira`:
+```
+Análise < 60 dias?  → /pm TICKER
+Análise ≥ 60 dias?  → /analisar TICKER    (pipeline completo)
+
+Candidato MELHORA na watchlist com análise recente?
+  → /comparar TICKER TICKER_SIMILAR    (avaliar vs posição existente)
+  → /pm TICKER                         (veredicto final antes de entrar)
+
+Candidato MELHORA sem análise ou análise > 60d?
+  → /analisar TICKER                   (não entrar sem análise atualizada)
+```
 
 ```
 /rebalancear
 ```
 
-Consolida: desvio vs IPS + fronteira eficiente + candidatos da watchlist. Gera plano concreto de ajuste (o que comprar, o que reduzir, em que ordem).
-
----
-
-**Bloco 5 — Ação nos ativos sinalizados**
-
-Para cada ativo que o `/revisar-carteira` sinalizou:
-
-```
-Análise existe e tem < 60 dias?
-  → /pm TICKER    (decisão atualizada com cache existente)
-
-Análise ausente ou > 60 dias?
-  → /analisar TICKER    (pipeline completo — 10 etapas, 8 agentes)
-
-Ativo da watchlist candidato MELHORA + análise recente?
-  → /comparar TICKER TICKER_SIMILAR    (avaliar vs o que já tem)
-  → /pm TICKER    (veredicto final antes de decidir entrada)
-```
+Consolida: desvio vs IPS + fronteira eficiente + candidatos + decisões da Camada 3. Gera plano concreto (o que comprar, o que reduzir, em que ordem).
 
 ---
 
@@ -345,76 +302,75 @@ Ativo da watchlist candidato MELHORA + análise recente?
 
 ### Janeiro, abril, julho, outubro — 2–3h distribuídas ao longo de 2 semanas
 
-Objetivo: absorver os resultados trimestrais e recalibrar o portfólio com dados fundamentalistas novos.
-
-A temporada de resultados é o momento em que teses se confirmam ou quebram. O risco de não agir é tão alto quanto o de agir errado.
+Objetivo: absorver os resultados trimestrais e recalibrar o portfólio. A temporada é o momento em que teses se confirmam ou quebram — o modelo de camadas evita recalibrar tudo de uma vez sem saber o que realmente mudou.
 
 ---
 
-**Fase 1 — Coleta de resultados (ao longo da semana do resultado)**
+**Camada 1 — Coleta e triagem dos resultados (ao longo da semana do resultado)**
 
-Para cada ativo em carteira com resultado disponível:
+Para cada ativo em carteira ou watchlist com resultado disponível:
 
 ```
 /earnings TICKER
 ```
 
-O que olhar por ativo:
-- Receita, EBITDA, lucro líquido: acima/abaixo do guidance?
-- Dívida: aumentou? Qual impacto no valuation do DCF?
-- Guidance revisado: para cima ou para baixo?
+O que olhar: receita, EBITDA, lucro vs guidance, dívida, dividendo — acima, dentro ou abaixo do esperado?
 
-Árvore de ação por resultado:
+Sinaleiro por resultado:
 ```
-Resultado bem acima do esperado (surpresa positiva > 10%)?
-  → /analisar TICKER    (recalibrar DCF e valuation completo)
-  → Se PM confirmar COMPRAR: avaliar aumento de posição no /rebalancear
+Surpresa positiva > 10% (resultado bem acima)?  → marcar para Camada 2: /analisar
+Resultado dentro do esperado (< 10% desvio)?    → marcar para Camada 2: /pm
+Surpresa negativa > 10% (resultado abaixo)?     → marcar para Camada 2: /analisar
+Guidance cortado ou dividendo suspenso?         → Camada 2: /analisar (obrigatório)
+```
 
-Resultado dentro do esperado (variação < 10%)?
-  → /pm TICKER    (decisão atualizada com novo contexto)
-  → Tese se mantém? Sizing alvo continua?
+Para candidatos da watchlist: mesmo fluxo — `/earnings TICKER` primeiro para decidir se vale escalar.
 
-Resultado muito abaixo do esperado (surpresa negativa > 10%)?
+---
+
+**Camada 2 — Decisão por ativo (conforme sinalizado na Camada 1)**
+
+```
+Surpresa positiva ou dentro do esperado + análise < 60 dias?
+  → /pm TICKER    (veredicto atualizado — tese se mantém? sizing alvo continua?)
+
+Surpresa positiva + quer recalibrar DCF?
+  → /analisar TICKER    (pipeline completo com earnings novos)
+
+Surpresa negativa > 10% ou guidance cortado?
   → /analisar TICKER    (revisão completa — tese pode ter quebrado)
-  → Se PM emitir EVITAR ou SAIR: ir para Fluxo de Saída
+  → Se PM emitir EVITAR ou SAIR: ir para Fluxo 4
 
-Guidance cortado ou suspensão de dividendos?
-  → /analisar TICKER    (obrigatório — mudança estrutural)
-```
-
-Para candidatos da watchlist com resultado disponível:
-
-```
-/earnings TICKER    (contexto fundamentalista do candidato)
-/tese TICKER        (se o resultado for interessante — tese rápida)
-/analisar TICKER    (se a tese justificar pipeline completo)
+Candidato da watchlist com resultado interessante?
+  → /tese TICKER    (triagem rápida antes de comprometer pipeline)
+  → Se tese favorável: /analisar TICKER
 ```
 
 ---
 
-**Fase 2 — Recalibração do portfólio (após coletar todos os resultados)**
+**Camada 3 — Recalibração do portfólio (após todos os earnings coletados)**
 
 ```powershell
-! python sbwaa.py /risco-carteira     # risco com novos fundamentos
-! python sbwaa.py /stress-test        # re-calibrar: beta mudou?
-! python sbwaa.py /otimizar-expansao  # fronteira com watchlist atualizada
+! python sbwaa.py /risco-carteira     # risco com novos fundamentos incorporados
+! python sbwaa.py /stress-test        # beta dos ativos mudou com os resultados?
+! python sbwaa.py /otimizar-expansao  # fronteira eficiente com watchlist atualizada
 ```
 
 ```
-/revisar-carteira    # PM com todos os earnings já nos arquivos do vault
+/revisar-carteira    # PM com todos os earnings já no vault
 /rebalancear         # plano de ajuste pós-temporada
 ```
 
 ---
 
-**Fase 3 — Pesquisa de expansão**
+**Bônus — Pesquisa de expansão (temporada é o melhor momento)**
 
-A temporada de resultados é o melhor momento para identificar candidatos novos — os relatórios estão frescos e o contexto fundamentalista está no pico de informação.
+A temporada de resultados é quando o contexto fundamentalista está no pico de informação. Bom momento para identificar candidatos novos — mas só após concluir a Camada 3.
 
 ```
-/investimento-do-dia    # o sistema sugere com base no IPS + macro + resultados recentes
+/investimento-do-dia    # sugestão baseada no IPS + macro + resultados recentes
 /tese TICKER            # candidatos descobertos na temporada
-/comparar A B           # comparar com o que já está em carteira ou watchlist
+/comparar A B           # comparar candidato vs posição existente
 ```
 
 ---
@@ -483,56 +439,51 @@ Veredicto virou AGUARDAR ou EVITAR?
 
 ### Fluxo 1 — Ativo novo descoberto
 
-**Gatilho:** você ouviu, leu ou alguém mencionou um ativo que você não conhecia.
+**Gatilho:** você ouviu, leu ou alguém mencionou um ativo que não conhecia.
 
-O risco aqui é gastar horas analisando algo que o PM vai descartar em 5 minutos. Fazer em camadas.
+O risco é gastar 30min de pipeline em algo que o PM descarta em 5. Fazer em camadas — só escalando quando a camada anterior confirmar.
+
+---
 
 **Camada 1 — Triagem rápida (5 min)**
 
 ```
 /investimento-do-dia    # o sistema já está sugerindo algo parecido?
-/tese TICKER            # tese rápida: Research + DCF + PM (15–20 min de processamento)
+/tese TICKER            # tese rápida: Research + DCF + PM (~15 min)
 ```
 
-Árvore de decisão pós-tese:
 ```
-PM emitiu COMPRAR ou BARATO?
-  → Continuar para camada 2
-
-PM emitiu AGUARDAR?
-  → Adicionar à watchlist (pasta vault/01-ativos/TICKER/ já foi criada)
-  → Definir trigger para rever: "quando EBITDA crescer X%" ou "quando preço cair Y%"
-  → Encerrar por agora
-
-PM emitiu EVITAR?
-  → Registrar motivo no vault e encerrar pesquisa
-  → Não gastar mais tempo neste ativo
+PM emitiu COMPRAR?      → continuar para Camada 2
+PM emitiu AGUARDAR?     → watchlist com trigger definido, encerrar aqui
+PM emitiu EVITAR?       → registrar motivo no vault, não escalar
 ```
 
-**Camada 2 — Comparação e posicionamento (10 min)**
+---
+
+**Camada 2 — Comparação (10 min)**
 
 ```
-/comparar TICKER TICKER_SIMILAR    # vs algo que já tenho ou analiso na watchlist
+/comparar TICKER TICKER_SIMILAR    # vs ativo já em carteira ou watchlist
 ```
 
-O que olhar: valuation relativo, qualidade, risco. O novo ativo é melhor ou complementar ao que já existe?
+O ativo novo é melhor, pior ou complementar ao que já existe? Se pior ou redundante → encerrar aqui, não vale o pipeline completo.
 
-**Camada 3 — Análise completa (se a tese e a comparação forem favoráveis)**
+---
+
+**Camada 3 — Análise completa (se Camada 1 e 2 forem favoráveis)**
 
 ```
-/analisar TICKER    # pipeline completo: 8 agentes, 10 etapas (~30 min)
+/analisar TICKER    # pipeline completo: 8 agentes, 10 etapas
 ```
 
-Pós-análise:
 ```
 PM confirma COMPRAR?
   → Verificar IPS: a classe tem espaço? Concentração OK?
-  → Verificar /otimizar-expansao: o ativo melhora a fronteira?
+  → /otimizar-expansao: o ativo melhora a fronteira eficiente?
   → Se tudo OK: python sbwaa.py /adicionar --ticker X ...
 
 PM volta para AGUARDAR?
-  → Ativo fica na watchlist com análise completa
-  → Aparece em /watchlist e em /revisar-carteira com análise atualizada
+  → Watchlist com análise completa — aparece em /watchlist e /revisar-carteira
 ```
 
 ---
@@ -541,98 +492,118 @@ PM volta para AGUARDAR?
 
 #### Resultado trimestral (earnings)
 
+**Camada 1 — Coletar e classificar**
 ```
 /earnings TICKER
 ```
+Surpreendeu (> 10% desvio)? Guidance cortado? → escalar para Camada 2.
+Dentro do esperado? → /pm TICKER direto (Camada 2 leve).
 
-Árvore de ação:
+**Camada 2 — Decisão por ativo**
 ```
-Surpresa > 10% para cima ou para baixo?
-  → /analisar TICKER    (recalibração completa)
-  → Se tese quebrou: ir para Fluxo de Saída
+Surpresa ou guidance cortado?  → /analisar TICKER
+Dentro do esperado, < 60d?     → /pm TICKER
+Se PM emitir SAIR/EVITAR       → Fluxo 4
+```
 
-Resultado dentro do esperado?
-  → /pm TICKER    (decisão atualizada)
-  → Sizing alvo mudou? Se sim, ver /rebalancear
+**Camada 3 — Impacto no portfólio (só se Camada 2 mudar veredicto)**
 ```
+/rebalancear    # sizing alvo mudou? ajustar posição
+```
+
+---
 
 #### COPOM, Fed ou mudança macro relevante
 
+**Camada 1 — Entender o choque**
 ```
 /mundo-economico
 /morning-call
 ```
+O choque é passageiro ou estrutural? Afeta diretamente ativos em carteira? Se impacto restrito → encerrar aqui.
 
-Após entender o impacto:
+**Camada 2 — Quantificar impacto**
 ```powershell
-! python sbwaa.py /stress-test custom -15    # impacto no portfólio com choque estimado
+! python sbwaa.py /stress-test custom -15    # choque estimado no portfólio
 ```
-
 ```
-/revisar-carteira    # PM reposiciona com o novo contexto macro
-/rebalancear         # ajuste defensivo ou oportunista dependendo do cenário
-```
-
-Árvore de ação por cenário macro:
-```
-Juros subiram mais do que o esperado?
-  → Renda fixa e tesouro ficam mais atrativos → ver /otimizar-expansao
-  → FIIs tendem a sofrer → /pm para os FIIs em carteira
-  → Checar banda de alocação: RF/TD está abaixo do mínimo do IPS?
+Juros subiram além do esperado?
+  → /pm para FIIs em carteira (taxa de desconto muda o valuation)
+  → Checar se RF/TD está abaixo do mínimo IPS → /rebalancear
 
 Câmbio disparou (BRL fraco)?
-  → ETFs internacionais se valorizam em BRL → checar concentração
-  → Exportadoras (PETR4, VALE3) tendem a beneficiar → /pm nesses ativos
+  → ETFs internacionais: checar concentração (valorizam em BRL)
+  → /pm para exportadoras em carteira (PETR4, VALE3)
 
 Risco político/fiscal aumentou?
-  → /stress-test custom -20 para estimar
-  → /revisar-carteira com foco em ativos de alta correlação com risco Brasil
+  → /stress-test custom -20
+  → /pm para ativos de alta correlação com risco Brasil
 ```
+
+**Camada 3 — Revisão completa (se choque estrutural)**
+```
+/revisar-carteira    # PM reposiciona com novo contexto macro
+/rebalancear         # ajuste defensivo ou oportunista
+```
+
+---
 
 #### Queda expressiva num ativo (> 8% em 1 dia)
 
+**Camada 1 — Diagnóstico rápido (2 min)**
 ```powershell
-! python sbwaa.py /risco-carteira    # ver impacto no VaR e concentração
+! python sbwaa.py /risco-carteira    # impacto no VaR e concentração
+```
+Qual é a causa aparente? Notícia fundamentalista, macro, resultado, contágio?
+
+**Camada 2 — Triagem por ativo**
+```
+Ativo em carteira/watchlist + análise < 60d?  → /pm TICKER
+Análise ≥ 60d ou ativo novo?                  → /tese TICKER
+```
+Se /pm ou /tese retornar MANTER → encerrar. A queda foi ruído.
+
+**Camada 3 — Revisão completa (se Camada 2 indicar problema real)**
+```
+Causa fundamentalista grave (fraude, perda de contrato, downgrade)?
+  → /analisar TICKER    (urgente — independente da idade da análise)
+
+Resultado trimestral muito abaixo?
+  → /earnings TICKER → /analisar TICKER
+
+PM emite SAIR?  → Fluxo 4
 ```
 
-Árvore de ação:
-```
-Ativo está na carteira ou watchlist com análise < 60 dias?
-  → Sim → /pm TICKER    (reavalia: tese quebrou ou é ruído?)
-  → Não (novo ou análise stale) → /tese TICKER    (triagem antes de agir)
+---
 
-Queda por notícia fundamentalista grave (perda de contrato, fraude, downgrade)?
-  → /analisar TICKER    (revisão completa urgente — independente da idade da análise)
-  → Se PM emitir SAIR: ir para Fluxo de Saída imediatamente
+#### Crise sistêmica ou queda generalizada (mercado > 5% em 1 dia)
 
-Queda por movimento técnico, macro ou contágio setorial sem mudança de fundamento?
-  → /pm TICKER confirma posição → manter ou aumentar se IPS permitir
-  → Ver /otimizar-expansao: o ativo ainda aparece no portfólio ótimo?
-
-Queda por resultado trimestral abaixo do esperado?
-  → /earnings TICKER primeiro, depois /pm TICKER (se análise < 60d) ou /analisar TICKER
-  → Decidir se é revisão de tese ou ajuste de preço
-```
-
-#### Crise sistêmica ou queda generalizada
-
-Quando o mercado cai > 5% em 1 dia ou há evento de cauda (banco quebrou, default soberano, etc.):
-
+**Camada 1 — Entender o cenário**
 ```powershell
-! python sbwaa.py /stress-test         # todos os cenários históricos de uma vez
-! python sbwaa.py /risco-carteira      # VaR em tempo real
+! python sbwaa.py /stress-test       # todos os cenários históricos de uma vez
+! python sbwaa.py /risco-carteira    # VaR atual
+```
+```
+/mundo-economico    # o que está acontecendo
+```
+VaR dentro do limite? Drawdown OK? → se sim, não agir ainda. Monitorar.
+
+**Camada 2 — Verificar posições expostas**
+```
+/pm TICKER    # para cada ativo com maior contribuição ao risco
+```
+PM confirma MANTER? → aguardar. PM emite REDUZIR ou SAIR? → Camada 3.
+
+**Camada 3 — Ação estruturada (não agir no calor sem isso)**
+```
+/revisar-carteira    # PM em modo de crise: o que sai, o que fica, o que reduz
+/rebalancear         # plano concreto de redução de risco ou reposicionamento
 ```
 
-```
-/mundo-economico      # entender o que está acontecendo
-/revisar-carteira     # PM em modo de crise: o que sai, o que fica, o que reduz
-/rebalancear          # plano concreto — não agir no calor do momento sem isso
-```
-
-O que não fazer em crise:
-- Não vender tudo sem passar pelo PM — o sistema existe exatamente para isso
-- Não comprar mais do ativo que mais caiu sem nova análise (/analisar TICKER)
-- Não ignorar o VaR — se violou o limite do IPS, redução de risco é obrigatória
+Regras em crise:
+- Não vender tudo sem passar pelo PM — o sistema existe para isso
+- Não comprar o ativo que mais caiu sem /analisar TICKER novo
+- Se VaR violou o IPS: redução de risco é obrigatória antes de qualquer compra
 
 ---
 
@@ -640,131 +611,172 @@ O que não fazer em crise:
 
 **Gatilho:** `/risco-carteira` mostra algum circuit breaker disparado.
 
-```powershell
-! python sbwaa.py /risco-carteira
-```
+---
 
 #### 🚨 VaR 95% > 2% (limite do IPS violado)
 
+**Camada 1 — Quantificar**
 ```powershell
-! python sbwaa.py /stress-test    # quantificar exposição nos cenários extremos
+! python sbwaa.py /stress-test    # exposição nos cenários extremos
+```
+Qual ativo tem maior contribuição ao risco? (`contribuicao_risco` no output)
+
+**Camada 2 — Triagem por ativo**
+```
+/pm TICKER    # para o ativo de maior contribuição — ainda é válido manter?
+```
+PM confirma MANTER? → reduzir parcialmente mesmo assim (VaR viola IPS).
+PM emite REDUZIR/SAIR? → executar.
+
+**Camada 3 — Execução e confirmação**
+```powershell
+! python sbwaa.py /vender --ticker X --quantidade Y
+! python sbwaa.py /risco-carteira    # confirmar VaR voltou abaixo de 2%
+```
+```
+/rebalancear    # onde alocar o capital liberado
 ```
 
-```
-/revisar-carteira    # PM em modo de redução de risco
-/rebalancear         # priorizar redução do ativo com maior contribuição ao risco
-```
-
-Sequência de ação:
-1. Identificar no `/risco-carteira` qual ativo tem maior contribuição ao risco (`contribuicao_risco`)
-2. `/pm TICKER` nesse ativo — confirmar se ainda é válido manter
-3. Se confirmar redução: `/vender --ticker X --quantidade Y` parcialmente
-4. Rodar `/risco-carteira` novamente para confirmar VaR voltou abaixo de 2%
+---
 
 #### ⚠️ Drawdown > 12% (aproximando do limite de 18%)
 
+**Camada 1 — Contexto**
 ```
-/mundo-economico     # entender contexto: é setorial, macro ou idiossincrático?
-/revisar-carteira    # PM em modo defensivo
+/mundo-economico    # setorial, macro ou idiossincrático?
 ```
 
-Regra: não aumentar posição em nenhum ativo enquanto drawdown > 12%. Aportes vão para Tesouro/Renda Fixa até drawdown < 10%.
+**Camada 2 — Posicionamento defensivo**
+```
+/revisar-carteira    # PM em modo defensivo: o que reduz, o que fica
+```
+
+Regra enquanto drawdown > 12%: nenhum aporte em renda variável. Capital novo vai para TD/RF até drawdown < 10%.
+
+---
 
 #### ⚠️ Concentração > 18% num ativo (limite: 20%)
 
+**Camada 1 — Verificar se ainda faz sentido manter**
 ```
-/pm TICKER    # ativo concentrado — atualizar veredicto
+/pm TICKER    # atualizar veredicto com concentração elevada
 ```
 
-- Não comprar mais deste ativo até concentração cair abaixo de 15%
-- Próximo aporte vai para a classe/ativo mais distante do alvo IPS
+**Camada 2 — Se PM não emitir SAIR**
+- Congelar aportes neste ativo até concentração < 15%
+- Próximo aporte: classe/ativo com maior desvio negativo vs IPS
+
+---
 
 #### ⚠️ Correlação média > 0.75
 
-Sinal de que o portfólio está "virando um só ativo" — quando um cai, todos caem junto.
+Sinal de que o portfólio está virando um só ativo — quando um cai, todos caem.
 
+**Camada 1 — Identificar candidatos descorrelacionados**
 ```powershell
-! python sbwaa.py /otimizar-expansao    # candidatos descorrelacionados da watchlist
+! python sbwaa.py /otimizar-expansao    # candidatos da watchlist com correlação < 0.5
+```
+
+**Camada 2 — Avaliar entrada**
+```
+Candidato MELHORA com análise < 60d?  → /pm TICKER
+Candidato sem análise ou > 60d?       → /tese TICKER → /analisar se justificar
 ```
 
 ```
-/rebalancear    # ver sugestão de diversificação com dados de fronteira eficiente
+/rebalancear    # plano de diversificação com fronteira eficiente
 ```
-
-Candidatos da watchlist classificados MELHORA com correlação < 0.5 são a prioridade.
 
 ---
 
 ### Fluxo 4 — Saída de posição
 
-**Gatilho:** `/revisar-carteira` emitiu SAIR, ou evento fundamentalista grave, ou necessidade de liquidez.
+**Gatilho:** `/revisar-carteira` emitiu SAIR, evento fundamentalista grave ou necessidade de liquidez.
 
-**Antes de vender — confirmação**
+---
+
+**Camada 1 — Confirmação (nunca vender sem isso)**
 
 ```
-/pm TICKER    # confirmação final: ainda é SAIR?
+/pm TICKER    # ainda é SAIR? tese quebrou ou é timing?
 ```
 
-O que olhar:
-- A tese quebrou (fundamento), ou é uma decisão de timing/preço?
-- Há ex-date de dividendo nos próximos 15 dias? Se sim, verificar se vale aguardar.
-- Qual o P&L realizado? Impacto no total do portfólio?
+O que verificar antes de executar:
+- Há ex-date de dividendo nos próximos 15 dias? Se sim, pode valer aguardar
+- P&L realizado: impacto relevante no total do portfólio?
+- A causa é fundamentalista (quebra de tese) ou técnica (preço, timing)?
 
-**Executar a venda**
+Se /pm confirmar MANTER ou REDUZIR parcialmente → ajustar plano antes de executar.
+
+---
+
+**Camada 2 — Execução**
 
 ```powershell
 ! python sbwaa.py /vender --ticker TICKER --quantidade X --preco Y
-! python sbwaa.py /carteira    # confirmar saída e novo P&L total
-! python sbwaa.py /risco-carteira    # como mudou o risco do portfólio?
+! python sbwaa.py /carteira          # confirmar saída e novo P&L total
+! python sbwaa.py /risco-carteira    # como mudou o risco?
 ```
 
-**Alocar o capital liberado**
+---
+
+**Camada 3 — Realocação do capital (não alocar no mesmo dia se > 5% do portfólio)**
 
 ```
-/rebalancear    # onde o capital liberado faz mais sentido
+/rebalancear    # onde o capital faz mais sentido agora
 ```
 
-Árvore de alocação pós-saída:
 ```
-Capital liberado é relevante (> 5% do portfólio)?
-  → /rebalancear    (direciona para a classe mais distante do alvo)
-  → /otimizar-expansao    (ver se há candidato na watchlist para absorver)
-  → Não alocar no mesmo dia — aguardar 24h para tomar a decisão com o sistema
+Capital > 5% do portfólio?
+  → Aguardar 24h — decidir com o sistema, não no calor da saída
+  → /otimizar-expansao    (candidato da watchlist para absorver?)
+  → /rebalancear          (classe com maior desvio negativo vs IPS)
 
-Capital pequeno (< 5%)?
-  → Direcionar para a classe com maior desvio negativo vs IPS
-  → Ou manter em caixa/renda fixa curta se não houver oportunidade clara
+Capital < 5%?
+  → Direcionar para a classe mais distante do alvo IPS
+  → Ou TD/RF curto se não houver oportunidade clara no momento
 ```
 
 ---
 
 ### Fluxo 5 — Novo documento / pesquisa para indexar
 
-**Gatilho:** você tem um PDF de resultado, relatório de corretora, tese de casa de análise, paper acadêmico.
+**Gatilho:** você tem um PDF de resultado, relatório de corretora, tese de casa de análise ou paper.
+
+---
+
+**Camada 1 — Indexar**
 
 ```powershell
 ! python sbwaa.py /knowledge --adicionar "C:\caminho\relatorio.pdf"
 ```
 
-Após indexar, o documento fica disponível para todos os agentes de IA que consultam a RAG (`/analisar`, `/tese`, `/pm`, `/revisar-carteira`). Não é necessário fazer nada mais — o sistema recupera automaticamente os trechos relevantes.
+Após indexar, o documento fica disponível para todos os agentes via RAG (`/analisar`, `/tese`, `/pm`, `/revisar-carteira`). Não é necessário fazer mais nada — o sistema recupera os trechos relevantes automaticamente.
+
+---
+
+**Camada 2 — Verificar se o conteúdo muda alguma análise ativa**
+
+```powershell
+! python sbwaa.py /knowledge --buscar "tema do documento"    # o que foi indexado?
+```
+
+```
+O documento traz dado novo sobre um ativo em carteira ou watchlist?
+  → Sim + análise < 60d: /pm TICKER    (PM vai encontrar o novo contexto na RAG)
+  → Sim + análise ≥ 60d: /analisar TICKER    (recalibrar com o novo conteúdo)
+  → Não: indexação suficiente, nenhuma ação adicional
+```
+
+---
 
 Casos de uso comuns:
 ```powershell
-# Relatório trimestral da empresa
 ! python sbwaa.py /knowledge --adicionar "C:\downloads\petr4-3t24.pdf"
-
-# Tese de casa de análise
 ! python sbwaa.py /knowledge --adicionar "C:\downloads\vale3-tese-xp.pdf"
-
-# Pasta inteira de relatórios
-! python sbwaa.py /knowledge --adicionar "C:\downloads\resultados-3t24\"
-
-# Verificar o que está indexado
+! python sbwaa.py /knowledge --adicionar "C:\downloads\resultados-3t24\"  # pasta inteira
 ! python sbwaa.py /knowledge --status
 ! python sbwaa.py /knowledge --listar
-
-# Buscar contexto manualmente antes de analisar
-! python sbwaa.py /knowledge --buscar "valuation petróleo Brasil upstream"
 ```
 
 ---
