@@ -3,7 +3,7 @@
 > Rotinas de uso do sistema por cadência e por fluxo oportunístico.
 > Para referência de comandos e sintaxe: [`GUIA-COMANDOS.md`](GUIA-COMANDOS.md)
 
-**Versão: v2.10.0**
+**Versão: v2.10.3**
 
 ---
 
@@ -19,6 +19,33 @@ Cada cadência tem um objetivo diferente:
 - **Anual** → revisar a estratégia e o IPS
 
 Os fluxos oportunísticos não têm calendário — são gatilhados por eventos.
+
+---
+
+## Conceitos fundamentais
+
+### Carteira vs Watchlist
+
+| Conceito | Definição | Localização |
+|----------|-----------|-------------|
+| **Carteira** | Ativos que você **possui** — posição ativa com quantidade e custo médio | `vault/00-portfolio/carteira.md` |
+| **Watchlist** | Ativos **analisados mas não comprados** — tese existe, aguardando gatilho ou timing | `vault/01-ativos/{TICKER}/` (sem entrada na carteira) |
+
+Um ativo entra na watchlist quando você rodou `/tese` ou `/analisar` e o PM emitiu AGUARDAR — ou COMPRAR mas você ainda não executou. Sai da watchlist quando entra na carteira ou quando o veredicto vira EVITAR.
+
+### Quando usar cada comando de análise
+
+| Situação | Comando correto | Pré-requisito |
+|----------|----------------|---------------|
+| Ativo **novo** — nunca analisou | `/tese TICKER` | Nenhum |
+| Tese favorável, quer análise completa | `/analisar TICKER` | Nenhum |
+| Ativo na **watchlist** com análise < 60 dias | `/pm TICKER` | Análise em `vault/01-ativos/TICKER/` |
+| Ativo na **carteira** com análise < 60 dias | `/pm TICKER` | Análise em `vault/01-ativos/TICKER/` |
+| Qualquer ativo com análise **≥ 60 dias** | `/analisar TICKER` | Cache stale — /pm usaria dados desatualizados |
+| Comparar dois candidatos | `/comparar A B` | Nenhum |
+| Sugestão baseada no macro do dia | `/investimento-do-dia` | `/morning-call` rodou |
+
+> **Regra dos 60 dias:** `/pm` pressupõe análise recente no vault. Com análise > 60 dias, os dados de valuation, earnings e risco podem estar desatualizados — use `/analisar` para recalibrar tudo antes de qualquer decisão.
 
 ---
 
@@ -70,8 +97,15 @@ O que olhar no output:
 Árvore de ação:
 ```
 Alerta em TICKER específico?
-  → Sim: rodar /pm TICKER antes de decidir qualquer coisa
-  → Não: continuar
+  → Sim:
+      Ativo na carteira ou watchlist com análise < 60 dias?
+        → Sim: /pm TICKER          (atualiza veredicto com contexto do dia)
+        → Não (análise ≥ 60d):    /analisar TICKER    (recalibrar tudo)
+        → Ativo novo, nunca analisado: /tese TICKER    (triagem rápida)
+  → Não:
+      Macro sugere oportunidade setorial?
+        → Sim: /investimento-do-dia [categoria]    (ex: /investimento-do-dia fii)
+        → Não: briefing suficiente
 
 Macro mudou muito? (juros, câmbio, commodity fora da banda histórica)
   → Sim: rodar /mundo-economico em seguida
@@ -167,9 +201,14 @@ O que olhar: algum ex-date importante nos próximos 15 dias? Se sim, não vender
 Lista ativos com análise > 45 dias. Para cada um, avaliar:
 ```
 Houve evento relevante desde a última análise?
-  → Sim: rodar /pm TICKER (rápido) ou /analisar TICKER (completo)
-  → Não + ativo em carteira: /pm TICKER basta para manter o frescor
-  → Não + só na watchlist: aguardar evento ou próxima rotina mensal
+  → Sim (resultado, macro, notícia relevante):
+      Análise < 60 dias? → /pm TICKER    (atualiza com contexto novo)
+      Análise ≥ 60 dias? → /analisar TICKER    (recalibração completa)
+
+  → Não:
+      Ativo em carteira, análise < 60 dias → /pm TICKER (manter frescor)
+      Ativo em carteira, análise ≥ 60 dias → /analisar TICKER (dados stale)
+      Só na watchlist → aguardar evento ou próxima rotina mensal
 ```
 
 ---
@@ -556,22 +595,22 @@ Risco político/fiscal aumentou?
 ! python sbwaa.py /risco-carteira    # ver impacto no VaR e concentração
 ```
 
-```
-/pm TICKER    # reavalia: a tese quebrou ou é ruído de mercado?
-```
-
 Árvore de ação:
 ```
+Ativo está na carteira ou watchlist com análise < 60 dias?
+  → Sim → /pm TICKER    (reavalia: tese quebrou ou é ruído?)
+  → Não (novo ou análise stale) → /tese TICKER    (triagem antes de agir)
+
 Queda por notícia fundamentalista grave (perda de contrato, fraude, downgrade)?
-  → /analisar TICKER    (revisão completa urgente)
+  → /analisar TICKER    (revisão completa urgente — independente da idade da análise)
   → Se PM emitir SAIR: ir para Fluxo de Saída imediatamente
 
-Queda por movimento técnico, macro ou contagio setorial sem mudança de fundamento?
+Queda por movimento técnico, macro ou contágio setorial sem mudança de fundamento?
   → /pm TICKER confirma posição → manter ou aumentar se IPS permitir
   → Ver /otimizar-expansao: o ativo ainda aparece no portfólio ótimo?
 
 Queda por resultado trimestral abaixo do esperado?
-  → /earnings TICKER primeiro, depois /pm TICKER
+  → /earnings TICKER primeiro, depois /pm TICKER (se análise < 60d) ou /analisar TICKER
   → Decidir se é revisão de tese ou ajuste de preço
 ```
 
@@ -732,21 +771,23 @@ Casos de uso comuns:
 
 ## Tabela de decisão — Quando usar cada comando de análise
 
-| Situação | Comando |
-|----------|---------|
-| Ouviu falar num ativo novo | `/tese TICKER` primeiro |
-| Tese boa, quer aprofundar | `/analisar TICKER` |
-| Resultado trimestral saiu | `/earnings TICKER` → `/pm TICKER` |
-| Resultado muito fora do esperado | `/earnings TICKER` → `/analisar TICKER` |
-| Ativo caiu muito — checar tese | `/pm TICKER` |
-| Quer comparar dois ativos | `/comparar A B` |
-| Já tem análise, quer só a decisão | `/pm TICKER` |
-| Macro mudou — impacto na carteira | `/mundo-economico` → `/revisar-carteira` |
-| Quer sugestão baseada no IPS | `/investimento-do-dia` |
-| Época de resultados (trimestral) | `/earnings` por ativo → `/revisar-carteira` |
-| Fim de mês — visão completa | `/risco-carteira` → `/revisar-carteira` → `/rebalancear` |
-| VaR violado | `/stress-test` → `/revisar-carteira` → `/rebalancear` |
-| Quero ver candidatos da watchlist | `/otimizar-expansao` |
+| Situação | Comando | Pré-requisito |
+|----------|---------|---------------|
+| Ativo novo — nunca analisou | `/tese TICKER` | Nenhum |
+| Tese favorável, quer aprofundar | `/analisar TICKER` | Nenhum |
+| Carteira/watchlist, análise **< 60 dias** | `/pm TICKER` | Análise em vault/01-ativos/ |
+| Carteira/watchlist, análise **≥ 60 dias** | `/analisar TICKER` | — dados stale |
+| Resultado trimestral dentro do esperado | `/earnings TICKER` → `/pm TICKER` | Análise < 60d |
+| Resultado muito fora do esperado | `/earnings TICKER` → `/analisar TICKER` | — |
+| Ativo caiu muito — ativo novo | `/tese TICKER` | Nenhum |
+| Ativo caiu muito — já na carteira/watchlist | `/pm TICKER` (se < 60d) ou `/analisar TICKER` | — |
+| Morning call sugere setor, não ativo | `/investimento-do-dia [categoria]` | morning-call rodou |
+| Quer comparar dois ativos | `/comparar A B` | Nenhum |
+| Macro mudou — impacto na carteira | `/mundo-economico` → `/revisar-carteira` | — |
+| Época de resultados (trimestral) | `/earnings` por ativo → `/revisar-carteira` | — |
+| Fim de mês — visão completa | `/risco-carteira` → `/revisar-carteira` → `/rebalancear` | — |
+| VaR violado | `/stress-test` → `/revisar-carteira` → `/rebalancear` | — |
+| Candidatos da watchlist | `/otimizar-expansao` | quant cache do dia |
 
 ---
 
