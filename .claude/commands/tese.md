@@ -11,10 +11,11 @@ Análise rápida (3 etapas) para **$ARGUMENTS**. Mais veloz que /analisar, sem Q
 ```powershell
 $env:PYTHONUTF8 = "1"; cd "C:\Users\lbmma\Downloads\Local\SBWAA"
 python scripts/data/fetch_fundamentals.py $ARGUMENTS
+python scripts/data/fetch_investidor10.py $ARGUMENTS
 python scripts/data/fetch_yahoo.py --macro
 ```
 
-Leia o cache gerado: `scripts/data/cache/fundamentals_$ARGUMENTS_*.json` e os `yahoo_*.json` do dia.
+Leia o cache gerado: `scripts/data/cache/fundamentals_$ARGUMENTS_*.json` (campos `_i10_*` já enriquecidos) e os `yahoo_*.json` do dia.
 
 ## Passo 2 — Research + Valuation
 

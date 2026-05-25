@@ -2,6 +2,22 @@
 
 ---
 
+## [2.10.2] — 2026-05-25 — INVESTIDOR10: SCRAPING DE DADOS COMPLEMENTARES
+
+### Added
+- **`scripts/data/fetch_investidor10.py`** — scraping do Investidor10 como fonte complementar:
+  - FIIs: P/VP, DY 12m, vacância, VPA por cota, DPA último, DPA anualizado (12m), dividendos mensais (últimos 24), patrimônio líquido, número de cotas/cotistas, taxa de administração, segmento, liquidez diária
+  - Ações: P/L, P/VP, LPA, VPA, DY, ROE, EV/EBITDA, margens (EBITDA/líquida/bruta), payout, liquidez diária
+  - Enriquece automaticamente `fundamentals_{TICKER}.json` com campos `_i10_*` para rastreabilidade de fonte
+  - Cache com TTL 4h (`investidor10_{TICKER}_{DATA}.json`)
+- `/analisar` e `/tese` — `fetch_investidor10.py` adicionado à ETAPA 0 (Preparação)
+
+### Changed
+- `investments`: v1.19.1 → **v1.19.2**
+- Global → **v2.10.2**
+
+---
+
 ## [2.10.1] — 2026-05-25 — YAHOO FINANCE: SUBSTITUIÇÃO DO BRAPI + TEMPLATES ENRIQUECIDOS
 
 ### Added

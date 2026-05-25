@@ -42,6 +42,7 @@ Rode em sequência:
 ```powershell
 $env:PYTHONUTF8 = "1"; cd "C:\Users\lbmma\Downloads\Local\SBWAA"
 python scripts/data/fetch_fundamentals.py {TICKER}
+python scripts/data/fetch_investidor10.py {TICKER}
 python scripts/data/fetch_yahoo.py --macro
 python scripts/data/fetch_bcb.py
 python scripts/data/fetch_consensus.py {TICKER}
@@ -49,9 +50,11 @@ python scripts/data/update_carteira.py
 ```
 
 > Em batch: `fetch_yahoo.py --macro` e `fetch_bcb.py` rodam apenas uma vez para o primeiro ticker. Os demais aproveitam o cache do dia.
+> `fetch_investidor10.py` enriquece automaticamente o `fundamentals_{TICKER}` com campos `_i10_*` (vacância, DPA mensal, LPA, VPA, liquidez, etc.) após rodar.
 
 Leia os arquivos de cache gerados:
-- `scripts/data/cache/fundamentals_{TICKER}_*.json` — dados fundamentalistas BR
+- `scripts/data/cache/fundamentals_{TICKER}_*.json` — dados fundamentalistas BR (enriquecidos com campos _i10_* do Investidor10)
+- `scripts/data/cache/investidor10_{TICKER}_*.json` — dados complementares do Investidor10
 - `scripts/data/cache/yahoo_*.json` — macro global (todos os arquivos do dia)
 - `scripts/data/cache/consensus_{TICKER}_*.json` — consenso de analistas (disponível quando houver cobertura)
 
