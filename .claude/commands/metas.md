@@ -16,7 +16,7 @@ python scripts/data/update_carteira.py
 Leia:
 - `vault/00-portfolio/metas.md` — definição das metas e valores-alvo
 - `vault/00-portfolio/carteira.md` — posições atuais para cálculo automático
-- `scripts/data/cache/brapi_*.json` mais recentes — cotações atualizadas
+- `scripts/data/cache/fundamentals_*.json` mais recentes — cotações atualizadas
 
 ## Passo 2 — Calcular progresso de cada meta
 

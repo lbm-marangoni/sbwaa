@@ -147,29 +147,35 @@ Você planeja alocar R$ X.XXX ({diferença}).
 ```
 
 ### Passo 6 — Output final
-Formato obrigatório do documento salvo no vault:
+Usar o template `vault/_templates/pm-decisao.md` como base estrutural obrigatória.
 
-```
+```markdown
 ---
-tags: [relatorio, pm-decisao, {ticker-lowercase}]
-cssclasses: [node-pm-decisao]
-data: {DATA}
+tags: [pm-decisao, {ticker-lowercase}]
 ticker: {TICKER}
+tipo: {label do tipo de ativo}
+data: {DATA}
 veredicto: COMPRAR | AGUARDAR | EVITAR | AUMENTAR | MANTER | REDUZIR | SAIR
+sizing: {X% do portfólio}
 agente: portfolio-manager
 ---
 
-# PM — Decisão: {TICKER} | {DATA}
+# PM — Decisão: {TICKER} ({DATA})
 
-{se ativo JÁ está na carteira, incluir antes do veredicto:}
-> Posição atual: X.X% do portfólio | P&L: +/-XX% | Entrada: {data}
+{se ativo JÁ está na carteira:}
+> Posição atual: X.X% | P&L: +/-XX% | Entrada: {data}
 
-## ⚡ Veredicto: {COMPRAR / AGUARDAR / EVITAR} ou {AUMENTAR / MANTER / REDUZIR / SAIR}
-{se Modo B: adicionar "X.X% → Y.Y% do portfólio" logo abaixo do veredicto}
+## VEREDICTO: {COMPRAR / AGUARDAR / EVITAR / AUMENTAR / MANTER / REDUZIR / SAIR}
 
-{justificativa em 3-5 parágrafos diretos, sem rodeios}
+{justificativa em 3-5 parágrafos diretos — sem rodeios}
 
-## 📊 Síntese da Equipe
+## Tese em 3 bullets
+
+- {bullet 1 — argumento principal com dado concreto}
+- {bullet 2 — dado do Econometrician obrigatório: GARCH, beta ou Calmar}
+- {bullet 3 — adequação ao IPS / contexto macro}
+
+## Síntese da Equipe
 
 | Agente | Output | Peso na Decisão |
 |--------|--------|-----------------|
@@ -177,22 +183,55 @@ agente: portfolio-manager
 | Earnings Reviewer | {resumo 1 linha} | Qualidade resultado |
 | Model Builder | Valor justo R$ XX — Upside XX% | Alto |
 | Valuation Reviewer | BARATO/JUSTO/CARO — conf. ALTA/MÉD/BAIXA | Alto |
-| Econometrician | GARCH {regime} \| Beta {tendência} \| Alpha {sig.} \| Corr {estabilidade} \| Calmar {valor} | Alto |
+| Econometrician | GARCH {regime} \| Beta {tendência} \| Calmar {valor} | Alto |
 | Risk Engineer | {status circuit breakers} | Crítico |
 
-## 📈 Portfólio — Métricas HF
-{bloco de métricas formatado conforme Passo 4}
+## Sizing
 
-## ⚠️ Riscos que Monitorar
-{top 3 riscos específicos para este ativo + horizonte}
+- Posição atual: X.X% (ou — se não está na carteira)
+- Sizing sugerido: X.X%
+- Aporte sugerido: R$ — (valor normalizado, preservar privacidade)
+
+## Nível de entrada
+
+{preço máximo aceitável ou gatilho de evento para entrada}
+
+## Stop / Revisão
+
+{condição que invalida a tese — preço, DPA, Selic, evento}
+
+## Adequação ao IPS
+
+- VaR após operação: X.X% (limite: 2%)
+- Concentração: X.X% (limite: 20%)
+- Classe {tipo}: X.X% (alvo IPS: X.X%)
+- **IPS OK:** Sim / Não
+
+## Portfólio — Métricas HF
+
+```
+═══════════════════════════════════════════════
+PORTFÓLIO — MÉTRICAS HF | {DATA}
+───────────────────────────────────────────────
+Sharpe Ratio (12m):      X.XX
+Volatilidade Anual:      XX.X%
+VaR 95% (1 dia):         X.X% | R$ XX.XXX*
+CVaR 95% (1 dia):        X.X% | R$ XX.XXX*
+Max Drawdown Histórico:  -XX.X%
+Drawdown Atual:          -X.X%
+Beta vs IBOV:            X.XX
+Correlação Média:        X.XX
+Maior Concentração:      XX.X% ({TICKER})
+Nº Ativos Efetivos:      X.X
+───────────────────────────────────────────────
+Status IPS:   ✅ OK / ⚠️ ATENÇÃO / 🚨 VIOLAÇÃO
+* Valor normalizado (R$ 100k) — privacidade preservada
+═══════════════════════════════════════════════
+```
 
 ## Links
-- [[carteira]] | [[ips]]
-- [[market-researcher-{DATA}]]
-- [[earnings-{TICKER}-{TRIM}]] (se existir)
-- [[dcf-{TICKER}-v{N}]]
-- [[equity-research-{TICKER}-{DATA}-longa]]
-- [[risk-{DATA}]]
+- [[carteira]]
+- [[ips]]
 ```
 
 ## REGRAS DE COMPORTAMENTO — CRÍTICAS

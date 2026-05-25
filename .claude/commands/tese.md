@@ -10,11 +10,11 @@ Análise rápida (3 etapas) para **$ARGUMENTS**. Mais veloz que /analisar, sem Q
 
 ```powershell
 $env:PYTHONUTF8 = "1"; cd "C:\Users\lbmma\Downloads\Local\SBWAA"
-python scripts/data/fetch_brapi.py $ARGUMENTS
+python scripts/data/fetch_fundamentals.py $ARGUMENTS
 python scripts/data/fetch_yahoo.py --macro
 ```
 
-Leia o cache gerado: `scripts/data/cache/brapi_$ARGUMENTS_*.json` e os `yahoo_*.json` do dia.
+Leia o cache gerado: `scripts/data/cache/fundamentals_$ARGUMENTS_*.json` e os `yahoo_*.json` do dia.
 
 ## Passo 2 — Research + Valuation
 
@@ -47,4 +47,46 @@ Emita:
 
 ## Passo 4 — Salvar
 
-Salve em `vault/01-ativos/$ARGUMENTS/tese-rapida-$ARGUMENTS-YYYY-MM-DD.md` com wikilinks.
+Salve em `vault/01-ativos/$ARGUMENTS/tese-rapida-$ARGUMENTS-YYYY-MM-DD.md` usando o template `vault/_templates/tese-ativo.md` como base. Preencher TODAS as seções.
+
+```markdown
+---
+tags: [ativo, tese, {tipo-lowercase}]
+ticker: {TICKER}
+tipo: {label do tipo conforme CLAUDE.md — ex: 🟩 FII}
+setor: {setor}
+data: {YYYY-MM-DD}
+status: ativa
+---
+
+# Tese — {TICKER}
+
+## Por que este ativo
+{Setor/posição competitiva, vantagem, por que hoje — 3-5 linhas}
+
+## Catalisadores
+- {catalisador 1}
+- {catalisador 2}
+- {macro relevante}
+
+## Riscos principais
+- {risco 1}
+- {risco 2}
+
+## Preço teto / Nível de entrada
+- **Método:** Gordon Growth / DCF simplificado / Graham / Bazin
+- **Premissas:** taxa X%, g X%
+- **Valor justo (base):** R$ XX,XX — upside +/-X%
+- **Valor justo (pessimista):** R$ XX,XX
+- **Preço teto (Graham/Bazin 8%):** R$ XX,XX
+- **Preço chão (Bazin 12%):** R$ XX,XX (apenas FII)
+- **Veredicto PM:** COMPRAR / AGUARDAR / EVITAR — sizing X%
+- **Gatilho:** {preço ou evento se AGUARDAR}
+
+## Condição de saída
+- {stop de tese — preço, resultado, evento}
+
+## Links
+- [[carteira]]
+- [[ips]]
+```

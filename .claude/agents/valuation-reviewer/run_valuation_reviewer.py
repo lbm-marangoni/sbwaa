@@ -290,11 +290,11 @@ def main():
             print("ERRO: DCF ainda não disponível após Model Builder.")
             sys.exit(1)
 
-    from fetch_brapi import buscar_ticker as brapi_buscar
+    from fetch_fundamentals import buscar_ticker as brapi_buscar
     try:
         dados_brapi = brapi_buscar(ticker)
     except Exception as e:
-        print(f"AVISO: Erro ao buscar Brapi para {ticker}: {e}")
+        print(f"AVISO: Erro ao buscar fundamentais para {ticker}: {e}")
         dados_brapi = {}
 
     earnings_ctx = carregar_earnings_mais_recente(ticker)

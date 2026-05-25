@@ -16,7 +16,7 @@ Leia todos estes arquivos antes de responder:
 - `vault/00-portfolio/ips.md` — perfil, limites de risco e alocação alvo
 - `scripts/data/cache/risk_*.json` — métricas de risco da carteira (arquivo mais recente)
 - `scripts/data/cache/quant_*.json` — métricas quantitativas (arquivo mais recente)
-- `scripts/data/cache/brapi_$ARGUMENTS_*.json` — dados fundamentalistas atuais
+- `scripts/data/cache/fundamentals_$ARGUMENTS_*.json` — dados fundamentalistas atuais
 
 ## Instrução
 

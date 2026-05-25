@@ -10,10 +10,10 @@ Revisão de earnings para **$ARGUMENTS**.
 
 ```powershell
 $env:PYTHONUTF8 = "1"; cd "C:\Users\lbmma\Downloads\Local\SBWAA"
-python scripts/data/fetch_brapi.py $ARGUMENTS
+python scripts/data/fetch_fundamentals.py $ARGUMENTS
 ```
 
-Leia `scripts/data/cache/brapi_$ARGUMENTS_*.json`.
+Leia `scripts/data/cache/fundamentals_$ARGUMENTS_*.json`.
 
 ## Passo 2 — Análise
 

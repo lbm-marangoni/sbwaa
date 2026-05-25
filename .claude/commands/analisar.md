@@ -41,7 +41,7 @@ Defina ROOT como `C:\Users\lbmma\Downloads\Local\SBWAA` e execute com `$env:PYTH
 Rode em sequência:
 ```powershell
 $env:PYTHONUTF8 = "1"; cd "C:\Users\lbmma\Downloads\Local\SBWAA"
-python scripts/data/fetch_brapi.py {TICKER}
+python scripts/data/fetch_fundamentals.py {TICKER}
 python scripts/data/fetch_yahoo.py --macro
 python scripts/data/fetch_bcb.py
 python scripts/data/fetch_consensus.py {TICKER}
@@ -51,7 +51,7 @@ python scripts/data/update_carteira.py
 > Em batch: `fetch_yahoo.py --macro` e `fetch_bcb.py` rodam apenas uma vez para o primeiro ticker. Os demais aproveitam o cache do dia.
 
 Leia os arquivos de cache gerados:
-- `scripts/data/cache/brapi_{TICKER}_*.json` — dados fundamentalistas BR
+- `scripts/data/cache/fundamentals_{TICKER}_*.json` — dados fundamentalistas BR
 - `scripts/data/cache/yahoo_*.json` — macro global (todos os arquivos do dia)
 - `scripts/data/cache/consensus_{TICKER}_*.json` — consenso de analistas (disponível quando houver cobertura)
 
@@ -177,11 +177,55 @@ Salve em `vault/01-ativos/{TICKER}/pm-decisao-{TICKER}-YYYY-MM-DD.md`
 usando o formato definido no SKILL do Portfolio Manager.
 
 #### 9e — Nota consolidada (específico do ativo)
-Salve em `vault/01-ativos/{TICKER}/analise-{TICKER}-YYYY-MM-DD.md` com:
-- Frontmatter YAML (tags, data, veredicto, preço-alvo)
-- Resumo de 2-3 linhas por etapa (não repetir o conteúdo completo — já está nos arquivos individuais)
-- Wikilinks para todos os arquivos salvos acima + `[[carteira]]`, `[[ips]]`
-- Use os labels de tipo de ativo definidos no CLAUDE.md
+Salve em `vault/01-ativos/{TICKER}/analise-{TICKER}-YYYY-MM-DD.md` usando o template `vault/_templates/analise-ativo.md` como base. Preencher TODAS as seções com o conteúdo das etapas anteriores.
+
+```markdown
+---
+tags: [ativo, equity-research, {tipo-lowercase}]
+ticker: {TICKER}
+tipo: {label do tipo conforme CLAUDE.md — ex: 🟩 FII}
+data: {YYYY-MM-DD}
+veredicto: COMPRAR | AGUARDAR | EVITAR
+preco-alvo: {valor numérico}
+upside: {+/-X%}
+agente: portfolio-manager
+---
+
+# Análise — {TICKER} ({YYYY-MM-DD})
+
+## Resumo Executivo
+
+**Veredicto:** COMPRAR / AGUARDAR / EVITAR
+**Preço-alvo:** R$ {XX,XX}
+**Upside DCF:** {+/-X%}
+**Preço teto (Graham/Bazin):** R$ {XX,XX}
+
+## Market Research
+{síntese do Market Researcher em 2-3 parágrafos — macro, setor, catalisadores}
+
+## Earnings
+{síntese do Earnings Reviewer — DPA/receita, tendência, impacto na tese}
+
+## Valuation / DCF
+{síntese do Model Builder + Valuation Reviewer — método, premissas chave, veredicto}
+
+## Quant & Econometria
+{síntese do Quant + Econometrician — GARCH, beta, Calmar, correlação carteira}
+
+## Risco
+{síntese do Risk Engineer — VaR, circuit breakers, drawdown}
+
+## Decisão PM
+{síntese da decisão — veredicto, sizing, nível de entrada, stop}
+
+## Links
+- [[carteira]]
+- [[ips]]
+- [[market-researcher-{YYYY-MM-DD}]]
+- [[earnings-{TICKER}-{TRIMESTRE}]]
+- [[equity-research-{TICKER}-{YYYY-MM-DD}]]
+- [[pm-decisao-{TICKER}-{YYYY-MM-DD}]]
+```
 
 ---
 

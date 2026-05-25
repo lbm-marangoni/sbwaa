@@ -192,7 +192,7 @@ def dados_br(ticker: str, hoje: datetime, data_entrada: datetime | None) -> dict
     Distingue automaticamente declarados futuros (data > hoje) de pagos (data <= hoje).
     """
     try:
-        from fetch_brapi import buscar_ticker
+        from fetch_fundamentals import buscar_ticker
         brapi = buscar_ticker(ticker)
     except Exception as e:
         return {"erro": str(e), "pagamentos": [], "declarados": [],

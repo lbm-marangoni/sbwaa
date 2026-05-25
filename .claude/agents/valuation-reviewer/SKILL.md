@@ -95,145 +95,130 @@ Emitir claramente:
 - CARO (downside no cenário base)
 Com nível de confiança: ALTO / MÉDIO / BAIXO
 
-## FORMATO DE OUTPUT — DUAS VERSÕES
+## FORMATO DE OUTPUT
 
-### Versão Curta (1 página, máx 10 linhas de conteúdo)
+Usar o template `vault/_templates/equity-research.md` como base estrutural obrigatória.
 
 ---
-tags: [relatorio, valuation, equity-research, {ticker-lowercase}]
-cssclasses: [node-relatorio]
-data: {DATA}
+tags: [equity-research, valuation, {tipo-lowercase}, {ticker-lowercase}]
 ticker: {TICKER}
-versao: curta
+tipo: {label do tipo de ativo}
+data: {DATA}
+veredicto-valuation: BARATO / JUSTO / CARO
+preco-alvo-dcf: {valor}
+preco-teto: {valor}
 agente: valuation-reviewer
 ---
 
-# Equity Research — {TICKER} | {DATA}
-**Tipo:** {label do tipo de ativo} | **Setor:** {Setor}
+# Equity Research — {TICKER} ({DATA})
 
----
-**TESE:** {1 frase resumindo a tese central}
+## Contexto de Mercado e Setor
+{contexto macro relevante para o ativo — 2 parágrafos. Incluir Selic, câmbio, setor.}
 
-| Métrica | Atual | Histórico 5a | Status |
-|---------|-------|--------------|--------|
-| P/L | | | |
-| EV/EBITDA | | | |
-| P/VP | | | |
-| DY | | | |
+## Modelo DCF / Gordon
 
-**DCF:** Valor Justo R$ XX.XX | Upside: +XX% | Confiança: ALTO/MÉDIO/BAIXO
-**WACC:** X.X% | **g:** X.X% | **Margem de segurança:** XX%
-**Preço Teto (Graham):** R$ XX,XX | MS 15%: R$ XX,XX | {ABAIXO/ACIMA DO TETO} _(apenas para ações)_
-**Preço Teto (Bazin 8%):** R$ XX,XX | Preço Chão (12%): R$ XX,XX | DY Real: X,X% | {ZONA DE COMPRA FORTE/ZONA DE COMPRA/ACIMA DO TETO} _(apenas para FIIs)_
+**Premissas:**
+- WACC / Taxa de desconto: X% (CONSERVADORA/RAZOÁVEL/OTIMISTA)
+- g (crescimento perpétuo): X% (CONSERVADORA/RAZOÁVEL/OTIMISTA)
+- {Para FII: DPA anualizado R$ X,XX | Taxa desconto = NTN-B 10a + spread 2,5%}
+- {Para ação: Projeção FCL Ano 1-5 / margem EBITDA}
 
-**RISCO PRINCIPAL:** {1 linha}
+**Resultado:**
+- Preço-alvo DCF: R$ X,XX
+- Cenário pessimista (taxa+2%, g-1%): R$ X,XX
+- Cotação atual: R$ X,XX
+- Upside/downside base: +/-X%
+- Margem de segurança: Sim (>15%) / Não
 
-**MERCADO PRECIFICA:** {1 linha — ex: deterioração permanente / recuperação gradual / cenário neutro}
-**CONSENSO:** {N analistas | Target R$ XX.XX | Upside: +XX% | Recomendação: COMPRA/NEUTRO/VENDA} _ou_ "Sem cobertura de analistas disponível"
+## Múltiplos Comparáveis
 
-**VEREDICTO:** BARATO / JUSTO / CARO
+| Múltiplo | {TICKER} | Setor (mediana) | Histórico 5a | Posição |
+|----------|----------|-----------------|--------------|---------|
+| P/L | | | | BARATO/JUSTO/CARO |
+| EV/EBITDA | | | | |
+| P/VP | | | | |
+| DY | | | | |
 
----
+> Dados via Yahoo Finance (`fundamentals_{TICKER}_{DATA}.json`). Campos ausentes: N/D.
 
-## Links
-- [[{ticker}/tese]]
-- [[{ticker}/dcf-{ticker}-v1]]
-- [[market-researcher-{DATA}]]
+## Stress Test
 
-### Versão Longa (2 páginas, conteúdo completo)
+| Cenário | Taxa Desc. | g | Valor Justo | Upside |
+|---------|-----------|---|-------------|--------|
+| Base | | | R$ — | —% |
+| Pessimista (taxa+2%, g-1%) | | | R$ — | —% |
+| Otimista (taxa-2%, g+1%) | | | R$ — | —% |
 
-[Inclui tudo da versão curta MAIS:]
+## Preço Teto / Chão
 
-## 🌍 Contexto Macro
-{contexto macro relevante para o ativo — 2 parágrafos}
-
-## 🔍 Revisão de Premissas DCF
-
-| Premissa | Valor | Classificação | Justificativa |
-|----------|-------|---------------|---------------|
-| WACC | | CONSERVADORA/RAZOÁVEL/OTIMISTA | |
-| g perpetuidade | | | |
-| Margem EBITDA | | | |
-| Capex/Receita | | | |
-
-## ⚖️ Triangulação DCF vs Múltiplos
-{análise de convergência ou divergência entre os métodos}
-
-## 🧪 Stress Test
-
-| Cenário | WACC | g | Valor Justo | Upside |
-|---------|------|---|-------------|--------|
-| Base | | | | |
-| Pessimista (WACC+2%, g-1%) | | | | |
-
-## 📐 Preço Teto / Chão
-
-_Para AÇÕES — Graham:_
+**Para AÇÕES (Graham):**
 
 | Métrica | Valor |
 |---------|-------|
-| LPA (12m) | R$ |
-| VPA | R$ |
-| Teto Graham | R$ |
-| Teto c/ 10% MS | R$ |
-| Teto c/ 15% MS | R$ |
-| Teto c/ 20% MS | R$ |
-| Cotação atual | R$ |
+| LPA (12m) | R$ — |
+| VPA | R$ — |
+| Teto Graham | R$ — |
+| Teto c/ 10% MS | R$ — |
+| Teto c/ 15% MS | R$ — |
+| Teto c/ 20% MS | R$ — |
+| Cotação atual | R$ — |
 | Status | ABAIXO / ACIMA DO TETO |
-| Convergência c/ DCF | {convergem / divergem — 1 linha explicando} |
+| Convergência c/ DCF | convergem / divergem |
 
-_Para FIIs — Bazin:_
+**Para FIIs (Bazin):**
 
 | Métrica | Valor |
 |---------|-------|
-| DPA anualizado | R$ |
-| DY real (cotação atual) | % |
-| Preço Teto (DY 8%) | R$ |
-| Preço Chão (DY 12%) | R$ |
-| Cotação atual | R$ |
+| DPA anualizado | R$ — |
+| DY real (cotação atual) | —% |
+| Preço Teto (DY 8%) | R$ — |
+| Preço Chão (DY 12%) | R$ — |
+| Cotação atual | R$ — |
 | Status | ZONA DE COMPRA FORTE / ZONA DE COMPRA / ACIMA DO TETO |
 
-## 📡 Precificação do Mercado
+## Precificação do Mercado
 
 ### Consenso de Analistas
+
 | Métrica | Valor |
 |---------|-------|
 | # Analistas | |
-| Price Target Médio | R$ |
-| Target Máximo | R$ |
-| Target Mínimo | R$ |
-| Upside Implícito (consenso) | % |
-| Recomendação | COMPRA FORTE / COMPRA / NEUTRO / ABAIXO DA MÉDIA / VENDA |
-| Fonte | Yahoo Finance / Investing.com |
+| Price Target Médio | R$ — |
+| Target Máximo | R$ — |
+| Target Mínimo | R$ — |
+| Upside Implícito (consenso) | —% |
+| Recomendação | |
 
 > Se não houver dados: "Sem cobertura de analistas disponível para este ativo."
 
-### O que o mercado está precificando implicitamente
+### O que o mercado está precificando
 {inferência a partir de múltiplos vs histórico + posição do consenso — 2-3 linhas}
 
-### Reação recente do mercado
-{evento relevante mais recente (dividendo, earnings, fato) + movimento % no preço — 1-2 linhas}
-
-## ⚠️ Top 3 Riscos
+## Top 3 Riscos
 
 | Risco | Probabilidade | Impacto |
 |-------|---------------|---------|
-| | | |
+| | Baixa/Média/Alta | Baixo/Médio/Alto |
 | | | |
 | | | |
 
-## 🚀 Catalisadores de Alta
-1. {catalisador 1}
-2. {catalisador 2}
+## Catalisadores de Alta
 
-## 📋 Para o Portfolio Manager
+1. 
+2. 
+
+## Veredicto de Valuation
+
+**BARATO / JUSTO / CARO** — confiança ALTA/MÉDIA/BAIXA
+
+{justificativa em 2-3 linhas — convergência ou divergência entre DCF e múltiplos, o que o mercado está precificando}
+
+## Para o Portfolio Manager
 {sizing sugerido e condições de entrada/revisão}
 
 ## Links
-- [[{ticker}/tese]]
-- [[{ticker}/dcf-{ticker}-v1]]
-- [[market-researcher-{DATA}]]
-- {wikilinks para earnings e outros relatórios}
+- [[carteira]]
+- [[ips]]
 
 ## REGRAS DE COMPORTAMENTO
 

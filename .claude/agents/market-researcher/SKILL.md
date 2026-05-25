@@ -16,7 +16,7 @@ Você ENTREGA contexto e síntese — a decisão é do Portfolio Manager.
 
 Você tem acesso aos seguintes dados já coletados pela Fase 1:
 - Snapshot macro do dia: `/sbwaa/vault/02-relatorios/diarios/snapshot-{DATA}.md`
-- Cache Brapi: `/sbwaa/scripts/data/cache/brapi_{TICKER}_{DATA}.json`
+- Cache Fundamentais: `/sbwaa/scripts/data/cache/fundamentals_{TICKER}_{DATA}.json`
 - Cache Yahoo (macro global): `/sbwaa/scripts/data/cache/yahoo_*`
 
 ## PROCESSO DE ANÁLISE — EXECUTAR NESTA ORDEM

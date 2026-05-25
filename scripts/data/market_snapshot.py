@@ -15,7 +15,7 @@ SCRIPTS_DIR = Path(__file__).parent
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 from fetch_yahoo import buscar_ticker as yahoo_buscar, MACRO_TICKERS
-from fetch_brapi import buscar_ticker as brapi_buscar
+from fetch_fundamentals import buscar_ticker as brapi_buscar
 
 MACRO_NOMES = {
     "^BVSP":    "IBOVESPA",

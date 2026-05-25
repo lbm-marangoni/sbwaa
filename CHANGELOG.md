@@ -2,6 +2,27 @@
 
 ---
 
+## [2.10.1] — 2026-05-25 — YAHOO FINANCE: SUBSTITUIÇÃO DO BRAPI + TEMPLATES ENRIQUECIDOS
+
+### Added
+- **`scripts/data/fetch_fundamentals.py`** — substitui `fetch_brapi.py` por Yahoo Finance (`yfinance`). Sem API key necessária. Mesmo formato de saída (`fundamentals_{TICKER}_{DATA}.json`). Suporte a ações BR (`.SA`) e FIIs. Normalização de DY (Yahoo retorna % em vez de decimal para alguns ativos BR).
+- **`vault/_templates/equity-research.md`** enriquecido com: Premissas como tabela classificada, Stress Test (3 cenários), Preço Teto/Chão completo (Graham + Bazin), Precificação do Mercado com consenso, Top 3 Riscos, Catalisadores, Para o Portfolio Manager
+- **`vault/_templates/earnings.md`** enriquecido com: Números do Trimestre (QoQ/YoY), Resultados vs Estimativa, Tendência 4 trimestres, Flags para o Portfolio Manager
+- **`vault/_templates/pm-decisao.md`** enriquecido com: justificativa paragrafos, Síntese da Equipe (tabela 6 agentes), Portfólio Métricas HF (bloco ASCII)
+- **`vault/_templates/tese-ativo.md`** enriquecido com: Valuation Simplificado (tabela completa)
+
+### Fixed
+- **Bazin DY** nos templates: corrigido de 6% (errado) para 8% (padrão SBWAA)
+- **Referências Brapi** em todos os SKILL.md, comandos e scripts ativos substituídas por `fetch_fundamentals`/Yahoo Finance
+- **`earnings-reviewer/SKILL.md`** limpado: referências a "Brapi" substituídas por "Yahoo Finance"
+
+### Changed
+- Todos os comandos (`.claude/commands/`) atualizados: `fetch_brapi.py` → `fetch_fundamentals.py`; cache `brapi_*` → `fundamentals_*`
+- `investments`: v1.19.0 → **v1.19.1**
+- Global → **v2.10.1**
+
+---
+
 ## [2.10.0] — 2026-05-25 — VAULT OBSIDIAN: TEMPLATES + SAVING + RISK SNAPSHOTS
 
 ### Added

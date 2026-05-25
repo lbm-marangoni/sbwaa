@@ -70,7 +70,7 @@ def get_trimestre(data=None) -> str:
 
 
 def buscar_dados_ticker(ticker: str) -> dict:
-    from fetch_brapi import buscar_ticker
+    from fetch_fundamentals import buscar_ticker
     print(f"Buscando dados fundamentalistas de {ticker}...")
     return buscar_ticker(ticker)
 
@@ -109,12 +109,12 @@ MÚLTIPLOS:
 DIVIDENDOS RECENTES:
 {div_str}
 
-FONTE: {dados.get('fonte', 'brapi')}
+FONTE: {dados.get('fonte', 'yahoo_finance')}
 ATUALIZADO EM: {dados.get('atualizado_em', 'N/D')}
 
 NOTA: Dados de DRE trimestral detalhado (receita, EBITDA, lucro por trimestre)
-não estão disponíveis nesta versão da Brapi. Analise com base nos múltiplos
-e dados disponíveis acima, sinalizando explicitamente o que está ausente.
+não estão disponíveis via Yahoo Finance para ativos BR. Analise com base nos múltiplos
+e dividendos disponíveis acima, sinalizando explicitamente o que está ausente.
 """
 
 

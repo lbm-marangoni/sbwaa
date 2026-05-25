@@ -254,7 +254,7 @@ def main():
         print("DCF não aplicável para ETFs. Use análise de composição e tracking error.")
         sys.exit(0)
 
-    from fetch_brapi import buscar_ticker as brapi_buscar
+    from fetch_fundamentals import buscar_ticker as brapi_buscar
 
     print(f"Carregando dados de {ticker}...")
     try:

@@ -12,11 +12,11 @@ Extraia os dois tickers de $ARGUMENTS (primeiro e segundo).
 
 ```powershell
 $env:PYTHONUTF8 = "1"; cd "C:\Users\lbmma\Downloads\Local\SBWAA"
-python scripts/data/fetch_brapi.py TICKER1 TICKER2
+python scripts/data/fetch_fundamentals.py TICKER1 TICKER2
 python scripts/data/fetch_yahoo.py --macro
 ```
 
-Leia os dois arquivos de cache `scripts/data/cache/brapi_TICKER*_*.json`.
+Leia os dois arquivos de cache `scripts/data/cache/fundamentals_TICKER*_*.json`.
 Se algum tiver nota de análise prévia em `vault/01-ativos/TICKER/`, leia também.
 
 ## Passo 2 — Comparação

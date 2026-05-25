@@ -6,7 +6,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 
 scripts_necessarios = {
-    "scripts/data/fetch_brapi.py": "Busca dados BR via Brapi",
+    "scripts/data/fetch_fundamentals.py": "Busca dados BR via Yahoo Finance",
     "scripts/data/fetch_yahoo.py": "Busca dados globais via Yahoo",
     "scripts/data/update_carteira.py": "Atualiza cotacoes na carteira",
     "scripts/data/add_ativo.py": "Adiciona ativo a carteira",

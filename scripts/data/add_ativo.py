@@ -47,7 +47,7 @@ def buscar_cotacao_atual(ticker: str, tipo: str) -> float | None:
         if tipo == "etf-intl":
             from fetch_yahoo import buscar_ticker
             return buscar_ticker(ticker).get("cotacao_atual")
-        from fetch_brapi import buscar_ticker as brapi
+        from fetch_fundamentals import buscar_ticker as brapi
         dados = brapi(ticker)
         if dados.get("cotacao"):
             return dados["cotacao"]
