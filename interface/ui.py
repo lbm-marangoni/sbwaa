@@ -438,9 +438,23 @@ class App(ctk.CTk):
             self._btn_ia(r1, label, lambda s=slash: self._ia_ticker(s, self.a_ticker))
 
         self._sep(p, row=2)
-        self._section(p, "COMPARAR ATIVOS — IA", row=3)
+        self._section(p, "APORTE DE CAPITAL — IA", row=3)
 
-        r2 = self._row(p, row=4)
+        r_aporte = self._row(p, row=4)
+        ctk.CTkLabel(r_aporte, text="Valor (R$):", font=MONO_SM,
+                     text_color=TXT2).pack(side="left", padx=(0, 6))
+        self.aporte_valor = ctk.CTkEntry(r_aporte, placeholder_text="700",
+                                          width=80, font=MONO_B,
+                                          fg_color=ELEV, border_color=BORDER,
+                                          text_color=ACC)
+        self.aporte_valor.pack(side="left", padx=(0, 12))
+        self._btn_ia(r_aporte, "PM — Modo Aporte", self._pm_aporte)
+        self._btn_ia(r_aporte, "PM — Aporte (sem valor)", lambda: self._ia_noarg("pm"))
+
+        self._sep(p, row=5)
+        self._section(p, "COMPARAR ATIVOS — IA", row=6)
+
+        r2 = self._row(p, row=7)
         self.c_t1 = ctk.CTkEntry(r2, placeholder_text="PETR4", width=88,
                                    font=MONO_B, fg_color=ELEV,
                                    border_color=BORDER, text_color=ACC)
@@ -452,7 +466,7 @@ class App(ctk.CTk):
         self.c_t2.pack(side="left", padx=(6, 14))
         self._btn_ia(r2, "Comparar", self._comparar)
 
-        self._ia_note(p, row=5)
+        self._ia_note(p, row=8)
         return p
 
     def _make_page_mercado(self) -> ctk.CTkScrollableFrame:
@@ -605,6 +619,13 @@ class App(ctk.CTk):
 
     def _ia_noarg(self, slash: str):
         self._clipboard(f"/{slash}")
+
+    def _pm_aporte(self):
+        valor = self.aporte_valor.get().strip()
+        if valor:
+            self._clipboard(f"/pm {valor}")
+        else:
+            self._clipboard("/pm")
 
     def _comparar(self):
         t1 = self.c_t1.get().strip().upper()

@@ -1,7 +1,7 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.10.0  
+**Versão de referência:** v2.11.0  
 **Data de geração:** 2026-05-25  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
@@ -2201,6 +2201,9 @@ Modo de operação: Claude Code (sem API key)
 | v2.8.9  | 2026-05-22 | /adicionar RF: --nome, --indexador, --taxa, --vencimento; auto-skip API; setor vira emissor; nota com tabela e frontmatter estruturado; TIPOS_OFF_EXCHANGE |
 | v2.9.0  | 2026-05-25 | Rebranding completo UI (ciano, sidebar, header live); /watchlist --rever, /ips --editar, /simulacao flags, /status, RF fields no form, investimento-do-dia combobox; /analisar Etapa 9 separada por tipo |
 | v2.10.0 | 2026-05-25 | vault/_templates/ com 11 templates Obsidian; /pm Passo 3 salva decisoes.md + pm-decisao-*.md; /relatorio-semanal Passo 4 gera risk snapshot semanal; Obsidian app.json configurado; graph.json #screening |
+| v2.10.3 | 2026-05-25 | Fluxo interativo de aporte em /pm e /analisar: intenção → valor → validação → confirmação → registro |
+| v2.10.4 | 2026-05-25 | SBWAA-GLOSSARIO.md: ~80 termos técnicos em 11 seções |
+| v2.11.0 | 2026-05-25 | /pm modo aporte: distribuição de capital multi-ativo, ranqueamento por IPS+score, auto-reflow após /analisar |
 
 ### Diferenças do projeto original para o atual
 
@@ -2223,6 +2226,10 @@ python sbwaa.py /carteira          # ver posições + projeção integrada ao fi
 # Análise (no chat do Claude Code)
 /morning-call
 /analisar PETR4
+
+# Aporte de capital (no chat do Claude Code)
+/pm                  # PM conversacional — distribui valor entre múltiplos ativos
+/pm 700              # atalho com valor pré-definido
 
 # Semana
 python sbwaa.py /risco-carteira    # métricas HF + Fronteira Eficiente

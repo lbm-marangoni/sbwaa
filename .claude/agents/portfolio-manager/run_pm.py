@@ -1,6 +1,8 @@
 """
 run_pm.py — Executa o agente Portfolio Manager do SBWAA.
 Uso: python run_pm.py TICKER [--versao curta|longa]
+     python run_pm.py           → modo aporte interativo
+     python run_pm.py 700       → modo aporte com valor pré-definido
 """
 
 import re
@@ -8,7 +10,8 @@ import sys
 import json
 import math
 import argparse
-from datetime import datetime, timedelta
+import subprocess
+from datetime import datetime, timedelta, date
 from pathlib import Path
 
 AGENT_DIR = Path(__file__).parent
@@ -474,15 +477,498 @@ def atualizar_decisoes_log(hoje: str, ticker: str, veredicto: str,
     DECISOES_PATH.write_text(conteudo, encoding="utf-8")
 
 
+# ─── MODO APORTE — constantes e helpers ──────────────────────────────────────
+
+STALE_APORTE_DIAS = 45
+
+TIPO_CLASSE_IPS: dict[str, str] = {
+    "acao-on":    "Ações BR",
+    "acao-pn":    "Ações BR",
+    "fii":        "FIIs",
+    "renda-fixa": "Renda Fixa",
+    "tesouro":    "Tesouro Direto",
+    "etf-br":     "ETFs BR",
+    "etf-intl":   "ETFs Internac.",
+}
+
+CLASSE_ALVO_IPS: dict[str, float] = {
+    "Ações BR":       0.25,
+    "FIIs":           0.35,
+    "Renda Fixa":     0.20,
+    "Tesouro Direto": 0.12,
+    "ETFs Internac.": 0.08,
+}
+
+CLASSE_TIPOS: dict[str, list[str]] = {
+    "fii":  ["fii"],
+    "acao": ["acao-on", "acao-pn"],
+    "etf":  ["etf-br", "etf-intl"],
+    "rf":   ["renda-fixa", "tesouro"],
+}
+
+
+def _frontmatter_simples(texto: str) -> dict:
+    m = re.match(r"^---\s*\n(.*?)\n---", texto, re.DOTALL)
+    if not m:
+        return {}
+    campos: dict = {}
+    for linha in m.group(1).splitlines():
+        if ":" in linha:
+            k, _, v = linha.partition(":")
+            campos[k.strip().lower()] = v.strip().strip('"').strip("'")
+    return campos
+
+
+def _ultima_analise_ativo(ticker: str) -> tuple[str | None, date | None, str | None, bool]:
+    """Retorna (veredicto, data, tipo, tem_analise_completa)."""
+    pasta = ATIVOS_DIR / ticker
+    if not pasta.exists():
+        return None, None, None, False
+
+    tem_completa = (
+        any(pasta.glob("equity-research-*.md"))
+        or any(pasta.glob("analise-*.md"))
+    )
+    arquivos = sorted(pasta.glob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)
+    veredicto: str | None = None
+    data_obj: date | None = None
+    tipo: str | None = None
+
+    for arq in arquivos:
+        texto = arq.read_text(encoding="utf-8", errors="ignore")
+        fm = _frontmatter_simples(texto)
+        v = fm.get("veredicto") or fm.get("decisao")
+        d = fm.get("data")
+        t = fm.get("tipo")
+        if not v:
+            for palavra in ("AUMENTAR", "COMPRAR", "MANTER", "AGUARDAR", "EVITAR", "SAIR", "REDUZIR"):
+                if f"**{palavra}**" in texto or f"VEREDICTO: {palavra}" in texto:
+                    v = palavra
+                    break
+        veredicto = veredicto or v
+        tipo = tipo or t
+        if d and not data_obj:
+            try:
+                data_obj = date.fromisoformat(d)
+            except ValueError:
+                pass
+        if not data_obj:
+            m2 = re.search(r"(\d{4}-\d{2}-\d{2})", arq.name)
+            if m2:
+                try:
+                    data_obj = date.fromisoformat(m2.group(1))
+                except ValueError:
+                    pass
+        if veredicto and data_obj:
+            break
+
+    return veredicto, data_obj, tipo, tem_completa
+
+
+def _calcular_gaps_ips(carteira: dict, patrimonio: float) -> dict[str, float]:
+    """Retorna {classe: gap_decimal} — positivo = classe subpesada."""
+    alocacao: dict[str, float] = {k: 0.0 for k in CLASSE_ALVO_IPS}
+    total = patrimonio if patrimonio > 0 else 1.0
+    for dados in carteira.values():
+        classe = TIPO_CLASSE_IPS.get(dados.get("tipo", ""), "")
+        if classe in alocacao:
+            alocacao[classe] += dados["qtd"] * dados["preco_atual"] / total
+    return {classe: CLASSE_ALVO_IPS[classe] - alocacao[classe] for classe in CLASSE_ALVO_IPS}
+
+
+def _preco_ativo(ticker: str, carteira: dict, hoje: str) -> float | None:
+    if ticker in carteira:
+        return carteira[ticker].get("preco_atual")
+    dcf = carregar_dcf(ticker, hoje)
+    if dcf:
+        return dcf.get("preco_atual") or dcf.get("cotacao_atual")
+    return None
+
+
+def _filtrar_classe(tipo: str | None, filtro: str) -> bool:
+    if filtro == "auto":
+        return True
+    return (tipo or "").lower() in CLASSE_TIPOS.get(filtro, [])
+
+
+# ─── MODO APORTE — fluxo principal ───────────────────────────────────────────
+
+def modo_aporte(
+    versao: str, hoje: str, macro: str,
+    carteira_completa: dict, patrimonio: float,
+    pesos_publicos: dict, ips_conteudo: str, ips_limites: dict,
+    client, skill: str,
+    _params: dict | None = None,
+) -> None:
+    """Distribui capital entre múltiplos ativos da watchlist/carteira."""
+    hoje_date = date.fromisoformat(hoje)
+
+    print(f"\n{'═'*55}")
+    print(f"  PORTFOLIO MANAGER — MODO APORTE | {hoje}")
+    print(f"{'═'*55}\n")
+
+    if _params and all(v is not None for v in _params.values()):
+        valor_total   = _params["valor"]
+        filtro_classe = _params["classe"]
+        n_ativos      = _params["n_ativos"]
+        restricoes    = _params["restricoes"]
+        print(f"  ↩ Retomando: R$ {valor_total:,.0f} | classe={filtro_classe} | "
+              f"n={n_ativos} ativos\n")
+    else:
+        pre = _params or {}
+
+        # Valor
+        if pre.get("valor") is not None:
+            valor_total = pre["valor"]
+            print(f"PM: Valor pré-definido: R$ {valor_total:,.0f}")
+        else:
+            print("PM: Qual valor você tem disponível para aporte? (R$)")
+            try:
+                valor_total = float(input("R$ ").strip().replace(".", "").replace(",", "."))
+            except (ValueError, EOFError):
+                print("Valor inválido. Encerrando.")
+                return
+
+        # Classe
+        print("\nPM: Preferência de classe de ativo?")
+        print("  [1] Automático pelo IPS  [2] FII  [3] Ação  [4] ETF  [5] Renda Fixa / Tesouro")
+        try:
+            escolha = input("> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            escolha = "1"
+        filtro_classe = {"1": "auto", "2": "fii", "3": "acao",
+                         "4": "etf", "5": "rf"}.get(escolha, "auto")
+
+        # Quantidade de ativos
+        print("\nPM: Em quantos ativos diferentes quer distribuir? (ex: 3, 5)")
+        try:
+            n_ativos = max(1, int(input("> ").strip()))
+        except (ValueError, EOFError):
+            n_ativos = 3
+
+        # Campo livre
+        print("\nPM: Alguma restrição ou observação? (Enter para pular)")
+        print("  Ex: 'sem XPML11', 'prefiro FIIs logística', 'nada de petróleo'")
+        try:
+            restricoes = input("> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            restricoes = ""
+
+    params_atuais = {
+        "valor": valor_total, "classe": filtro_classe,
+        "n_ativos": n_ativos, "restricoes": restricoes,
+    }
+
+    print(f"\n{'─'*55}")
+    print("  Escaneando watchlist e carteira...")
+    print(f"{'─'*55}")
+
+    # ── Coletar todos os tickers conhecidos ──────────────────────────────────
+    tickers_todos: set[str] = set(carteira_completa.keys())
+    if ATIVOS_DIR.exists():
+        tickers_todos |= {p.name.upper() for p in ATIVOS_DIR.iterdir() if p.is_dir()}
+
+    candidatos_ok:    list[dict] = []
+    candidatos_basic: list[dict] = []
+    sem_analise:      list[str]  = []
+    ignorados:        set[str]   = set()
+
+    gaps_ips = _calcular_gaps_ips(carteira_completa, patrimonio)
+    em_carteira_set = set(carteira_completa.keys())
+
+    for ticker in sorted(tickers_todos):
+        # Restrições textuais (ex: "sem XPML11")
+        if restricoes and ticker.upper() in restricoes.upper():
+            ignorados.add(ticker)
+            continue
+
+        veredicto, data_analise, tipo, tem_completa = _ultima_analise_ativo(ticker)
+
+        # Filtro de classe
+        if not _filtrar_classe(tipo, filtro_classe):
+            ignorados.add(ticker)
+            continue
+
+        # Veredictos elegíveis
+        em_carteira = ticker in em_carteira_set
+        veredictos_ok = {"AUMENTAR"} if em_carteira else {"COMPRAR", "AUMENTAR"}
+        if not veredicto or veredicto.upper() not in veredictos_ok:
+            if not veredicto:
+                sem_analise.append(ticker)
+            continue
+
+        dias = (hoje_date - data_analise).days if data_analise else 999
+        info = {
+            "ticker":      ticker,
+            "veredicto":   veredicto.upper(),
+            "tipo":        tipo or "",
+            "em_carteira": em_carteira,
+            "dias":        dias,
+            "fresco":      dias <= STALE_APORTE_DIAS,
+            "tem_completa": tem_completa,
+            "gap_ips":     gaps_ips.get(TIPO_CLASSE_IPS.get(tipo or "", ""), 0.0),
+        }
+        if tem_completa:
+            candidatos_ok.append(info)
+        else:
+            candidatos_basic.append(info)
+
+    # ── Ranquear ──────────────────────────────────────────────────────────────
+    def _score(c: dict) -> float:
+        s = 3.0 if c["veredicto"] == "AUMENTAR" else 2.0
+        s += max(0.0, c["gap_ips"]) * 5.0
+        s += 1.0 if c["fresco"] else 0.0
+        s += 1.5 if c["tem_completa"] else 0.0
+        return s
+
+    todos_candidatos = sorted(candidatos_ok + candidatos_basic, key=_score, reverse=True)
+    selecionados     = todos_candidatos[:n_ativos]
+
+    # ── Candidatos insuficientes → oferecer /analisar ─────────────────────────
+    if len(selecionados) < n_ativos:
+        faltam = n_ativos - len(selecionados)
+        print(f"\n⚠️  Apenas {len(selecionados)} candidato(s) com análise suficiente "
+              f"(solicitado: {n_ativos}).")
+
+        # Ativos conhecidos mas sem análise completa suficiente
+        com_candidatura = {c["ticker"] for c in todos_candidatos} | ignorados
+        pendentes = [t for t in sorted(tickers_todos) if t not in com_candidatura][:faltam + 4]
+
+        if pendentes:
+            print(f"\n   Ativos que precisam de /analisar:")
+            for t in pendentes:
+                print(f"     - {t}  →  /analisar {t}")
+
+        if len(selecionados) == 0:
+            print("\nPM: Nenhum candidato disponível. Rode /analisar nos ativos de interesse "
+                  "e volte com /pm.\n")
+            return
+
+        print(f"\nPM: Deseja rodar /analisar nesses ativos agora e retomar automaticamente?")
+        print(f"    [S] Sim, analisar e retomar  "
+              f"[N] Continuar com os {len(selecionados)} disponível(is)")
+        try:
+            resp = input("> ").strip().upper()
+        except (EOFError, KeyboardInterrupt):
+            resp = "N"
+
+        if resp == "S":
+            analisar_script = AGENT_DIR / "run_analisar.py"
+            for t in pendentes[:faltam]:
+                print(f"\n{'─'*55}")
+                print(f"  Iniciando /analisar {t}...")
+                print(f"{'─'*55}")
+                result = subprocess.run(
+                    [sys.executable, str(analisar_script), t, "--versao", versao],
+                    cwd=str(PROJECT_ROOT),
+                )
+                if result.returncode != 0:
+                    print(f"\n⚠️  /analisar {t} terminou com erro — continuando.")
+            print(f"\n{'─'*55}")
+            print("  ✅ Análises concluídas. Retomando modo aporte...")
+            print(f"{'─'*55}")
+            modo_aporte(
+                versao, hoje, macro, carteira_completa, patrimonio,
+                pesos_publicos, ips_conteudo, ips_limites,
+                client, skill, _params=params_atuais,
+            )
+            return
+
+    # ── Distribuição de capital ───────────────────────────────────────────────
+    n = len(selecionados)
+    total_gap = sum(max(0.0, c["gap_ips"]) for c in selecionados) or 1.0
+
+    distribuicao: list[dict] = []
+    for c in selecionados:
+        peso_gap   = max(0.0, c["gap_ips"]) / total_gap
+        peso_final = 0.60 / n + 0.40 * peso_gap
+        valor_bruto = valor_total * peso_final
+        preco = _preco_ativo(c["ticker"], carteira_completa, hoje)
+        if preco and preco > 0:
+            cotas       = max(1, int(valor_bruto / preco))
+            valor_real  = round(cotas * preco, 2)
+        else:
+            cotas      = None
+            valor_real = round(valor_bruto, 2)
+        distribuicao.append({**c, "valor": valor_real, "cotas": cotas, "preco": preco})
+
+    # ── Prompt ao PM ──────────────────────────────────────────────────────────
+    linhas_dist = "\n".join(
+        f"- {d['ticker']} ({d['tipo']}): R$ {d['valor']:,.0f}"
+        + (f" (~{d['cotas']} cotas @ R$ {d['preco']:.2f})" if d['cotas'] else "")
+        + f" — {d['veredicto']} — gap IPS {d['gap_ips']*100:+.1f}%"
+        for d in distribuicao
+    )
+    gaps_txt = "\n".join(
+        f"  {k}: alvo {CLASSE_ALVO_IPS.get(k, 0)*100:.0f}% — gap {v*100:+.1f}%"
+        for k, v in gaps_ips.items()
+    )
+    restricoes_txt = f"\nRestrições do usuário: {restricoes}" if restricoes else ""
+    conc_max_pct   = ips_limites.get("concentracao_maxima_pct", 0.20) * 100
+
+    prompt_aporte = f"""O usuário deseja aportar R$ {valor_total:,.0f} distribuídos entre {n} ativos.
+
+DISTRIBUIÇÃO PROPOSTA (calculada pelo sistema):
+{linhas_dist}
+
+GAPS IPS ATUAIS (positivo = classe subpesada):
+{gaps_txt}
+
+PATRIMÔNIO ATUAL: R$ {patrimonio:,.0f}{restricoes_txt}
+
+Sua tarefa como Portfolio Manager:
+1. Valide a distribuição proposta — ajuste pesos se necessário com justificativa
+2. Para cada ativo: cite o veredicto, por que faz sentido agora e o risco principal
+3. Alerte se alguma alocação ultrapassar concentração máxima do IPS ({conc_max_pct:.0f}%)
+4. Feche com tabela: Ticker | Valor (R$) | Cotas | Prioridade | Observação
+
+Contexto macro:
+{macro[:500] if macro else "(sem dados de mercado disponíveis)"}
+
+IPS do investidor:
+{ips_conteudo[:800]}
+"""
+
+    print(f"\n{'─'*55}")
+    print("  Enviando ao Portfolio Manager (claude-opus-4-6)...")
+    print(f"{'─'*55}\n")
+
+    output_pm = ""
+    with client.messages.stream(
+        model="claude-opus-4-6",
+        max_tokens=2000,
+        system=skill,
+        messages=[{"role": "user", "content": prompt_aporte}],
+    ) as stream:
+        for text in stream.text_stream:
+            print(text, end="", flush=True)
+            output_pm += text
+    print(f"\n{'─'*55}\n")
+
+    # ── Salvar decisão de aporte ──────────────────────────────────────────────
+    linhas_md = "\n".join(
+        f"| {d['ticker']} | {d['tipo']} | R$ {d['valor']:,.0f} | "
+        + (str(d["cotas"]) if d["cotas"] else "—") + f" | {d['veredicto']} |"
+        for d in distribuicao
+    )
+    links_ativos = "\n".join(f"- [[{d['ticker'].lower()}]]" for d in distribuicao)
+    conteudo_md = f"""---
+tags: [portfolio, pm-aporte, aporte]
+cssclasses: [node-pm-decisao]
+data: {hoje}
+valor_total: {valor_total}
+n_ativos: {n}
+classe: {filtro_classe}
+agente: portfolio-manager
+---
+
+# PM — Sugestão de Aporte | {hoje}
+
+**Valor total:** R$ {valor_total:,.0f}
+**Ativos:** {n}
+**Classe:** {filtro_classe}
+{"**Restrições:** " + restricoes if restricoes else ""}
+
+## Distribuição
+
+| Ticker | Tipo | Valor | Cotas | Veredicto |
+|--------|------|-------|-------|-----------|
+{linhas_md}
+
+## Análise do PM
+
+{output_pm}
+
+## Links
+
+- [[carteira]] | [[ips]] | [[decisoes]]
+{links_ativos}
+"""
+    path_decisao = VAULT_ROOT / "00-portfolio" / f"pm-aporte-{hoje}.md"
+    path_decisao.write_text(conteudo_md, encoding="utf-8")
+
+    tickers_log = ", ".join(d["ticker"] for d in distribuicao)
+    atualizar_decisoes_log(hoje, f"APORTE({tickers_log})", "APORTE", valor_total, True)
+
+    print(f"\n{'═'*55}")
+    print(f"  PM — Decisão salva: {path_decisao.relative_to(PROJECT_ROOT)}")
+    print(f"  Ativos: {tickers_log}")
+    print(f"{'═'*55}\n")
+
+    # ── Loop de ajuste ────────────────────────────────────────────────────────
+    print("PM: Quer ajustar a sugestão? Descreva o ajuste ou [N] para encerrar:")
+    try:
+        ajuste = input("> ").strip()
+    except (EOFError, KeyboardInterrupt):
+        ajuste = "N"
+
+    if ajuste.upper() != "N" and ajuste:
+        p_ajuste = (
+            f"O usuário quer ajustar a sugestão de aporte. Pedido: '{ajuste}'. "
+            f"Recalcule a distribuição de R$ {valor_total:,.0f} entre os ativos "
+            f"considerando o pedido e o IPS. Apresente nova tabela com valores e cotas."
+        )
+        print(f"\n{'─'*55}")
+        with client.messages.stream(
+            model="claude-opus-4-6",
+            max_tokens=1000,
+            system=skill,
+            messages=[
+                {"role": "user",      "content": prompt_aporte},
+                {"role": "assistant", "content": output_pm},
+                {"role": "user",      "content": p_ajuste},
+            ],
+        ) as stream:
+            for text in stream.text_stream:
+                print(text, end="", flush=True)
+        print(f"\n{'─'*55}\n")
+
+
 # ─── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
     parser = argparse.ArgumentParser(description="Portfolio Manager — SBWAA")
-    parser.add_argument("ticker")
+    parser.add_argument("ticker", nargs="?", default=None)
     parser.add_argument("--versao", choices=["curta", "longa"], default="curta")
     args = parser.parse_args()
 
-    ticker = args.ticker.upper()
+    hoje = datetime.now().strftime("%Y-%m-%d")
+
+    # ── Detectar modo aporte (sem ticker ou ticker é um valor monetário) ──────
+    ticker_arg = args.ticker
+    valor_pre: float | None = None
+    if ticker_arg is None:
+        modo = "aporte"
+    else:
+        try:
+            valor_pre = float(ticker_arg.replace(",", ".").replace("R$", "").strip())
+            modo = "aporte"
+        except ValueError:
+            modo = "ticker"
+
+    if modo == "aporte":
+        macro = carregar_market_researcher(hoje)
+        carteira_completa = carregar_carteira_completa()
+        patrimonio = calcular_patrimonio(carteira_completa)
+        pesos_publicos = carregar_carteira_publica(carteira_completa)
+        ips_conteudo = IPS_PATH.read_text(encoding="utf-8") if IPS_PATH.exists() else ""
+        ips_limites = carregar_limites_ips()
+
+        import anthropic
+        client = anthropic.Anthropic()
+        skill = SKILL_PATH.read_text(encoding="utf-8")
+
+        params_pre = {"valor": valor_pre, "classe": None, "n_ativos": None, "restricoes": None} \
+            if valor_pre is not None else None
+
+        modo_aporte(
+            args.versao, hoje, macro, carteira_completa, patrimonio,
+            pesos_publicos, ips_conteudo, ips_limites,
+            client, skill, _params=params_pre,
+        )
+        return
+
+    ticker = ticker_arg.upper()
     hoje = datetime.now().strftime("%Y-%m-%d")
 
     print(f"\n{'═'*55}")

@@ -2,6 +2,28 @@
 
 ---
 
+## [2.11.0] — 2026-05-25 — MODO APORTE NO /PM
+
+### Added
+- **`/pm` sem ticker → Modo Aporte interativo** — PM distribui capital novo entre múltiplos ativos da watchlist/carteira:
+  - Perguntas sequenciais: valor (R$), classe de ativo, nº de ativos, campo livre de restrições
+  - Atalho `/pm 700` pula a pergunta de valor e entra direto nas demais
+  - Seleção automática de candidatos: varre `vault/01-ativos/` + carteira, filtra COMPRAR/AUMENTAR, ranqueia por score (gap IPS, frescor, completude)
+  - Distribuição de capital: 60% igualitário + 40% ponderado por gap de IPS da classe
+  - Cotas estimadas calculadas localmente pelo preço atual (cache ou carteira)
+  - Validação pelo PM (claude-opus-4-6): ajuste de pesos, justificativa por ativo, alertas de IPS
+  - Loop de ajuste: campo livre para refinar sugestão sem reiniciar o fluxo
+  - Salva `vault/00-portfolio/pm-aporte-YYYY-MM-DD.md` + linha em `decisoes.md`
+- **Auto-reflow após /analisar**: quando candidatos insuficientes, PM lista pendentes, oferece executar `/analisar` via subprocess e **retoma automaticamente** com os mesmos parâmetros ao concluir
+- `run_pm.py`: `ticker` agora é argumento opcional (nargs="?") — `argparse` não quebra mais sem ticker
+
+### Changed
+- `run_pm.py`: imports adicionados (`subprocess`, `date` de datetime)
+- `investments`: v1.19.3 → **v1.20.0**
+- Global → **v2.11.0**
+
+---
+
 ## [2.10.4] — 2026-05-25 — GLOSSÁRIO TÉCNICO SBWAA
 
 ### Added

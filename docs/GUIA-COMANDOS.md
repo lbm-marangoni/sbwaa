@@ -3,7 +3,7 @@
 > Referência completa de todos os comandos do sistema.
 > Para instalação e configuração inicial: [`README.md`](README.md)
 
-**Versão: v2.10.0**
+**Versão: v2.11.0**
 
 ---
 
@@ -449,6 +449,52 @@ Retorna veredicto COMPRAR / AGUARDAR / EVITAR com sizing sugerido.
 Após emitir o veredicto, salva automaticamente:
 - **Uma linha** na tabela de `vault/00-portfolio/decisoes.md` (histórico permanente de decisões do PM)
 - **`vault/01-ativos/TICKER/pm-decisao-TICKER-YYYY-MM-DD.md`** com frontmatter estruturado (`veredicto`, `ticker`, `data`, `sizing`)
+
+---
+
+### `/pm` · `/pm 700` — Modo Aporte (PM conversacional)
+
+PM distribui um valor entre múltiplos ativos da watchlist e carteira, priorizando pelo desvio de IPS e qualidade da análise.
+
+```
+/pm            → perguntas interativas completas
+/pm 700        → atalho: valor pré-definido, demais perguntas normais
+/pm 1500       → atalho com valor maior
+```
+
+**Fluxo interativo:**
+
+```
+PM: Qual valor você tem disponível para aporte? (R$)     ← pulada no atalho /pm 700
+PM: Preferência de classe de ativo?
+    [1] Automático pelo IPS  [2] FII  [3] Ação  [4] ETF  [5] Renda Fixa / Tesouro
+PM: Em quantos ativos diferentes quer distribuir? (ex: 3, 5)
+PM: Alguma restrição ou observação? (Enter para pular)
+    Ex: 'sem XPML11', 'prefiro FIIs logística', 'nada de petróleo'
+```
+
+**Requisito de candidatos:**
+- Ativos precisam ter análise prévia em `vault/01-ativos/TICKER/`
+- Mínimo: `/pm TICKER` (pm-decisao presente)
+- Ideal: `/analisar TICKER` (equity-research + quant + risk presentes)
+- Se faltar análise: PM lista os pendentes, oferece rodar `/analisar` e **retoma automaticamente** ao concluir
+
+**Lógica de seleção e distribuição:**
+- Filtra por veredicto COMPRAR (fora da carteira) ou AUMENTAR (já em carteira)
+- Prioriza: AUMENTAR > COMPRAR, gap IPS da classe, frescor da análise (<45d), presença de /analisar
+- Distribuição: 60% igual entre os N ativos + 40% ponderado pelo gap de IPS
+- Arredonda para cotas inteiras usando preço atual (cache ou carteira)
+
+**Output do PM:**
+- Valida e ajusta a distribuição
+- Justificativa por ativo (veredicto, risco principal)
+- Alerta de violação de IPS (concentração máx)
+- Tabela final: Ticker | Valor (R$) | Cotas | Prioridade | Observação
+- Loop de ajuste: campo livre para refinar a sugestão
+
+**Salva automaticamente:**
+- `vault/00-portfolio/pm-aporte-YYYY-MM-DD.md` com frontmatter e análise completa
+- Linha no log `vault/00-portfolio/decisoes.md`
 
 ---
 

@@ -3,7 +3,7 @@
 > Rotinas de uso do sistema por cadência e por fluxo oportunístico.
 > Para referência de comandos e sintaxe: [`GUIA-COMANDOS.md`](GUIA-COMANDOS.md)
 
-**Versão: v2.10.3**
+**Versão: v2.11.0**
 
 ---
 
@@ -42,6 +42,7 @@ Um ativo entra na watchlist quando você rodou `/tese` ou `/analisar` e o PM emi
 | Ativo na **watchlist** com análise < 60 dias | `/pm TICKER` | Análise em `vault/01-ativos/TICKER/` |
 | Ativo na **carteira** com análise < 60 dias | `/pm TICKER` | Análise em `vault/01-ativos/TICKER/` |
 | Qualquer ativo com análise **≥ 60 dias** | `/analisar TICKER` | Cache stale — /pm usaria dados desatualizados |
+| **Capital novo — distribuir entre múltiplos ativos** | `/pm` ou `/pm 700` | ≥ 1 ativo com análise em `vault/01-ativos/` |
 | Comparar dois candidatos | `/comparar A B` | Nenhum |
 | Sugestão baseada no macro do dia | `/investimento-do-dia` | `/morning-call` rodou |
 
@@ -739,6 +740,64 @@ Capital < 5%?
 
 ---
 
+### Fluxo 6 — Aporte de capital novo
+
+**Gatilho:** você tem um valor para investir e não sabe exatamente o quê comprar ou como distribuir.
+
+---
+
+**Camada 1 — Verificar candidatos disponíveis**
+
+```powershell
+! python sbwaa.py /watchlist    # ver ativos com veredicto COMPRAR / AUMENTAR e frescor
+```
+
+Identifique quantos ativos têm análise suficiente (✅ ≤ 45d, idealmente via `/analisar`).
+
+---
+
+**Camada 2 — PM Modo Aporte**
+
+```
+/pm        → PM faz as perguntas (valor, classe, nº de ativos, restrições)
+/pm 700    → atalho com valor pré-definido
+```
+
+O PM:
+1. Escaneia `vault/01-ativos/` + carteira → filtra COMPRAR/AUMENTAR
+2. Ranqueia por: gap de IPS da classe, frescor, presença de /analisar
+3. Distribui o capital entre os N ativos selecionados
+4. Valida a distribuição e emite justificativa por ativo
+
+**Se faltar análise nos candidatos:**
+
+```
+PM informa quais ativos estão sem análise suficiente.
+  → [S] PM roda /analisar automaticamente e retoma o fluxo
+  → [N] Continua com os candidatos disponíveis
+```
+
+---
+
+**Camada 3 — Ajuste e confirmação**
+
+Após receber a sugestão do PM:
+- Campo livre: "sem XPML11", "quero mais em ações", "e se eu colocasse 1200?"
+- PM recalcula e apresenta nova tabela sem reiniciar o fluxo
+- Ao encerrar: decisão salva em `vault/00-portfolio/pm-aporte-YYYY-MM-DD.md`
+
+---
+
+**Diferença vs `/rebalancear`:**
+
+| Aspecto | `/pm` (modo aporte) | `/rebalancear` |
+|---------|---------------------|----------------|
+| Dinheiro | Capital novo entrando | Redistribuição do existente |
+| Vendas | Não — só compras | Pode envolver vendas |
+| Gatilho | "Tenho R$X para investir" | "Carteira desviou do IPS" |
+
+---
+
 ### Fluxo 5 — Novo documento / pesquisa para indexar
 
 **Gatilho:** você tem um PDF de resultado, relatório de corretora, tese de casa de análise ou paper.
@@ -800,6 +859,7 @@ Casos de uso comuns:
 | Fim de mês — visão completa | `/risco-carteira` → `/revisar-carteira` → `/rebalancear` | — |
 | VaR violado | `/stress-test` → `/revisar-carteira` → `/rebalancear` | — |
 | Candidatos da watchlist | `/otimizar-expansao` | quant cache do dia |
+| **Capital novo — não sabe onde alocar** | `/pm` ou `/pm 700` | ≥ 1 ativo analisado em vault/01-ativos/ |
 
 ---
 

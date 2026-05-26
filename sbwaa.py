@@ -76,7 +76,7 @@ TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": No
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.10.0               ║
+║            SBWAA — Referência de Comandos  v2.11.0               ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]
@@ -204,6 +204,14 @@ def exibir_help():
 
   /pm PETR4
       Só o Portfolio Manager, com dados já cacheados. Retorna COMPRAR/AGUARDAR/EVITAR.
+
+  /pm
+  /pm 700
+      Modo Aporte: PM distribui capital entre múltiplos ativos da watchlist.
+      Sem ticker → perguntas interativas (valor, classe, nº de ativos, restrições).
+      Com valor  → atalho: pula a pergunta de valor e vai direto às demais.
+      Requisito: ativos devem ter análise via /analisar (ou mín. /pm TICKER).
+      Se faltar análise: PM avisa, oferece rodar /analisar e retoma automaticamente.
 
   /morning-call
       Briefing pré-abertura: snapshot macro + análise + alertas ativos.

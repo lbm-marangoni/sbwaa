@@ -4,7 +4,7 @@
 > O guia cobre sintaxe e flags. Esta referência cobre **o que cada comando entrega**:
 > campos, estrutura do output e o que você pode esperar ver.
 
-**Versão: v2.10.0**
+**Versão: v2.11.0**
 
 ---
 
@@ -29,7 +29,8 @@
 - [/analisar](#analisar)
 - [/tese](#tese)
 - [/earnings](#earnings)
-- [/pm](#pm)
+- [/pm TICKER](#modo-a----pm-ticker-ativo-específico) — decisão por ativo
+- [/pm · /pm 700](#modo-b----pm--pm-700-modo-aporte) — distribuição de capital novo
 - [/comparar](#comparar)
 - [/mundo-economico](#mundo-economico)
 - [/investimento-do-dia](#investimento-do-dia)
@@ -586,6 +587,12 @@ CONFIRMA — expansão de margem acelerou, guidance reafirmado.
 
 ### /pm
 
+O comando `/pm` opera em dois modos distintos conforme o argumento passado:
+
+---
+
+#### Modo A — `/pm TICKER` (ativo específico)
+
 Decisão do Portfolio Manager para um ativo específico, usando análises já existentes em `vault/01-ativos/TICKER/`. Não refaz o pipeline completo.
 
 **Quando usar:** análise recente (<60 dias), mas você quer uma decisão atualizada de comprar/aguardar/evitar com base no contexto atual da carteira.
@@ -606,6 +613,70 @@ Decisão do Portfolio Manager para um ativo específico, usando análises já ex
 **Saving automático (pós-veredicto):**
 - Acrescenta linha na tabela de `vault/00-portfolio/decisoes.md` — histórico permanente
 - Cria `vault/01-ativos/TICKER/pm-decisao-TICKER-YYYY-MM-DD.md` com frontmatter (`tags`, `veredicto`, `ticker`, `data`, `sizing`) e output completo da decisão
+
+---
+
+#### Modo B — `/pm` · `/pm 700` (Modo Aporte)
+
+PM conversacional para distribuição de dinheiro novo entre múltiplos ativos. Opera exclusivamente com capital de entrada — sem movimentar posições existentes.
+
+**Sintaxe:**
+```
+/pm            → perguntas interativas completas
+/pm 700        → atalho: pula a pergunta de valor
+```
+
+**Perguntas do fluxo:**
+
+| # | Pergunta | Opções |
+|---|----------|--------|
+| 1 | Valor disponível (R$) | valor livre — pulado no atalho `/pm 700` |
+| 2 | Classe de ativo | [1] Auto-IPS / [2] FII / [3] Ação / [4] ETF / [5] RF+TD |
+| 3 | Nº de ativos para distribuir | número inteiro (ex: 3, 5) |
+| 4 | Restrições / observação | campo livre — Enter para pular |
+
+**Lógica de seleção (automática):**
+
+| Critério | Peso |
+|----------|------|
+| Veredicto AUMENTAR (já em carteira) | +3.0 pts |
+| Veredicto COMPRAR (fora da carteira) | +2.0 pts |
+| Gap de IPS da classe (subpesada) | até +5.0 pts |
+| Análise fresca (≤ 45 dias) | +1.0 pt |
+| Análise completa via /analisar | +1.5 pts |
+
+**Distribuição de capital:**
+- Base: 60% igual entre os N ativos selecionados
+- Ajuste: +40% ponderado pelo gap de IPS de cada classe
+- Arredondamento: cotas inteiras pelo preço atual (cache ou carteira)
+
+**Requisito de análise:**
+- Mínimo: `/pm TICKER` executado (arquivo `pm-decisao-*.md` presente)
+- Ideal: `/analisar TICKER` completo (arquivo `equity-research-*.md` presente)
+- Se faltar: PM lista os pendentes → oferece executar `/analisar` → retoma automaticamente
+
+**Output do PM:**
+
+| Seção | Conteúdo |
+|-------|----------|
+| Validação | PM ajusta pesos se necessário com justificativa |
+| Por ativo | Veredicto, razão, risco principal |
+| Alerta IPS | Flag se alguma alocação ultrapassar concentração máx |
+| Tabela final | Ticker \| Valor (R$) \| Cotas \| Prioridade \| Observação |
+| Loop ajuste | Campo livre para refinar — PM recalcula sem reiniciar |
+
+**Mockup de tabela final:**
+```
+| Ticker | Valor    | Cotas | Prioridade | Observação          |
+|--------|----------|-------|------------|---------------------|
+| MXRF11 | R$ 420   | 51    | 1ª         | FIIs 3% abaixo IPS  |
+| KNRI11 | R$ 180   | 2     | 2ª         | Diversifica logíst. |
+| XPML11 | R$ 100   | 1     | 3ª         | Shoppings — AUMENTAR|
+```
+
+**Saving automático:**
+- `vault/00-portfolio/pm-aporte-YYYY-MM-DD.md` com frontmatter + análise completa + tabela de distribuição
+- Linha no log `vault/00-portfolio/decisoes.md` com tag `APORTE(TICKER1, TICKER2, ...)`
 
 ---
 
