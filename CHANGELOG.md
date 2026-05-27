@@ -2,6 +2,45 @@
 
 ---
 
+## [2.11.1] — 2026-05-26 — OUTPUTS VISUAIS OBSIDIAN + DESPOLUÇÃO DE COMANDOS
+
+### Added
+- **`carteira.md` — seções visuais embutidas** (Option B — append após `## Resumo`):
+  - `## 📊 Alocação por Classe`: tabela com % atual, alvo IPS, gap e barra `█░` (20 chars)
+  - `## 📈 Posições — Detalhes Visuais`: % total da carteira, % dentro da classe, barra por ativo
+  - Callouts Obsidian: `> [!warning]` (gap 5–10%), `> [!danger]` (gap > 10% ou concentração > 20%)
+  - Regeneradas automaticamente a cada execução de `/carteira` (substituição via regex)
+- **`vault/02-relatorios/dividendos.md`** — relatório Obsidian completo de proventos:
+  - Frontmatter com tags, data, DY ponderado, renda mensal
+  - Seções: Resumo de Renda, Próximos Pagamentos, Pagos no ano (tabela completa), Total desde entrada, YoC, links
+  - Sobreescrito a cada `/dividendos`
+- **`vault/02-relatorios/risco-carteira.md`** — snapshot Obsidian de risco:
+  - Métricas: Sharpe, Vol, VaR, CVaR, Drawdown, Beta, Correlação, Concentração
+  - Circuit Breakers com callouts (`[!tip]`/`[!danger]`)
+  - Fronteira eficiente Markowitz com tabela de ajustes sugeridos
+  - Sobreescrito a cada `/risco-carteira`
+- **`vault/02-relatorios/stress-test.md`** — snapshot Obsidian de stress test:
+  - Todos os cenários com ícones por severidade (🟢/🟡/🔴/⛔)
+  - Callout destacando pior cenário
+  - Circuit breakers de referência
+  - Sobreescrito a cada `/stress-test`
+- **`vault/02-relatorios/watchlist-YYYY-MM-DD.md`** — snapshot **datado** da watchlist:
+  - Frontmatter com data e nº de ativos
+  - Tabela completa com veredictos, frescor e preços-alvo
+  - Mantém histórico — não sobreescreve datas anteriores
+- **`SBWAA-WORKFLOW.md`** — nova seção "Outputs visuais" documentando todos os arquivos gerados, modo (sobreescrito vs datado) e formatação Obsidian usada
+- Formatação Obsidian padronizada: callouts `[!info/warning/danger/tip]`, barras `█░`, emoji headers
+
+### Changed
+- **`dividendos.py`** terminal slimado: Seção 2 (pagos no ano) exibe apenas top 3 + total; Seção 3 (total histórico) movida para o .md; Seção 4 (YoC) mantida compacta; pointer `📄 Relatório completo` adicionado
+- **`carteira.py`**: pointer `📄 Visão visual completa: vault/00-portfolio/carteira.md` ao final
+- **`watchlist.py`**: pointer `📄 Snapshot salvo` com path do arquivo gerado
+- **`risco_carteira.py`** e **`stress_test.py`**: pointer `📄 Relatório completo` ao final
+- `investments`: v1.20.0 → **v1.20.1**
+- Global → **v2.11.1**
+
+---
+
 ## [2.11.0] — 2026-05-25 — MODO APORTE NO /PM
 
 ### Added

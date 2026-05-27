@@ -14,10 +14,11 @@ os.environ["PYTHONUTF8"] = "1"
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 
-PROJECT_ROOT = Path(__file__).parent.parent.parent
-VAULT_ROOT = PROJECT_ROOT / "vault"
-ATIVOS_DIR = VAULT_ROOT / "01-ativos"
-CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
+PROJECT_ROOT   = Path(__file__).parent.parent.parent
+VAULT_ROOT     = PROJECT_ROOT / "vault"
+ATIVOS_DIR     = VAULT_ROOT / "01-ativos"
+CARTEIRA_PATH  = VAULT_ROOT / "00-portfolio" / "carteira.md"
+RELATORIOS_DIR = VAULT_ROOT / "02-relatorios"
 
 HOJE = date.today()
 
@@ -196,7 +197,52 @@ def main():
         print(f"  {ticker:<10} {cart:<3} {tipo:<14} {verd:<22} {data:<12} {frescor:<12} {preco}")
 
     print(f"\n  Legenda:  ● em carteira  ○ watchlist puro  ✅ análise recente  ⚠️ defasado (>{STALE_DIAS}d)  🔴 rever (>90d)")
-    print(f"  Dica: /pm TICKER para reavaliar  |  /analisar TICKER para análise completa\n")
+    print(f"  Dica: /pm TICKER para reavaliar  |  /analisar TICKER para análise completa")
+
+    # Salvar snapshot datado no vault
+    if not apenas_rever:
+        _salvar_snapshot(linhas, todos)
+
+
+def _salvar_snapshot(linhas: list, todos: list):
+    """Salva snapshot da watchlist como .md datado em vault/02-relatorios/."""
+    try:
+        RELATORIOS_DIR.mkdir(parents=True, exist_ok=True)
+        hoje_s   = HOJE.strftime("%Y-%m-%d")
+        md_path  = RELATORIOS_DIR / f"watchlist-{hoje_s}.md"
+
+        cabecalho = [
+            "---",
+            "tags: [portfolio, watchlist, snapshot]",
+            f"data: {hoje_s}",
+            f"n_ativos: {len(todos)}",
+            "---",
+            "",
+            f"# 👁 Watchlist Snapshot — {hoje_s}",
+            "",
+            f"> [!info] Snapshot gerado em {hoje_s} via `/watchlist`. Arquivo datado — não sobreescrito.",
+            "",
+            "| Ticker | C | Tipo | Veredicto | Data | Frescor | Preço-Alvo |",
+            "|--------|---|------|-----------|------|---------|-----------|",
+        ]
+
+        linhas_md = []
+        for ticker, cart, tipo, verd, data, frescor, preco in linhas:
+            linhas_md.append(f"| {ticker} | {cart} | {tipo} | {verd} | {data} | {frescor} | {preco} |")
+
+        rodape = [
+            "",
+            "---",
+            "",
+            f"**Legenda:** ● em carteira · ○ watchlist puro · ✅ recente · ⚠️ defasado (>{STALE_DIAS}d) · 🔴 rever (>90d)",
+            "",
+            "[[carteira]] | [[ips]]",
+        ]
+
+        md_path.write_text("\n".join(cabecalho + linhas_md + rodape), encoding="utf-8")
+        print(f"  📄 Snapshot salvo      : vault/02-relatorios/watchlist-{hoje_s}.md\n")
+    except Exception as e:
+        print(f"\n  AVISO: não foi possível salvar snapshot da watchlist: {e}\n")
 
 
 if __name__ == "__main__":

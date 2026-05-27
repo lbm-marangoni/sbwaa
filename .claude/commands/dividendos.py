@@ -22,6 +22,7 @@ PROJECT_ROOT   = Path(__file__).parent.parent.parent
 VAULT_ROOT     = PROJECT_ROOT / "vault"
 CARTEIRA_PATH  = VAULT_ROOT / "00-portfolio" / "carteira.md"
 HISTORICO_PATH = VAULT_ROOT / "00-portfolio" / "historico-trades.md"
+RELATORIOS_DIR = VAULT_ROOT / "02-relatorios"
 SCRIPTS_DIR    = PROJECT_ROOT / "scripts" / "data"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
@@ -273,6 +274,146 @@ def dados_intl(ticker: str, hoje: datetime, data_entrada: datetime | None) -> di
                 "frequencia": "—", "valor_medio": 0.0, "proximas_datas": []}
 
 
+# ── Relatório Obsidian ─────────────────────────────────────────────────────────
+
+def _salvar_dividendos_md(
+    hoje, posicoes, datas_entrada, proximos_todos, pagos_ano,
+    total_recebido, yoc_data, freq_map, patrimonio_div,
+    renda_anual_total, renda_mensal_est, renda_mensal_real,
+    dy_ponderado, total_ano, total_hist, meses_decorridos,
+):
+    """Salva relatório completo de proventos em vault/02-relatorios/dividendos.md."""
+    try:
+        RELATORIOS_DIR.mkdir(parents=True, exist_ok=True)
+        md_path = RELATORIOS_DIR / "dividendos.md"
+        hoje_s  = hoje.strftime("%Y-%m-%d")
+        agora_s = hoje.strftime("%Y-%m-%d %H:%M")
+        hoje_d  = hoje.date()
+
+        linhas = [
+            "---",
+            "tags: [portfolio, dividendos, proventos, renda]",
+            "cssclasses: [node-relatorio]",
+            f"data: {hoje_s}",
+            f"dy_ponderado: {dy_ponderado:.2f}",
+            f"renda_mensal_est: {renda_mensal_est:.2f}",
+            "---",
+            "",
+            f"# 💰 Dividendos & Proventos — {hoje_s}",
+            "",
+            f"> [!info] Relatório gerado em {agora_s} — sobreescrito a cada execução de `/dividendos`",
+            "",
+        ]
+
+        # Resumo topo
+        if dy_ponderado or renda_mensal_est:
+            linhas += [
+                "## 📊 Resumo de Renda",
+                "",
+                "| Métrica | Valor |",
+                "|---------|-------|",
+            ]
+            if dy_ponderado:
+                linhas.append(f"| DY Ponderado (valor de mercado) | **{dy_ponderado:.2f}% a.a.** |")
+            if renda_anual_total:
+                linhas.append(f"| Renda Anual Estimada | R$ {renda_anual_total:,.2f} |")
+            if renda_mensal_est:
+                linhas.append(f"| Renda Mensal Estimada | R$ {renda_mensal_est:,.2f} |")
+            if renda_mensal_real:
+                linhas.append(f"| Renda Mensal Média Real ({hoje.year}) | R$ {renda_mensal_real:,.2f} |")
+            if total_ano:
+                linhas.append(f"| Total Recebido em {hoje.year} | R$ {total_ano:,.2f} |")
+            if total_hist:
+                linhas.append(f"| Total Histórico (desde entrada) | R$ {total_hist:,.2f} |")
+            if patrimonio_div:
+                linhas.append(f"| Patrimônio de Referência | R$ {patrimonio_div:,.2f} |")
+            linhas.append("")
+
+            if renda_mensal_est and dy_ponderado:
+                linhas += [
+                    f"> [!tip] Com patrimônio de R$ {patrimonio_div:,.0f}, a carteira gera"
+                    f" **~R$ {renda_mensal_est:,.0f}/mês** estimado ({dy_ponderado:.2f}% a.a.)",
+                    "",
+                ]
+
+        # Próximos pagamentos
+        linhas += [
+            "## 📅 Próximos Pagamentos (90 dias)",
+            "",
+        ]
+        if proximos_todos:
+            linhas += [
+                "| Ticker | Data | Valor/cota | Total Est. | Fonte | Freq. |",
+                "|--------|------|-----------|-----------|-------|-------|",
+            ]
+            for p in proximos_todos:
+                val_s = f"R$ {p['valor']:.4f}" if p["valor"] else "N/D"
+                tot_s = f"R$ {p['total_est']:,.2f}" if p["total_est"] else "N/D"
+                dias  = (p["data"] - hoje_d).days
+                linhas.append(
+                    f"| {p['ticker']} | {p['data']} ({dias}d) | {val_s} | {tot_s} | {p['fonte']} | {p['freq']} |"
+                )
+        else:
+            linhas.append("> [!warning] Nenhum pagamento encontrado nos próximos 90 dias.")
+        linhas.append("")
+
+        # Pagos no ano — tabela completa
+        linhas += [
+            f"## 📆 Pagos em {hoje.year}",
+            "",
+            f"| Ticker | Total Recebido | Frequência | Entrada |",
+            "|--------|---------------|-----------|---------|",
+        ]
+        for tk, total in sorted(pagos_ano.items(), key=lambda x: -x[1]):
+            de  = datas_entrada.get(tk)
+            de_s = de.strftime("%Y-%m-%d") if de else "—"
+            freq = freq_map.get(tk, "—")
+            linhas.append(f"| {tk} | R$ {total:,.2f} | {freq} | {de_s} |")
+        linhas += [f"| **TOTAL** | **R$ {total_ano:,.2f}** | | |", ""]
+
+        # Total desde entrada — tabela completa
+        linhas += [
+            "## 📈 Total Recebido Desde a Entrada",
+            "",
+            "| Ticker | Total | Desde |",
+            "|--------|-------|-------|",
+        ]
+        for tk, total in sorted(total_recebido.items(), key=lambda x: -x[1]):
+            de  = datas_entrada.get(tk)
+            de_s = de.strftime("%Y-%m-%d") if de else "—"
+            linhas.append(f"| {tk} | R$ {total:,.2f} | {de_s} |")
+        linhas += [f"| **TOTAL** | **R$ {total_hist:,.2f}** | |", ""]
+
+        # Yield on Cost
+        if yoc_data:
+            linhas += [
+                "## 🎯 Yield on Cost",
+                "",
+                "> DY calculado sobre o preço médio de entrada — mede rendimento real sobre capital aportado.",
+                "",
+                "| Ticker | YoC a.a. |",
+                "|--------|---------|",
+            ]
+            for tk, yoc in sorted(yoc_data.items(), key=lambda x: -x[1]):
+                nivel = "✅" if yoc >= 6 else ("⚠️" if yoc >= 3 else "🔴")
+                linhas.append(f"| {tk} | {nivel} {yoc:.2f}% |")
+            linhas.append("")
+
+        # Links
+        linhas += [
+            "---",
+            "",
+            "## Links",
+            "",
+            "[[carteira]] | [[ips]] | [[metas]]",
+        ]
+
+        md_path.write_text("\n".join(linhas), encoding="utf-8")
+        print(f"  📄 Relatório completo : vault/02-relatorios/dividendos.md")
+    except Exception as e:
+        print(f"  AVISO: não foi possível salvar dividendos.md: {e}")
+
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 
 def main():
@@ -394,34 +535,25 @@ def main():
         print(f"  Nenhum pagamento encontrado nos próximos {JANELA} dias.")
         print(f"  Ativos com histórico insuficiente (<2 pagamentos) não geram projeção.")
 
-    # ── Seção 2: Pagos no ano ────────────────────────────────────────────────────
+    # ── Seção 2: Pagos no ano (compacto no terminal, detalhes no .md) ────────────
     total_ano = sum(pagos_ano.values())
-    print(f"\n  DIVIDENDOS PAGOS EM {hoje.year}  (a partir da data de entrada)")
+    print(f"\n  DIVIDENDOS PAGOS EM {hoje.year}")
     print(f"  {'─'*60}")
-    for tk, total in sorted(pagos_ano.items(), key=lambda x: -x[1]):
-        de = datas_entrada.get(tk)
-        de_s = f"  entrada: {de.strftime('%Y-%m-%d')}" if de else ""
+    top3 = sorted(pagos_ano.items(), key=lambda x: -x[1])[:3]
+    for tk, total in top3:
         freq = freq_map.get(tk, "—")
-        print(f"  {tk:<8} R$ {total:>10,.2f}   {freq:<14}{de_s}")
+        print(f"  {tk:<8} R$ {total:>10,.2f}   {freq}")
+    if len(pagos_ano) > 3:
+        print(f"  ... +{len(pagos_ano)-3} ativos — ver detalhes no relatório")
     print(f"  {'─'*60}")
     print(f"  {'TOTAL':<8} R$ {total_ano:>10,.2f}")
 
-    # ── Seção 3: Total recebido desde a entrada ──────────────────────────────────
+    # ── Seção 3: Total recebido (resumo no terminal) ──────────────────────────────
     total_hist = sum(total_recebido.values())
-    print(f"\n  TOTAL RECEBIDO DESDE A ENTRADA")
-    print(f"  {'─'*60}")
-    for tk, total in sorted(total_recebido.items(), key=lambda x: -x[1]):
-        de = datas_entrada.get(tk)
-        de_s = de.strftime('%Y-%m-%d') if de else "—"
-        print(f"  {tk:<8} R$ {total:>10,.2f}   desde {de_s}")
-    print(f"  {'─'*60}")
-    print(f"  {'TOTAL':<8} R$ {total_hist:>10,.2f}")
-    print(f"\n  ℹ  Patrimônio na carteira = valor de mercado das posições.")
-    print(f"     Proventos recebidos acima representam retorno adicional (total return).")
 
     # ── Seção 4: Yield on Cost ───────────────────────────────────────────────────
     if yoc_data:
-        print(f"\n  YIELD ON COST  (DY calculado sobre seu preço médio de entrada)")
+        print(f"\n  YIELD ON COST")
         print(f"  {'─'*60}")
         for tk, yoc in sorted(yoc_data.items(), key=lambda x: -x[1]):
             print(f"  {tk:<8} {yoc:>6.2f}% a.a.")
@@ -476,6 +608,17 @@ def main():
         cache_path.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
     except Exception:
         pass
+
+    # ── Salvar relatório Obsidian ─────────────────────────────────────────────
+    _salvar_dividendos_md(
+        hoje=hoje, posicoes=posicoes, datas_entrada=datas_entrada,
+        proximos_todos=proximos_todos, pagos_ano=pagos_ano,
+        total_recebido=total_recebido, yoc_data=yoc_data, freq_map=freq_map,
+        patrimonio_div=patrimonio_div, renda_anual_total=renda_anual_total,
+        renda_mensal_est=renda_mensal_est, renda_mensal_real=renda_mensal_real,
+        dy_ponderado=dy_ponderado, total_ano=total_ano, total_hist=total_hist,
+        meses_decorridos=meses_decorridos,
+    )
 
     print(f"\n{'═'*64}\n")
 

@@ -4,7 +4,7 @@
 > O guia cobre sintaxe e flags. Esta referência cobre **o que cada comando entrega**:
 > campos, estrutura do output e o que você pode esperar ver.
 
-**Versão: v2.11.0**
+**Versão: v2.11.1**
 
 ---
 
@@ -49,6 +49,8 @@
 ### /carteira
 
 Atualiza cotações via Brapi e exibe o estado atual do portfólio.
+
+**Output gerado:** além do terminal, atualiza `vault/00-portfolio/carteira.md` com seções visuais Obsidian — `📊 Alocação por Classe` (barras `█░`, gap IPS, callouts `[!warning]`/`[!danger]`) e `📈 Posições — Detalhes Visuais` (% total da carteira + % dentro da classe por ativo). Terminal exibe pointer `📄` ao arquivo.
 
 **Campos:**
 
@@ -115,6 +117,8 @@ Atualiza cotações via Brapi e exibe o estado atual do portfólio.
 
 ### /watchlist
 
+**Output gerado:** salva snapshot datado em `vault/02-relatorios/watchlist-YYYY-MM-DD.md` (mantém histórico — não sobreescreve). Terminal completo + pointer `📄`.
+
 Lista todos os ativos analisados (`vault/01-ativos/`) mais os ativos em carteira, com o último veredicto registrado e frescor da análise.
 
 **Campos:**
@@ -153,6 +157,8 @@ Lista todos os ativos analisados (`vault/01-ativos/`) mais os ativos em carteira
 ---
 
 ### /risco-carteira
+
+**Output gerado:** salva `vault/02-relatorios/risco-carteira.md` (sobreescrito) — métricas HF, circuit breakers com callouts Obsidian, fronteira Markowitz. Terminal completo + pointer `📄`.
 
 Calcula e exibe as métricas de risco quantitativas da carteira com base no histórico de preços.
 
@@ -264,6 +270,8 @@ Análise de Fronteira Eficiente dual: compara a fronteira da carteira atual com 
 
 ### /dividendos
 
+**Output gerado:** salva `vault/02-relatorios/dividendos.md` com relatório Obsidian completo (sobreescrito). Terminal: próximos pagamentos, top 3 pagos no ano + total, YoC e resumo de renda — detalhes completos apenas no .md.
+
 Busca e exibe o histórico de proventos da carteira via Yahoo Finance.
 
 **Seções do output:**
@@ -326,6 +334,8 @@ Coleta dados de mercado macro (via Yahoo Finance) e cotações da carteira. Salv
 ---
 
 ### /stress-test
+
+**Output gerado:** salva `vault/02-relatorios/stress-test.md` (sobreescrito) — todos os cenários, ícones por severidade, callout pior cenário. Terminal completo + pointer `📄`.
 
 Simula o impacto de cenários históricos de crise na carteira atual.
 

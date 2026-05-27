@@ -563,7 +563,8 @@ def main():
     # Projeção de longo prazo
     exibir_projecao(resumo.get("patrimonio", "0"))
 
-    print(f"\n{'═'*55}\n")
+    print(f"\n  📄 Visão visual completa: vault/00-portfolio/carteira.md")
+    print(f"{'═'*55}\n")
 
 
 if __name__ == "__main__":

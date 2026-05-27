@@ -3,7 +3,7 @@
 > Rotinas de uso do sistema por cadência e por fluxo oportunístico.
 > Para referência de comandos e sintaxe: [`GUIA-COMANDOS.md`](GUIA-COMANDOS.md)
 
-**Versão: v2.11.0**
+**Versão: v2.11.1**
 
 ---
 
@@ -860,6 +860,32 @@ Casos de uso comuns:
 | VaR violado | `/stress-test` → `/revisar-carteira` → `/rebalancear` | — |
 | Candidatos da watchlist | `/otimizar-expansao` | quant cache do dia |
 | **Capital novo — não sabe onde alocar** | `/pm` ou `/pm 700` | ≥ 1 ativo analisado em vault/01-ativos/ |
+
+---
+
+## Outputs visuais — Relatórios .md no Vault
+
+Além do output no terminal, os comandos abaixo salvam relatórios formatados em Obsidian:
+
+| Comando | Arquivo gerado | Modo |
+|---------|---------------|------|
+| `/carteira` | `vault/00-portfolio/carteira.md` — seções `📊 Alocação por Classe` e `📈 Posições — Detalhes Visuais` appendadas automaticamente | Sobreescrito a cada `/carteira` |
+| `/dividendos` | `vault/02-relatorios/dividendos.md` | Sobreescrito — estado atual |
+| `/risco-carteira` | `vault/02-relatorios/risco-carteira.md` | Sobreescrito — estado atual |
+| `/stress-test` | `vault/02-relatorios/stress-test.md` | Sobreescrito — estado atual |
+| `/watchlist` | `vault/02-relatorios/watchlist-YYYY-MM-DD.md` | **Datado** — mantém histórico de snapshots |
+
+**Por que sobreescrever vs datar:**
+- Comandos de **estado atual** (`/risco-carteira`, `/stress-test`, `/dividendos`): sobreescrito — o arquivo sempre reflete o momento mais recente, sem acúmulo de arquivos.
+- `/watchlist` é **datado** porque o universo de ativos analisados muda com tempo — o histórico tem valor para ver a evolução da watchlist.
+- Relatórios de período (`/relatorio-semanal`, `/relatorio-mensal`) já eram datados e continuam assim.
+
+**Formatação Obsidian usada:**
+- `> [!info]` — informação contextual
+- `> [!warning]` — desvio do IPS (gap 5–10%)
+- `> [!danger]` — violação crítica (gap > 10%, concentração > 20%)
+- `> [!tip]` — circuit breakers OK, status positivo
+- Barras `█░` (20 chars) — alocação visual por classe e por ativo
 
 ---
 
