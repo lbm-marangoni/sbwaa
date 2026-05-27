@@ -6,6 +6,7 @@ Nunca transmite dados privados (quantidade, preço médio) para fora.
 
 import re
 import sys
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -25,13 +26,13 @@ def cotacao_br(ticker: str) -> float | None:
         dados = brapi_buscar(ticker)
         return dados.get("cotacao")
     except Exception as e:
-        print(f"  AVISO Brapi [{ticker}]: {e}")
-    # fallback Yahoo com sufixo .SA
+        print(f"  AVISO Yahoo Finance [{ticker}]: {e}")
+    # fallback com sufixo .SA explícito
     try:
         dados = yahoo_buscar(ticker + TICKERS_BR_SUFFIX)
         return dados.get("cotacao_atual")
     except Exception as e:
-        print(f"  AVISO Yahoo [{ticker}.SA]: {e}")
+        print(f"  AVISO Yahoo Finance [{ticker}.SA]: {e}")
     return None
 
 
@@ -190,6 +191,31 @@ def atualizar_carteira():
     print(f"  Patrimônio Total : R$ {total_atual:,.2f}")
     print(f"  Total Investido  : R$ {total_investido:,.2f}")
     print(f"  P&L Total        : R$ {pl_total:+,.2f} ({pl_total_pct:+.1f}%)")
+
+    # ── Bloco de renda (lê cache do /dividendos) ──────────────────────────────
+    cache_path = VAULT_ROOT / "00-portfolio" / ".proventos-cache.json"
+    if cache_path.exists():
+        try:
+            prov = json.loads(cache_path.read_text(encoding="utf-8"))
+            dy   = prov.get("dy_ponderado_pct", 0.0)
+            men  = prov.get("renda_mensal_est", 0.0)
+            men_real = prov.get("renda_mensal_real", 0.0)
+            ano  = prov.get("total_no_ano", 0.0)
+            atua = prov.get("atualizado_em", "—")
+            if dy or men or ano:
+                print(f"\n  {'─'*46}")
+                if dy:
+                    print(f"  DY estimado      : {dy:.2f}% a.a.")
+                if men:
+                    print(f"  Renda mensal est.: R$ {men:,.2f}")
+                if men_real:
+                    print(f"  Renda mensal real: R$ {men_real:,.2f}  (média {datetime.now().year})")
+                if ano:
+                    print(f"  Recebido em {datetime.now().year}  : R$ {ano:,.2f}")
+                print(f"  Fonte: /dividendos ({atua})")
+                print(f"  {'─'*46}")
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":

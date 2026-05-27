@@ -297,6 +297,8 @@ def main():
     total_recebido: dict[str, float] = {}
     yoc_data:       dict[str, float] = {}
     freq_map:       dict[str, str]   = {}
+    valor_mercado:  dict[str, float] = {}   # qtd * preco atual por ticker
+    renda_anual_est: dict[str, float] = {}  # renda anual estimada por ticker
 
     for pos in posicoes:
         tk  = pos["ticker"]
@@ -326,7 +328,7 @@ def main():
         pagos_ano[tk]      = round(analise.get("total_no_ano", 0.0) * qtd, 2)
         total_recebido[tk] = round(analise.get("total_desde_entrada", 0.0) * qtd, 2)
 
-        # YoC
+        # YoC e valor de mercado
         dy    = analise.get("dy_brapi") or analise.get("dy_yf")
         preco = analise.get("preco") or pm
         if pm > 0:
@@ -335,6 +337,13 @@ def main():
             elif val_medio and analise.get("intervalo", 0):
                 pagamentos_ano = 365 / analise["intervalo"]
                 yoc_data[tk] = round(val_medio * pagamentos_ano / pm * 100, 2)
+
+        # Valor de mercado e renda anual estimada
+        preco_ref = analise.get("preco") or pm
+        valor_mercado[tk] = round(qtd * preco_ref, 2)
+        if val_medio and analise.get("intervalo", 0):
+            pag_ano = 365 / analise["intervalo"]
+            renda_anual_est[tk] = round(val_medio * pag_ano * qtd, 2)
 
         # Declarados (futuros já anunciados)
         for d in analise.get("declarados", []):
@@ -412,16 +421,55 @@ def main():
 
     # ── Seção 4: Yield on Cost ───────────────────────────────────────────────────
     if yoc_data:
-        print(f"\n  YIELD ON COST")
+        print(f"\n  YIELD ON COST  (DY calculado sobre seu preço médio de entrada)")
         print(f"  {'─'*60}")
         for tk, yoc in sorted(yoc_data.items(), key=lambda x: -x[1]):
             print(f"  {tk:<8} {yoc:>6.2f}% a.a.")
 
+    # ── Seção 5: Resumo de renda da carteira ─────────────────────────────────────
+    patrimonio_div = sum(valor_mercado.values())
+    renda_anual_total = sum(renda_anual_est.values())
+    renda_mensal_est  = renda_anual_total / 12 if renda_anual_total else 0.0
+
+    # DY ponderado pelo valor de mercado
+    dy_pond_num = sum(
+        valor_mercado.get(tk, 0) * (yoc / 100)
+        for tk, yoc in yoc_data.items()
+    )
+    dy_ponderado = (dy_pond_num / patrimonio_div * 100) if patrimonio_div > 0 else 0.0
+
+    # Renda mensal média real (do que foi pago no ano / meses decorridos)
+    meses_decorridos = max(1, hoje_d.month)
+    renda_mensal_real = total_ano / meses_decorridos if total_ano else 0.0
+
+    print(f"\n  RESUMO DE RENDA — CARTEIRA")
+    print(f"  {'─'*60}")
+    if patrimonio_div > 0 and dy_ponderado > 0:
+        print(f"  DY ponderado (valor de mercado): {dy_ponderado:>6.2f}% a.a.")
+    if renda_anual_total > 0:
+        print(f"  Renda anual estimada:            R$ {renda_anual_total:>10,.2f}")
+        print(f"  Renda mensal estimada:           R$ {renda_mensal_est:>10,.2f}")
+    if total_ano > 0:
+        print(f"  Renda mensal média real ({hoje.year}):   R$ {renda_mensal_real:>10,.2f}  "
+              f"  ({meses_decorridos} meses)")
+        print(f"  Total recebido em {hoje.year}:          R$ {total_ano:>10,.2f}")
+    if not renda_anual_total and not total_ano:
+        print(f"  Sem dados de renda disponíveis. Execute /dividendos após /adicionar ativos.")
+    print(f"  {'─'*60}")
+    if patrimonio_div > 0 and renda_mensal_est > 0:
+        print(f"  ℹ  Com patrimônio de R$ {patrimonio_div:,.0f}, a carteira gera")
+        print(f"     ~R$ {renda_mensal_est:,.0f}/mês estimado ({dy_ponderado:.2f}% a.a.)")
+
     # ── Cache para /carteira ─────────────────────────────────────────────────────
     cache = {
-        "total_recebido": round(total_hist, 2),
-        "total_no_ano":   round(total_ano, 2),
-        "atualizado_em":  hoje.strftime("%Y-%m-%d %H:%M"),
+        "total_recebido":    round(total_hist, 2),
+        "total_no_ano":      round(total_ano, 2),
+        "renda_mensal_est":  round(renda_mensal_est, 2),
+        "renda_anual_est":   round(renda_anual_total, 2),
+        "renda_mensal_real": round(renda_mensal_real, 2),
+        "dy_ponderado_pct":  round(dy_ponderado, 2),
+        "patrimonio_ref":    round(patrimonio_div, 2),
+        "atualizado_em":     hoje.strftime("%Y-%m-%d %H:%M"),
     }
     cache_path = VAULT_ROOT / "00-portfolio" / ".proventos-cache.json"
     try:
