@@ -244,94 +244,9 @@ def main():
 
     risk_cache.write_text(json.dumps(risk_json, ensure_ascii=False, indent=2, cls=_NpEncoder), encoding="utf-8")
     print(f"JSON de risco salvo: {risk_cache}")
+    # Síntese textual é feita pelo Claude Code ao ler o cache — não via API direta.
 
-    # ── Síntese via Claude Opus ───────────────────────────────────────────────
-    import anthropic
-    skill_content = SKILL_PATH.read_text(encoding="utf-8")
-
-    def fmt_brl(v):
-        return f"R$ {v:,.0f}" if v is not None else "N/D"
-
-    def fmt_pct(v):
-        return f"{v:.2f}%" if v is not None else "N/D"
-
-    stress_linhas = "\n".join(
-        f"  - {v['cenario']}: {v['impacto_pct']:+.1f}% ({fmt_brl(v['impacto_reais_normalizado'])})"
-        for v in stress.values()
-    )
-
-    conc_linhas = "\n".join(
-        f"  - {t}: {d['peso_carteira_pct']:.1f}% | contrib risco: "
-        f"{quant['contribuicao_risco'].get(t, 'N/D')}%"
-        for t, d in ativos_q.items()
-    )
-
-    # RAG: buscar contexto de gestão de risco e frameworks
-    import sys as _sys
-    _sys.path.insert(0, str(PROJECT_ROOT))
-    contexto_rag_risco = ""
-    try:
-        from knowledge.retriever import buscar, formatar_contexto_para_agente, base_disponivel
-        if base_disponivel():
-            query_risco = f"gestão de risco portfólio VaR drawdown concentração diversificação"
-            chunks = buscar(query_risco, n_resultados=3)
-            contexto_rag_risco = formatar_contexto_para_agente(chunks, max_tokens=1000)
-    except Exception:
-        pass
-
-    prompt_risco = f"""DATA: {hoje}
-PATRIMÔNIO DE REFERÊNCIA: R$ 100.000 (normalizado — dado privado não exposto)
-
-MÉTRICAS DE RISCO CALCULADAS:
-- VaR 95% Histórico: {fmt_pct(var_hist_pct * 100 if var_hist_pct else None)} | {fmt_brl(var_hist_pct * PATRIMONIO_NORMALIZADO if var_hist_pct else None)}
-- VaR 95% Paramétrico: {fmt_pct(var_param_pct * 100 if var_param_pct else None)}
-- CVaR 95%: {fmt_pct(cvar_pct * 100 if cvar_pct else None)}
-- Drawdown atual: {fmt_pct(abs(dd_atual) * 100)}
-- Concentração máxima: {conc_max_ticker} = {conc_max_pct*100:.1f}%
-- HHI: {hhi_val:.4f}
-- Sharpe carteira: {cart_q.get('sharpe')}
-- Volatilidade anualizada: {fmt_pct(cart_q.get('volatilidade_pct'))}
-- Beta IBOV: {beta_cart:.2f}
-- Correlação média: {cart_q.get('corr_media')}
-
-LIMITES IPS:
-- VaR máx: {limites['var_maximo_pct']*100:.1f}%
-- Drawdown máx: {limites['drawdown_maximo_pct']*100:.1f}%
-- Concentração máx: {limites['concentracao_maxima_pct']*100:.1f}%
-
-STRESS TESTS (base beta={beta_cart:.2f}, patrimônio R$ 100k):
-{stress_linhas}
-
-CONCENTRAÇÃO POR ATIVO:
-{conc_linhas}
-
-PARES ALTA CORRELAÇÃO:
-{json.dumps(pares_corr, ensure_ascii=False)}
-
-CIRCUIT BREAKERS: {circuit_breakers}
-
-FLAGS PM: {flags}
-
-Gere o Risk Snapshot completo com o formato exato definido no SKILL.
-{chr(10) + contexto_rag_risco if contexto_rag_risco else ""}"""
-
-    try:
-        print("Enviando ao Risk Engineer (claude-opus-4-6)...")
-        client = anthropic.Anthropic()
-        response = client.messages.create(
-            model="claude-opus-4-6",
-            max_tokens=2000,
-            system=skill_content,
-            messages=[{"role": "user", "content": prompt_risco}],
-        )
-        output_md = response.content[0].text
-        RISK_DIR.mkdir(parents=True, exist_ok=True)
-        nota_path = RISK_DIR / f"risk-{hoje}.md"
-        nota_path.write_text(output_md, encoding="utf-8")
-        print(f"Risk Snapshot salvo: {nota_path}")
-    except Exception as e:
-        print(f"\n⚠️  Síntese via API indisponível: {e}")
-        print("   Métricas de risco calculadas e salvas no cache JSON.")
+    def fmt_pct(v): return f"{v:.2f}%" if v is not None else "N/D"
 
     # Terminal summary
     print(f"\n{'═'*50}")

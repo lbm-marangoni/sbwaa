@@ -2,6 +2,26 @@
 
 ---
 
+## [2.11.2] — 2026-05-27 — VARREDURA COMPLETA DE TESTES + CORREÇÕES DE ROBUSTEZ
+
+### Fixed
+- **`diagnostico.py`** — UnicodeEncodeError no Windows: adicionado setup UTF-8 no topo (os.environ PYTHONUTF8, sys.stdout.reconfigure)
+- **`gerar_relatorio_testes.py`** — UnicodeEncodeError ao imprimir VERSION.md com emojis: adicionado setup UTF-8; contagens atualizadas (7→8 agentes, 13→14 comandos)
+- **`sbwaa.py /help`** — versão exibida desatualizada: `v2.11.0` → `v2.11.1` (e agora → v2.11.2)
+- **`optimize_expansao.py`** — conflito de módulo `calculators` quando stress_test carregado antes no mesmo processo: adicionado cache clearing antes do import
+
+### Verificado / Testado (55/55 OK)
+- Sintaxe Python: 68 arquivos — 0 erros
+- Calculadoras Quant + Risk: todos os testes passam
+- Módulos Econometrician (GARCH, Beta Dinâmico, Fator Modelo, Drawdown Avançado, Rolling Corr): OK
+- Comandos: `/stress-test`, `/watchlist`, `/ips`, `/snapshot`, `/knowledge`, `/status`, `/help`: todos OK
+- Cache JSON: 116 arquivos — 0 inválidos
+- Vault .md: 20 arquivos — 0 frontmatters quebrados
+- Portfolio files: carteira.md, ips.md, historico-trades.md, metas.md — todos presentes
+- Docs: VERSION, CHANGELOG, README, GUIA-COMANDOS, SBWAA-LOGO — todos em v2.11.2
+
+---
+
 ## [2.11.1] — 2026-05-26 — OUTPUTS VISUAIS OBSIDIAN + DESPOLUÇÃO DE COMANDOS
 
 ### Added

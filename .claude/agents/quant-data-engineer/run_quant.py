@@ -276,60 +276,7 @@ def main():
     cache_path = CACHE_DIR / f"quant_{hoje}.json"
     cache_path.write_text(json.dumps(metricas_json, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"\nJSON salvo: {cache_path}")
-
-    # ── Síntese via Claude ────────────────────────────────────────────────────
-    import anthropic
-    skill_content = SKILL_PATH.read_text(encoding="utf-8")
-
-    prompt_metricas = f"""DATA: {hoje}
-SELIC: {selic*100:.2f}%
-NUM ATIVOS: {len(historicos)}
-PERÍODO HISTÓRICO: {len(retornos_df)} dias
-
-CARTEIRA:
-- Retorno ponderado anualizado: {metricas_json['carteira']['retorno_ponderado_pct']:.2f}%
-- Volatilidade anualizada: {metricas_json['carteira']['volatilidade_pct']:.2f}%
-- Sharpe: {metricas_json['carteira']['sharpe']}
-- Drawdown máximo: {metricas_json['carteira']['drawdown_maximo_pct']:.2f}%
-- Beta IBOV: {metricas_json['carteira']['beta_ibov']}
-- HHI concentração: {metricas_json['carteira']['hhi']}
-- Correlação média: {metricas_json['carteira']['corr_media']}
-
-ATIVOS:
-{json.dumps(metricas_ativos, ensure_ascii=False, indent=2)}
-
-PARES ALTA CORRELAÇÃO (>0.7):
-{json.dumps(metricas_json['pares_alta_correlacao'], ensure_ascii=False)}
-
-OTIMIZAÇÃO DE PORTFÓLIO (Fronteira Eficiente):
-{json.dumps(metricas_json.get('otimizacao', {}), ensure_ascii=False, indent=2)}
-
-Gere a síntese em markdown com o formato definido no SKILL. Inclua uma seção
-'## 🎯 Posição na Fronteira Eficiente' com: Sharpe atual vs Max Sharpe possível,
-vol atual vs Min Vol possível, e os 3 maiores ajustes sugeridos (ticker + delta%).
-"""
-
-    try:
-        print("Enviando ao Quant/Data Engineer (claude-sonnet-4-6) para síntese...")
-        client = anthropic.Anthropic()
-        response = client.messages.create(
-            model="claude-sonnet-4-6",
-            max_tokens=1200,
-            system=skill_content,
-            messages=[{"role": "user", "content": prompt_metricas}],
-        )
-        output_md = response.content[0].text
-        RISK_DIR.mkdir(parents=True, exist_ok=True)
-        nota_path = RISK_DIR / f"quant-{hoje}.md"
-        nota_path.write_text(output_md, encoding="utf-8")
-        print(f"Nota salva: {nota_path}")
-        print("\n" + "=" * 50)
-        print(output_md[:600])
-        if len(output_md) > 600:
-            print("  [...]")
-    except Exception as e:
-        print(f"\n⚠️  Síntese via API indisponível: {e}")
-        print("   Métricas calculadas e salvas no cache JSON.")
+    # Síntese textual é feita pelo Claude Code ao ler o cache — não via API direta.
 
     return metricas_json
 

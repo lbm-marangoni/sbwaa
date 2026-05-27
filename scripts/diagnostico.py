@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 """SBWAA — Diagnóstico de scripts."""
+import sys
+import os
+
+# Forçar UTF-8 no stdout/stderr (Windows — evita UnicodeEncodeError com emojis)
+os.environ["PYTHONUTF8"] = "1"
+os.environ["PYTHONIOENCODING"] = "utf-8"
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent

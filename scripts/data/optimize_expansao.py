@@ -28,7 +28,13 @@ CACHE_DIR = PROJECT_ROOT / "scripts" / "data" / "cache"
 CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
 ATIVOS_DIR = VAULT_ROOT / "01-ativos"
 
-sys.path.insert(0, str(PROJECT_ROOT / ".claude" / "agents" / "quant-data-engineer"))
+# Limpar cache de 'calculators' para evitar conflito com risk-engineer se carregado antes
+for _k in list(sys.modules.keys()):
+    if _k.startswith("calculators"):
+        del sys.modules[_k]
+_quant_path = str(PROJECT_ROOT / ".claude" / "agents" / "quant-data-engineer")
+if _quant_path not in sys.path:
+    sys.path.insert(0, _quant_path)
 from calculators.optimization import otimizar_carteira
 
 IBOV_TICKER = "^BVSP"

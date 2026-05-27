@@ -227,15 +227,16 @@ def _scrape_acao(ticker: str, soup: BeautifulSoup) -> dict:
         elif "DÍVIDA LÍQUIDA/EBITDA" in label or "DIV. LÍQUIDA/EBITDA" in label:
             dados["divida_liq_ebitda"] = _num(valor)
 
-    # 3. Liquidez diária: não está em cell, buscar em outro lugar
-    # Na página de ação o card "val" tem P/L, não liquidez — procurar em outro elemento
+    # 3. Liquidez diária: extrair apenas o valor numérico (ex: "R$ 2,35 B")
     for el in soup.select("span, div"):
-        t = el.get_text(strip=True)
-        if "Liquidez" in t and ("M" in t or "B" in t or "K" in t):
-            v = _num(t)
+        texto = el.get_text(strip=True)
+        if "Liquidez" in texto and ("M" in texto or "B" in texto or "K" in texto):
+            v = _num(texto)
             if v:
                 dados.setdefault("liquidez_diaria", v)
-                dados.setdefault("liquidez_diaria_str", t[:30])
+                # Extrair só o valor (ex: "R$ 2,35 B"), descartando o label
+                m = re.search(r"R\$\s*[\d.,]+\s*[KMBkmbilhõe]+", texto)
+                dados.setdefault("liquidez_diaria_str", m.group(0) if m else texto[-20:].strip())
                 break
 
     return dados
@@ -398,12 +399,6 @@ def main():
 
     for ticker in tickers:
         print(f"\nBuscando {ticker} no Investidor10...")
-        # Apaga cache stale do dia (forçar novo scrape após reescrita dos seletores)
-        hoje = datetime.now().strftime("%Y-%m-%d")
-        cache_stale = CACHE_DIR / f"investidor10_{ticker}_{hoje}.json"
-        if cache_stale.exists():
-            cache_stale.unlink()
-
         try:
             dados = buscar_ticker(ticker)
             exibir_resumo(dados)

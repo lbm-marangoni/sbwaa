@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 """SBWAA — Relatório final de testes."""
+import sys
+import os
+
+os.environ["PYTHONUTF8"] = "1"
+os.environ["PYTHONIOENCODING"] = "utf-8"
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 from pathlib import Path
 from datetime import datetime
 try:
@@ -22,8 +32,8 @@ print(f"Cache de dados:    {len(list(CACHE.glob('*.json')))} arquivos")
 print(f"Notas no vault:    {len(list(VAULT.rglob('*.md')))} arquivos")
 print(f"DOCXs gerados:     {len(list(VAULT.rglob('*.docx')))} arquivos")
 print(f"XLSXs gerados:     {len(list(VAULT.rglob('*.xlsx')))} arquivos")
-print(f"Agentes (SKILL):   {len(list((ROOT/'.claude'/'agents').glob('*/SKILL.md')))}/7")
-print(f"Scripts comandos:  {len(list((ROOT/'.claude'/'commands').glob('*.py')))}/13")
+print(f"Agentes (SKILL):   {len(list((ROOT/'.claude'/'agents').glob('*/SKILL.md')))}/8")
+print(f"Scripts comandos:  {len(list((ROOT/'.claude'/'commands').glob('*.py')))}/14")
 print(f"Knowledge base:    {kb_count} chunks indexados")
 print(f"\n{'='*65}")
 print("VERSÃO:")

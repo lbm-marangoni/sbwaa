@@ -325,7 +325,7 @@ def main():
     else:
         valido, preco_atual = validar_ticker(ticker, args.tipo)
         if not valido:
-            print(f"Erro: ticker {ticker} não encontrado na Brapi nem no Yahoo Finance.")
+            print(f"Erro: ticker {ticker} não encontrado no Yahoo Finance (fetch_fundamentals).")
             print("Use --skip-validacao para adicionar mesmo assim.")
             sys.exit(1)
         print(f"  Ticker {ticker} validado.  Cotação atual: R$ {preco_atual:.2f}" if preco_atual else f"  Ticker {ticker} validado.")
