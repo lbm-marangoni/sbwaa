@@ -668,10 +668,11 @@ def modo_aporte(
     if ATIVOS_DIR.exists():
         tickers_todos |= {p.name.upper() for p in ATIVOS_DIR.iterdir() if p.is_dir()}
 
-    candidatos_ok:    list[dict] = []
-    candidatos_basic: list[dict] = []
-    sem_analise:      list[str]  = []
-    ignorados:        set[str]   = set()
+    candidatos_ok:       list[dict] = []
+    candidatos_basic:    list[dict] = []
+    sem_analise:         list[str]  = []
+    ignorados:           set[str]   = set()
+    veredicto_inelegivel: set[str]  = set()   # analisado mas EVITAR/AGUARDAR/MANTER
 
     gaps_ips = _calcular_gaps_ips(carteira_completa, patrimonio)
     em_carteira_set = set(carteira_completa.keys())
@@ -695,6 +696,8 @@ def modo_aporte(
         if not veredicto or veredicto.upper() not in veredictos_ok:
             if not veredicto:
                 sem_analise.append(ticker)
+            else:
+                veredicto_inelegivel.add(ticker)  # tem análise, veredicto desfavorável
             continue
 
         dias = (hoje_date - data_analise).days if data_analise else 999
@@ -731,28 +734,43 @@ def modo_aporte(
               f"(solicitado: {n_ativos}).")
 
         # Ativos conhecidos mas sem análise completa suficiente
-        com_candidatura = {c["ticker"] for c in todos_candidatos} | ignorados
-        pendentes = [t for t in sorted(tickers_todos) if t not in com_candidatura][:faltam + 4]
+        # Pendentes = sem análise ou análise incompleta (exclui os que têm veredicto desfavorável)
+        com_analise = {c["ticker"] for c in todos_candidatos} | ignorados | veredicto_inelegivel
+        pendentes = [t for t in sorted(tickers_todos) if t not in com_analise][:faltam + 4]
 
+        if veredicto_inelegivel:
+            print(f"\n   Analisados mas veredicto desfavorável (EVITAR/AGUARDAR): "
+                  f"{', '.join(sorted(veredicto_inelegivel))}")
         if pendentes:
-            print(f"\n   Ativos que precisam de /analisar:")
+            print(f"\n   Ativos sem análise suficiente — rode /analisar:")
             for t in pendentes:
                 print(f"     - {t}  →  /analisar {t}")
 
         if len(selecionados) == 0:
-            print("\nPM: Nenhum candidato disponível. Rode /analisar nos ativos de interesse "
-                  "e volte com /pm.\n")
+            if veredicto_inelegivel and not pendentes:
+                print("\nPM: Os ativos conhecidos foram analisados mas têm veredicto "
+                      "desfavorável (EVITAR/AGUARDAR).")
+                print("    Adicione novos ativos à watchlist com /analisar TICKER.\n")
+            else:
+                print("\nPM: Nenhum candidato disponível. Rode /analisar nos ativos de interesse "
+                      "e volte com /pm.\n")
             return
 
-        print(f"\nPM: Deseja rodar /analisar nesses ativos agora e retomar automaticamente?")
-        print(f"    [S] Sim, analisar e retomar  "
-              f"[N] Continuar com os {len(selecionados)} disponível(is)")
-        try:
-            resp = input("> ").strip().upper()
-        except (EOFError, KeyboardInterrupt):
-            resp = "N"
+        if not pendentes:
+            # Faltam candidatos mas não há nada a analisar (todos inelegíveis por veredicto)
+            print(f"\nPM: Continuando com os {len(selecionados)} candidatos disponíveis.")
+        else:
+            print(f"\nPM: Deseja rodar /analisar nesses ativos agora e retomar automaticamente?")
+            print(f"    [S] Sim, analisar e retomar  "
+                  f"[N] Continuar com os {len(selecionados)} disponível(is)")
+        resp = "N"
+        if pendentes:
+            try:
+                resp = input("> ").strip().upper()
+            except (EOFError, KeyboardInterrupt):
+                resp = "N"
 
-        if resp == "S":
+        if resp == "S" and pendentes:
             analisar_script = AGENT_DIR / "run_analisar.py"
             for t in pendentes[:faltam]:
                 print(f"\n{'─'*55}")
