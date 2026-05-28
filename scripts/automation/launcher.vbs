@@ -30,9 +30,9 @@ Else
     slot = "morning"
 End If
 
-' Montar comando: python main.py --slot <slot> >> logs\automation.log 2>&1
-cmd = "cmd /c python """ & scriptDir & "\main.py"" --slot " & slot & _
-      " >> """ & logsDir & "\automation.log"" 2>&1"
+' Montar comando: python main.py --slot <slot>
+' (Python gerencia seu próprio log via FileHandler — sem redirecionamento externo)
+cmd = "cmd /c python """ & scriptDir & "\main.py"" --slot " & slot
 
 ' Executar: 0 = janela oculta, True = aguardar conclusão
 oShell.Run cmd, 0, True
