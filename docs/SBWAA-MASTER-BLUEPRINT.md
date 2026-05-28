@@ -2202,6 +2202,8 @@ Modo de operação: Claude Code (sem API key)
 | v2.8.9  | 2026-05-22 | /adicionar RF: --nome, --indexador, --taxa, --vencimento; auto-skip API; setor vira emissor; nota com tabela e frontmatter estruturado; TIPOS_OFF_EXCHANGE |
 | v2.9.0  | 2026-05-25 | Rebranding completo UI (ciano, sidebar, header live); /watchlist --rever, /ips --editar, /simulacao flags, /status, RF fields no form, investimento-do-dia combobox; /analisar Etapa 9 separada por tipo |
 | v2.10.0 | 2026-05-25 | vault/_templates/ com 11 templates Obsidian; /pm Passo 3 salva decisoes.md + pm-decisao-*.md; /relatorio-semanal Passo 4 gera risk snapshot semanal; Obsidian app.json configurado; graph.json #screening |
+| v2.10.1 | 2026-05-25 | fetch_fundamentals.py substitui fetch_brapi.py por Yahoo Finance (sem API key); templates de análise enriquecidos com dados fundamentalistas |
+| v2.10.2 | 2026-05-25 | fetch_investidor10.py — scraping Investidor10: P/VP, DY 12m, vacância, VPA, DPA, dividendos mensais (FIIs) e dados complementares de ações |
 | v2.10.3 | 2026-05-25 | Fluxo interativo de aporte em /pm e /analisar: intenção → valor → validação → confirmação → registro |
 | v2.10.4 | 2026-05-25 | SBWAA-GLOSSARIO.md: ~80 termos técnicos em 11 seções |
 | v2.11.0 | 2026-05-25 | /pm modo aporte: distribuição de capital multi-ativo, ranqueamento por IPS+score, auto-reflow após /analisar |
