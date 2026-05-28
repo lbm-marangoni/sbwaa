@@ -258,6 +258,7 @@ Política completa: [`CLAUDE.md`](CLAUDE.md) — seção Security Policy.
 | [`docs/SBWAA-WORKFLOW.md`](docs/SBWAA-WORKFLOW.md) | Workflow operacional: 6 cadências + fluxos oportunísticos |
 | [`docs/SBWAA-REFERENCIA.md`](docs/SBWAA-REFERENCIA.md) | Campos, mockups de output e comportamento esperado |
 | [`docs/SBWAA-APRESENTACAO.md`](docs/SBWAA-APRESENTACAO.md) | Visão geral do sistema: problema, solução, features |
+| [`docs/SBWAA-MASTER-BLUEPRINT.md`](docs/SBWAA-MASTER-BLUEPRINT.md) | Guia completo de reconstrução do sistema do zero |
 | [`CHANGELOG.md`](CHANGELOG.md) | Histórico completo de versões |
 
 ---
