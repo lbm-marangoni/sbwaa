@@ -6,6 +6,7 @@ Retorna (sucesso: bool, output: str) para cada task.
 """
 
 import logging
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -13,6 +14,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 log = logging.getLogger("sbwaa.runner")
+
+# Força UTF-8 em todos os subprocessos Python — evita UnicodeEncodeError no Windows (cp1252)
+_ENV = os.environ.copy()
+_ENV["PYTHONUTF8"] = "1"
 
 
 def _run(cmd: list[str], timeout: int, name: str, cwd: str | None = None) -> tuple[bool, str]:
@@ -27,6 +32,7 @@ def _run(cmd: list[str], timeout: int, name: str, cwd: str | None = None) -> tup
             cwd=cwd,
             encoding="utf-8",
             errors="replace",
+            env=_ENV,
         )
         duration = time.time() - start
         if r.returncode == 0:
