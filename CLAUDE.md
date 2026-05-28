@@ -10,7 +10,7 @@ A raiz foi reorganizada. Ao buscar qualquer arquivo, respeitar este mapa:
 
 | Pasta | Conteúdo |
 |-------|----------|
-| `docs/` | Documentação do projeto: `GUIA-COMANDOS.md`, `SBWAA-WORKFLOW.md`, `SBWAA-REFERENCIA.md`, `SBWAA-MASTER-BLUEPRINT.md`, `SBWAA-LOGO.md` |
+| `docs/` | Documentação do projeto: `GUIA-COMANDOS.md`, `SBWAA-WORKFLOW.md`, `SBWAA-REFERENCIA.md`, `SBWAA-MASTER-BLUEPRINT.md`, `SBWAA-LOGO.md`, `SBWAA-APRESENTACAO.md` |
 | `interface/` | UI desktop: `ui.py` (painel customtkinter), `splash.py` |
 | `prompts/` | Histórico de prompts de construção do sistema (F0–F8) |
 | `scripts/` | Scripts de dados, cache, alertas, compliance |
@@ -120,7 +120,7 @@ Em vez disso:
 | Módulo          | Cobre                                                        |
 |-----------------|--------------------------------------------------------------|
 | `investments`   | Agentes (.claude/agents/), pipeline de dados, comandos de portfólio |
-| `heartbeat`     | scripts/heartbeat/, scripts/alerts/                          |
+| `heartbeat`     | scripts/heartbeat/, scripts/alerts/, scripts/automation/     |
 | `knowledge-base`| knowledge/                                                   |
 | `interface`     | ui.py, splash.py, iniciar.vbs, iniciar.bat, SBWAA-LOGO.md   |
 

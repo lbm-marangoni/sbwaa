@@ -1,8 +1,8 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.11.0  
-**Data de geração:** 2026-05-25  
+**Versão de referência:** v2.12.0  
+**Data de geração:** 2026-05-28  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
 ---
@@ -2128,33 +2128,34 @@ python sbwaa.py /ui
 ## 16. ESTADO ATUAL E VERSÕES
 
 ```
-SBWAA v2.10.0 — 2026-05-25
+SBWAA v2.12.0 — 2026-05-28
 
 Módulos:
-  investments     v1.19.0 ✅ Operacional
-                          /pm: Passo 3 salva linha em decisoes.md + pm-decisao-*.md no ativo
-                          /relatorio-semanal: Passo 4 gera risk snapshot em vault/05-risk/snapshots/
-                          Econometrician (Etapa 6 do /analisar): GARCH, beta dinâmico, FF3F, macro BCB, rolling corr, drawdown avançado
-                          /watchlist: veredictos cacheados com frescor
-                          /vender: P&L realizado, remoção automática se qty=0
-                          /otimizar-expansao: fronteira eficiente dual (carteira vs carteira+watchlist)
-                          /simulacao: backtest 5 anos + Monte Carlo GBM 10/20/30 anos + fan chart
-                          /carteira: projeção 2 cenários + METAS com renda passiva real (total_no_ano/12) e barra de progresso
-  heartbeat       v1.0.1  ✅ Operacional (sem alterações)
+  investments     v1.20.2 ✅ Operacional
+                          /pm modo aporte: distribuição de capital multi-ativo
+                          Outputs visuais Obsidian: carteira.md (barras █░, callouts), dividendos.md,
+                            risco-carteira.md, stress-test.md, watchlist datado
+                          DY ponderado e renda mensal no /dividendos e /carteira
+                          Despolução de comandos (sem outputs intermediários poluentes)
+  heartbeat       v2.0.0  ✅ Operacional — Automation Layer
+                          scripts/automation/: dispatcher modular (main.py), executor Python+Claude
+                            (runner.py), toast notification Windows (notifier.py), launcher.vbs
+                            silencioso, setup_scheduler.py (instala tarefas reais no Task Scheduler)
+                          3 slots automatizados: morning 07:45 / EOD 17:00 / weekend 08:00
+                          WakeToRun + StartWhenAvailable ativados
+                          heartbeat.py legado mantido para execução manual
   knowledge-base  v1.2.0  ✅ Operacional (RAG ativo; referências Markowitz indexadas; ~1.200 chunks)
   interface       v2.5.0  ✅ Operacional
                           vault/_templates/: 11 templates Obsidian (tese, analise, earnings, equity-research,
                             pm-decisao, snapshot, morning-call, macro, risk-snapshot, semana, mensal)
                           Obsidian app.json: templateFolder configurado para _templates
                           graph.json: color group #screening adicionado
-                          workspace.json: lastOpenFiles limpo (30+ refs estagnadas removidas)
-                          UI v2.4.0: Rebranding terminal (ciano, sidebar, header live), /status,
-                            RF fields no form, investimento-do-dia combobox, /simulacao flags
+                          docs/SBWAA-APRESENTACAO.md: documento apresentável do sistema
 
 Modo de operação: Claude Code (sem API key)
   -> Comandos locais rodam via Python puro
-  -> Comandos de IA são executados via chat do Claude Code
-  -> ANTHROPIC_API_KEY não necessária para comandos locais
+  -> Comandos de IA são executados via chat do Claude Code / claude -p (automação)
+  -> ANTHROPIC_API_KEY não necessária — usa subscription Claude Code
 ```
 
 ### Histórico de versões (v2.2.2 → v2.8.9)
@@ -2204,6 +2205,9 @@ Modo de operação: Claude Code (sem API key)
 | v2.10.3 | 2026-05-25 | Fluxo interativo de aporte em /pm e /analisar: intenção → valor → validação → confirmação → registro |
 | v2.10.4 | 2026-05-25 | SBWAA-GLOSSARIO.md: ~80 termos técnicos em 11 seções |
 | v2.11.0 | 2026-05-25 | /pm modo aporte: distribuição de capital multi-ativo, ranqueamento por IPS+score, auto-reflow após /analisar |
+| v2.11.1 | 2026-05-26 | Outputs visuais Obsidian: carteira.md (barras █░, callouts), dividendos.md, risco-carteira.md, stress-test.md, watchlist datado; despolução de comandos |
+| v2.11.2 | 2026-05-27 | Varredura completa testes (55/55 OK); fix /help versão; fix optimize_expansao conflito de módulo |
+| v2.12.0 | 2026-05-28 | Automation Layer: scripts/automation/ — dispatcher modular, 3 slots Task Scheduler, launcher.vbs silencioso, toast notification, WakeToRun; SBWAA-APRESENTACAO.md |
 
 ### Diferenças do projeto original para o atual
 
