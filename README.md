@@ -3,204 +3,192 @@
 > Sistema multi-agente de gestão de portfólio e análise de ativos financeiros.
 > Operação 100% local. Dados 100% privados. Motor de IA: Claude Code.
 
-**Versão:** v2.12.0 | **Python:** 3.11+ | **Plataforma:** Windows (PowerShell)
+![Version](https://img.shields.io/badge/versão-v2.12.0-blue)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![Platform](https://img.shields.io/badge/plataforma-Windows-lightgrey)
+![License](https://img.shields.io/badge/licença-privado-red)
 
 ---
 
 ## O que é
 
-SBWAA é um sistema pessoal que combina 8 agentes de IA especializados, pipeline de dados de mercado, base de conhecimento RAG (ativa em todos os agentes) e painel visual para análise e gestão de portfólio de investimentos.
+SBWAA é um **sistema operacional de investimentos pessoais** que roda inteiramente no seu computador. Combina 8 agentes de IA especializados, pipeline de dados de mercado, base de conhecimento RAG local e automação diária via Task Scheduler — sem enviar nenhum dado financeiro para fora da sua máquina.
 
-O sistema opera em dois modos:
-- **Claude Code** (padrão) — sem API key, comandos de IA rodam diretamente no chat
-- **API** — com `ANTHROPIC_API_KEY` configurada, agentes executam via subprocess
+### O que resolve
+
+| Sem o SBWAA | Com o SBWAA |
+|-------------|-------------|
+| Análise de ativos esporádica, sem metodologia | Pipeline completo: macro → DCF → earnings → risco → decisão do PM |
+| Risco calculado na intuição | VaR, CVaR, Sharpe, Fronteira Eficiente Markowitz, stress tests |
+| Teses de investimento perdidas em planilhas | Vault Obsidian estruturado: teses, DCFs, earnings, decisões linkados |
+| Aporte decidido no impulso | Modo Aporte: PM distribui capital entre ativos elegíveis com justificativa |
+| Horas gastas lendo notícias | Morning call automático às 07:45 com macro, alertas e oportunidades |
+
+---
+
+## Funcionalidades
+
+### 25+ comandos organizados em 6 categorias
+
+| Categoria | Comandos |
+|-----------|----------|
+| **Carteira** | `/carteira`, `/dividendos`, `/adicionar`, `/vender`, `/metas` |
+| **Risco** | `/risco-carteira`, `/snapshot`, `/stress-test`, `/simulacao`, `/otimizar-expansao` |
+| **Análise** | `/tese`, `/analisar`, `/earnings`, `/comparar`, `/investimento-do-dia` |
+| **Decisão PM** | `/pm TICKER`, `/pm 700` (modo aporte), `/revisar-carteira`, `/rebalancear` |
+| **Macro** | `/morning-call`, `/mundo-economico`, `/relatorio-semanal`, `/relatorio-mensal` |
+| **Sistema** | `/watchlist`, `/ips`, `/knowledge`, `/snapshot`, `/status` |
+
+### 8 agentes especializados
+
+| Agente | Modelo | Função |
+|--------|--------|--------|
+| Market Researcher | Sonnet | Macro, setor, competidores, notícias do dia |
+| Earnings Reviewer | Sonnet | Resultado trimestral: receita, margens, guidance vs consenso |
+| Model Builder | Opus | DCF, múltiplos, preço-alvo |
+| Valuation Reviewer | Sonnet | Revisão crítica do modelo, equity research |
+| Quant / Data Eng. | Sonnet | Sharpe, Beta, correlação, métricas quantitativas |
+| Econometrician | Sonnet | GARCH, beta dinâmico, Fama-French 3F, macro BCB, drawdown avançado |
+| Risk Engineer | Opus | VaR, CVaR, circuit breakers, Fronteira Eficiente |
+| Portfolio Manager | Opus | Decisão final: COMPRAR / MANTER / REDUZIR / SAIR / AGUARDAR / EVITAR |
+
+### Automação diária (v2.12.0)
+
+Três slots via Windows Task Scheduler — roda silenciosamente, sem abrir janela:
+
+```
+07:45 seg–sex  →  RSS + snapshot + quant + risk + alertas + /morning-call
+17:00 seg–sex  →  snapshot EOD + alertas + /snapshot
+08:00 sáb–dom  →  /relatorio-semanal (dom) + /relatorio-mensal (1° fds do mês)
+```
+
+- **PC em sleep**: `WakeToRun` acorda o computador automaticamente
+- **PC desligado**: `StartWhenAvailable` roda na próxima inicialização
+- **Notificação**: toast Windows ao concluir cada slot
+
+### Outputs Obsidian
+
+Cada comando gera notas `.md` estruturadas no vault com wikilinks automáticos entre teses, DCFs, earnings, snapshots de risco e notas macro.
+
+`/carteira` — barras visuais `█░`, callouts `[!warning]`/`[!danger]` por desvio do IPS  
+`/dividendos` — relatório de proventos com DY ponderado e renda mensal  
+`/risco-carteira` — métricas HF, circuit breakers, Fronteira Markowitz  
+`/stress-test` — 6 cenários de crise com ícones por severidade  
 
 ---
 
 ## Pré-requisitos
 
-| Ferramenta | Versão mínima | Obrigatório |
-|------------|---------------|-------------|
-| Python | 3.11+ | Sim |
-| Claude Code | qualquer | Sim |
-| PowerShell | 5.1+ | Sim (Windows) |
-| Obsidian | qualquer | Não (vault funciona sem) |
+| Ferramenta | Versão | Obrigatório |
+|------------|--------|-------------|
+| Python | 3.11+ | ✅ |
+| Claude Code | qualquer | ✅ |
+| PowerShell | 5.1+ | ✅ |
+| Obsidian | qualquer | Recomendado |
 
 **Instalar Claude Code:**
 ```powershell
 npm install -g @anthropic-ai/claude-code
 ```
-Ou baixe o instalador em: https://claude.ai/download
 
 ---
 
 ## Instalação
 
-### 1. Clonar o repositório
-
 ```powershell
-git clone https://github.com/SEU_USUARIO/sbwaa.git
+# 1. Clonar
+git clone https://github.com/lbm-marangoni/sbwaa.git
 cd sbwaa
-```
 
-### 2. Criar ambiente virtual (recomendado)
-
-```powershell
+# 2. Ambiente virtual
 python -m venv .venv
 .venv\Scripts\Activate.ps1
-```
 
-> Se o PowerShell bloquear a execução de scripts, rode antes:
-> `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
-
-### 3. Instalar dependências
-
-```powershell
+# 3. Dependências
 pip install -r requirements.txt
-```
 
-### 4. Configurar API key (opcional — só para Modo API)
-
-```powershell
-Copy-Item ".env.template" ".env"
-notepad ".env"    # substituir 'sua_chave_aqui' pela ANTHROPIC_API_KEY
-```
-
-Sem API key, todos os comandos locais funcionam. Comandos de IA rodam no chat do Claude Code.
-
-### 5. Criar os arquivos do seu portfólio
-
-O sistema gerencia três arquivos em `vault/00-portfolio/`. Eles não vêm no repositório pois contêm dados pessoais — você os cria ao registrar seus primeiros ativos:
-
-```powershell
-# UTF-8 no terminal (rodar uma vez por sessão no Windows)
+# 4. Verificar instalação
 $env:PYTHONUTF8 = "1"
-
-# Verificar se o sistema está ok
 python sbwaa.py /status
+```
 
-# Adicionar seu primeiro ativo (cria os arquivos automaticamente)
+> Se o PowerShell bloquear scripts: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+
+---
+
+## Configuração inicial
+
+### Portfólio
+
+Os arquivos de portfólio ficam em `vault/00-portfolio/` e **não vêm no repositório** (dados pessoais). São criados automaticamente ao registrar o primeiro ativo:
+
+```powershell
 python sbwaa.py /adicionar --ticker PETR4 --tipo acao-on --quantidade 100 --preco-medio 38.50 --setor energia
 ```
 
-Os arquivos criados serão:
-- `vault/00-portfolio/carteira.md` — posições e cotações
-- `vault/00-portfolio/historico-trades.md` — log de operações
-- `vault/00-portfolio/decisoes.md` — log de decisões do PM
+### IPS (Investment Policy Statement)
 
-### 6. Configurar o IPS (Investment Policy Statement)
-
-O IPS define suas metas de alocação e limites de risco. Crie o arquivo manualmente:
+O IPS define metas de alocação e limites de risco que o sistema respeita em todas as decisões:
 
 ```powershell
 python sbwaa.py /ips --editar
 ```
 
-Estrutura mínima do `vault/00-portfolio/ips.md`:
-
-```markdown
-# IPS — Investment Policy Statement
-
-## Perfil
-- Horizonte: longo prazo (10+ anos)
-- Tolerância a risco: moderada
-
-## Alocação alvo
-| Classe       | Alvo % | Mín % | Máx % |
-|--------------|--------|--------|--------|
-| Ações        | 40     | 30     | 50     |
-| FIIs         | 35     | 25     | 45     |
-| ETFs Intl    | 15     | 10     | 25     |
-| Renda Fixa   | 10     | 5      | 20     |
-
-## Limites de risco
-- VaR diário 95%: máx 2%
-- Drawdown máximo: 18%
-- Concentração máxima por ativo: 20%
-```
-
----
-
-## Primeiros passos após instalar
+### Automação
 
 ```powershell
-# Ver todos os comandos disponíveis
-python sbwaa.py /help
+# Instala as 3 tarefas no Task Scheduler (WakeToRun ativado)
+python scripts/automation/setup_scheduler.py --instalar
 
-# Snapshot de mercado (IBOV, S&P500, câmbio, juros)
-python sbwaa.py /snapshot
+# Verificar status
+python scripts/automation/setup_scheduler.py --status
 
-# Ver posições da carteira com P&L atualizado
-python sbwaa.py /carteira
-
-# Ver watchlist + veredictos e frescor das análises
-python sbwaa.py /watchlist
-
-# Risco: VaR, CVaR, Sharpe, Fronteira Eficiente Markowitz
-python sbwaa.py /risco-carteira
-
-# Fronteira dual: carteira vs carteira + watchlist (candidatos MELHORA/NEUTRO/PIORA)
-python sbwaa.py /otimizar-expansao
-
-# Abrir painel visual (customtkinter)
-python sbwaa.py /ui
+# Testar agora
+python scripts/automation/setup_scheduler.py --testar morning
 ```
 
-**No chat do Claude Code** (abrir a pasta do projeto no Claude Code):
+### Setup guiado (opcional)
+
+Para uma configuração completa assistida por IA, abra o projeto no Claude Code e cole:
 
 ```
-/morning-call          # briefing pré-abertura com macro + alertas
-/analisar PETR4        # pipeline completo de análise (8 agentes, 10 etapas)
-/tese VALE3            # análise rápida com DCF e veredicto do PM
-/revisar-carteira      # PM revisa todas as posições: MANTER/AUMENTAR/REDUZIR/SAIR
-/rebalancear           # desvios vs IPS e sugestão de ajuste de alocação
+Quero configurar o SBWAA do zero. Leia .env.template,
+knowledge/sources/sources.json, scripts/alerts/check_alerts.py
+e CLAUDE.md, depois conduza um formulário interativo comigo —
+uma pergunta por vez — cobrindo: modo de operação, feeds RSS,
+thresholds de alerta e IPS completo.
 ```
-
-**Workflow operacional completo** (cadências diária, semanal, mensal, trimestral, anual):
-
-→ [`docs/SBWAA-WORKFLOW.md`](docs/SBWAA-WORKFLOW.md)
 
 ---
 
-## Configuração guiada (Setup Wizard)
+## Uso rápido
 
-Após clonar e instalar as dependências, cole o prompt abaixo no chat do Claude Code com a pasta do projeto aberta. Ele mapeia tudo que precisa ser configurado manualmente e conduz um formulário interativo — uma pergunta por vez.
+### Comandos locais (Python puro)
 
-Para o IPS especificamente, o fluxo é mais cuidadoso: explica cada métrica com benchmarks de mercado brasileiro, faz perguntas qualitativas sobre o seu perfil e só sugere números depois de entender suas respostas.
+```powershell
+python sbwaa.py /carteira          # posições, P&L, alocação visual
+python sbwaa.py /risco-carteira    # VaR, Sharpe, Markowitz
+python sbwaa.py /stress-test       # 6 cenários de crise
+python sbwaa.py /dividendos        # proventos e DY
+python sbwaa.py /watchlist         # ativos monitorados com frescor
+python sbwaa.py /otimizar-expansao # quais ativos melhoram o portfólio
+python sbwaa.py /simulacao         # Monte Carlo + backtest
+python sbwaa.py /metas             # dashboard de metas financeiras
+python sbwaa.py /help              # todos os comandos
+```
+
+### Comandos de IA (no chat do Claude Code)
 
 ```
-Quero configurar o SBWAA do zero.
-
-Antes de começar, leia os arquivos de configuração do sistema
-(.env.template, knowledge/sources/sources.json,
-scripts/alerts/check_alerts.py e CLAUDE.md) para mapear tudo
-que pode ser configurado manualmente.
-
-Depois conduza um formulário interativo comigo — uma pergunta
-por vez, aguardando minha resposta antes de avançar — cobrindo
-nesta ordem:
-
-1. API Key — modo Claude Code (padrão, sem key) vs modo API
-   (agentes autônomos via subprocess, precisa de ANTHROPIC_API_KEY)
-
-2. Feeds RSS — fontes de notícias da base de conhecimento:
-   quais manter, quais adicionar, volume por coleta e idioma
-
-3. Thresholds de alerta — revise comigo os valores atuais de
-   queda/alta de ativo e correlação, explicando o que cada um
-   dispara antes de perguntar se quero ajustar
-
-4. IPS completo — para este item seja mais cuidadoso:
-   explique cada métrica com contexto e benchmarks de mercado
-   brasileiro (IBOV histórico, CDI, volatilidade típica por
-   classe), faça perguntas qualitativas sobre meu perfil antes
-   de sugerir qualquer número. Cubra em sequência: horizonte de
-   investimento, alocação alvo por classe (% alvo + mín + máx),
-   VaR máximo diário 95%, drawdown máximo tolerado e
-   concentração máxima por ativo.
-
-Ao final de cada etapa, salve as configurações nos arquivos
-corretos. Para o IPS, gere o vault/00-portfolio/ips.md completo.
+/morning-call              # briefing pré-abertura: macro + carteira + alertas
+/analisar PETR4            # pipeline completo: 8 agentes, DCF, earnings, risco, decisão PM
+/tese VALE3                # análise rápida com veredicto
+/pm PETR4                  # decisão do PM para ativo com análise existente
+/pm 700                    # modo aporte: distribui R$ 700 entre elegíveis
+/revisar-carteira          # PM revisa todas as posições
+/rebalancear               # desvios vs IPS + sugestão de ajuste
+/earnings WEGE3            # análise de resultado trimestral
+/relatorio-semanal         # P&L + risco + outlook da semana
 ```
 
 ---
@@ -209,85 +197,73 @@ corretos. Para o IPS, gere o vault/00-portfolio/ips.md completo.
 
 ```
 sbwaa/
-├── sbwaa.py                  ← ponto de entrada de todos os comandos
+├── sbwaa.py                    ← ponto de entrada de todos os comandos
+├── CLAUDE.md                   ← políticas globais e roteamento de agentes
 ├── requirements.txt
-├── .env.template
-├── CLAUDE.md                 ← políticas globais e roteamento de agentes
-├── VERSION.md
-├── CHANGELOG.md
 │
-├── docs/                     ← documentação do projeto
-│   ├── GUIA-COMANDOS.md      ← referência completa de comandos, flags e exemplos
-│   ├── SBWAA-WORKFLOW.md     ← workflow operacional: 6 cadências + fluxos oportunísticos
-│   ├── SBWAA-REFERENCIA.md   ← campos, mockups de output e comportamento esperado
-│   ├── SBWAA-MASTER-BLUEPRINT.md
-│   └── SBWAA-LOGO.md
+├── docs/
+│   ├── GUIA-COMANDOS.md        ← sintaxe, flags e exemplos de todos os comandos
+│   ├── SBWAA-WORKFLOW.md       ← cadências diária/semanal/mensal/trimestral/anual
+│   ├── SBWAA-REFERENCIA.md     ← campos, mockups de output, comportamento esperado
+│   ├── SBWAA-APRESENTACAO.md   ← visão geral do sistema para apresentações
+│   └── SBWAA-MASTER-BLUEPRINT.md
 │
-├── interface/                ← painel visual (customtkinter)
-│   ├── ui.py
+├── interface/
+│   ├── ui.py                   ← painel visual (customtkinter)
 │   └── splash.py
 │
 ├── .claude/
-│   ├── agents/               ← 8 agentes especializados (SKILL.md + runner)
-│   │   └── quant-data-engineer/calculators/optimization.py  ← Fronteira Eficiente (Markowitz)
-│   └── commands/             ← scripts dos comandos locais
+│   └── agents/                 ← 8 agentes (market-researcher, earnings-reviewer,
+│                                  model-builder, valuation-reviewer, quant-data-engineer,
+│                                  econometrician, risk-engineer, portfolio-manager)
 │
 ├── scripts/
-│   ├── data/                 ← fetch Brapi (BR), Yahoo Finance (macro), optimize_expansao.py
-│   ├── alerts/               ← 8 tipos de alerta automático
-│   └── heartbeat/            ← processo diário automatizado
+│   ├── data/                   ← fetch_fundamentals, fetch_yahoo, fetch_investidor10,
+│   │                              market_snapshot, optimize_expansao, simulacao_carteira
+│   ├── alerts/                 ← check_alerts (8 tipos: VaR, drawdown, variação, dividendos...)
+│   ├── heartbeat/              ← heartbeat.py legado (execução manual)
+│   └── automation/             ← dispatcher modular: main.py, runner.py, notifier.py,
+│                                  launcher.vbs, setup_scheduler.py
 │
-├── knowledge/                ← base RAG (ChromaDB + sentence-transformers)
-├── prompts/                  ← histórico de prompts de construção do sistema
-├── _standby/                 ← código arquivado (interface Streamlit legada)
+├── knowledge/                  ← base RAG (ChromaDB + sentence-transformers)
 │
-└── vault/                    ← notas Obsidian
-    ├── 00-portfolio/         ← carteira, IPS, trades (dados pessoais — não versionados)
-    ├── 01-ativos/            ← teses, DCFs e earnings por ticker
-    ├── 02-relatorios/        ← diários, semanais e mensais
-    ├── 03-macro/             ← notas do Market Researcher
-    ├── 04-knowledge/         ← sínteses RAG
-    └── 05-risk/              ← snapshots de risco quantitativo
+└── vault/                      ← notas Obsidian (dados pessoais — não versionados)
+    ├── 00-portfolio/           ← carteira, IPS, trades, metas, decisoes
+    ├── 01-ativos/              ← teses, DCFs, earnings por ticker
+    ├── 02-relatorios/          ← morning calls, semanais, mensais, dividendos
+    ├── 03-macro/               ← notas do Market Researcher
+    ├── 04-decisoes/            ← histórico de decisões do PM
+    ├── 05-risk/                ← snapshots de risco e alertas
+    └── _templates/             ← 11 templates Obsidian
 ```
 
 ---
 
-## Os 8 agentes
+## Segurança e privacidade
 
-| Agente | Modelo | Função |
-|--------|--------|--------|
-| Market Researcher | Sonnet | Análise macro, setorial e posicionamento |
-| Earnings Reviewer | Sonnet | Revisão de resultados trimestrais |
-| Model Builder | Opus | Construção de DCF e modelos de valuation |
-| Valuation Reviewer | Sonnet | Revisão crítica do modelo, equity research |
-| Quant / Data Eng. | Sonnet | Sharpe, VaR, correlação, métricas quant |
-| Econometrician | Sonnet | GARCH, beta dinâmico, Fama-French 3F, macro BCB, drawdown avançado |
-| Risk Engineer | Opus | VaR, CVaR, stress tests, circuit breakers |
-| Portfolio Manager | Opus | Decisão final: COMPRAR / AGUARDAR / EVITAR |
-
----
-
-## Segurança
-
-- Dados de portfólio (posições, preço médio, patrimônio) **nunca saem do vault local**
-- APIs externas recebem apenas tickers públicos, datas e parâmetros de mercado
-- Sizing do PM é calculado localmente — a API recebe apenas pesos percentuais
-- Arquivos pessoais estão no `.gitignore` e nunca são versionados
+- Posições, preço médio, patrimônio e dados pessoais **nunca saem do vault local**
+- APIs externas recebem apenas: tickers públicos, datas e parâmetros de mercado
+- `vault/00-portfolio/`, `scripts/data/cache/`, `knowledge/.chromadb/` no `.gitignore`
+- Logs ficam exclusivamente em `logs/` local
 
 Política completa: [`CLAUDE.md`](CLAUDE.md) — seção Security Policy.
 
 ---
 
-## Referência de comandos
+## Documentação
 
-Documentação completa de todos os comandos, flags e exemplos de uso:
-
-→ [`docs/GUIA-COMANDOS.md`](docs/GUIA-COMANDOS.md)
+| Documento | Conteúdo |
+|-----------|----------|
+| [`docs/GUIA-COMANDOS.md`](docs/GUIA-COMANDOS.md) | Referência completa: sintaxe, flags, exemplos |
+| [`docs/SBWAA-WORKFLOW.md`](docs/SBWAA-WORKFLOW.md) | Workflow operacional: 6 cadências + fluxos oportunísticos |
+| [`docs/SBWAA-REFERENCIA.md`](docs/SBWAA-REFERENCIA.md) | Campos, mockups de output e comportamento esperado |
+| [`docs/SBWAA-APRESENTACAO.md`](docs/SBWAA-APRESENTACAO.md) | Visão geral do sistema: problema, solução, features |
+| [`CHANGELOG.md`](CHANGELOG.md) | Histórico completo de versões |
 
 ---
 
 ## Compatibilidade
 
 - **Windows 10/11** — testado, PowerShell nativo
-- **macOS / Linux** — compatível (substituir comandos PowerShell por equivalentes bash)
-- **Obsidian** — opcional, mas recomendado para visualizar o vault com graph view
+- **macOS / Linux** — compatível (substituir comandos PowerShell por equivalentes bash; Task Scheduler → cron)
+- **Obsidian** — recomendado para visualizar o vault com graph view e templates
