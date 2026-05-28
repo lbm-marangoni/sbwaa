@@ -2,6 +2,30 @@
 
 ---
 
+## [2.12.0] — 2026-05-27 — AUTOMATION LAYER: TASK SCHEDULER LOCAL
+
+### Added
+- **`scripts/automation/` — nova camada de automação modular:**
+  - `tasks.py` — registro declarativo de tarefas por slot (morning/eod/weekend)
+  - `runner.py` — executor unificado: `run_python()` + `run_claude()` via `claude -p` não-interativo
+  - `notifier.py` — toast notification Windows via PowerShell/NotifyIcon (sem pacotes externos)
+  - `main.py` — dispatcher principal com `--slot` e `--dry-run`; lógica de dia útil, feriados BR, 1° fds do mês
+  - `setup_scheduler.py` — instala/remove/testa tarefas reais no Task Scheduler via `schtasks.exe`; ativa WakeToRun + StartWhenAvailable automaticamente
+  - `launcher.vbs` — lança Python sem janela de console (necessário para Task Scheduler silencioso)
+
+- **3 slots de execução agendados:**
+  - `morning` (seg–sex 07:45): RSS → market_snapshot → quant → risk → alertas → `/morning-call`
+  - `eod` (seg–sex 17:00): market_snapshot EOD → alertas EOD → `/snapshot`
+  - `weekend` (sáb–dom 08:00): `/relatorio-semanal` (domingos) + `/relatorio-mensal` (1° fds do mês)
+
+- **PC desligado:** `WakeToRun` acorda o PC do sleep/hibernate; `StartWhenAvailable` roda tarefa perdida no próximo boot
+
+### Changed
+- Módulo `heartbeat` → **v2.0.0**: antigo `heartbeat.py` mantido para execução manual; novo sistema o supersede no agendamento
+- Global → **v2.12.0**
+
+---
+
 ## [2.11.2] — 2026-05-27 — VARREDURA COMPLETA DE TESTES + CORREÇÕES DE ROBUSTEZ
 
 ### Fixed
