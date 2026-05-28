@@ -104,6 +104,24 @@ Para popular o cache de proventos, execute `/dividendos` antes.
 
 ---
 
+### `/watchlist` — Ativos monitorados com veredicto e frescor
+
+Lista todos os ativos analisados (`vault/01-ativos/`) e os da carteira com o último veredicto do PM, data da análise e indicador de frescor.
+
+```powershell
+python sbwaa.py /watchlist
+
+# Exibe apenas ativos com análise defasada (> 45 dias) ou sem análise
+python sbwaa.py /watchlist --rever
+```
+
+Output: tabela com ticker, se está em carteira (●) ou só na watchlist (○), tipo, veredicto, data, frescor (✅ < 45d / ⚠️ 45–90d / 🔴 > 90d) e preço-alvo.
+Salva snapshot datado em `vault/02-relatorios/watchlist-YYYY-MM-DD.md` (mantém histórico, não sobrescreve).
+
+> Use `--rever` no início da semana para montar o to-do de análises pendentes.
+
+---
+
 ### `/adicionar` — Adicionar ativo à carteira
 
 Valida o ticker nas APIs, insere na `carteira.md`, registra no `historico-trades.md`
@@ -201,6 +219,20 @@ Output: VaR 95% (1 dia), CVaR, Sharpe 12m, volatilidade anual, drawdown máximo,
 beta vs IBOV, concentração máxima e status dos circuit breakers.
 
 > Valores monetários normalizados em R$ 100k para preservar privacidade.
+
+---
+
+### `/otimizar-expansao` — Fronteira eficiente com candidatos da watchlist
+
+Compara a fronteira eficiente da carteira atual com a fronteira expandida (carteira + ativos da watchlist). Identifica quais candidatos melhorariam, degradariam ou seriam neutros ao portfólio.
+
+```powershell
+python sbwaa.py /otimizar-expansao
+```
+
+Output por candidato: correlação com a carteira, ΔSharpe ao adicionar a 5% de peso, peso ótimo no portfólio Max Sharpe e classificação **MELHORA / NEUTRO / PIORA**.
+
+> Requer dados históricos de preços dos ativos da watchlist. Salva cache para uso pelo `/rebalancear` e `/revisar-carteira`.
 
 ---
 
@@ -555,6 +587,20 @@ Output em: `vault/02-relatorios/mensais/`
 
 ---
 
+### `/metas` — Dashboard de metas financeiras
+
+Exibe o progresso de todas as metas definidas em `vault/00-portfolio/metas.md` com projeções de quando serão atingidas.
+
+```
+/metas
+```
+
+Output: barras de progresso para renda passiva mensal, patrimônio total, reserva de emergência e metas livres (viagem, imóvel, etc.). Cada meta exibe % atingido, valor atual vs alvo, projeção com e sem aportes e status OK / ATENÇÃO vs prazo.
+
+Configure as metas em `vault/00-portfolio/metas.md` ou pelo IPS (`/ips --editar`).
+
+---
+
 ### `/rebalancear` — Sugestão de rebalanceamento
 
 Compara alocação atual com os alvos do IPS, identifica desvios acima de ±5%
@@ -580,6 +626,48 @@ Output em: `vault/02-relatorios/revisoes/`
 
 ---
 
+## Automação — Task Scheduler (v2.12.0)
+
+O módulo `scripts/automation/` controla o agendamento automático via Windows Task Scheduler.
+Três slots rodam sem interação: morning (07:45), EOD (17:00) e weekend (08:00).
+
+```powershell
+# Instalar as 3 tarefas no Task Scheduler (ativa WakeToRun + StartWhenAvailable)
+python scripts/automation/setup_scheduler.py --instalar
+
+# Ver status e próximas execuções
+python scripts/automation/setup_scheduler.py --status
+
+# Remover todas as tarefas
+python scripts/automation/setup_scheduler.py --remover
+
+# Disparar um slot agora (teste)
+python scripts/automation/setup_scheduler.py --testar morning
+python scripts/automation/setup_scheduler.py --testar eod
+python scripts/automation/setup_scheduler.py --testar weekend
+```
+
+**Slots disponíveis:**
+
+| Slot | Horário | Dias | O que executa |
+|------|---------|------|---------------|
+| `morning` | 07:45 | seg–sex | RSS → snapshot → quant → risk → alertas → `/morning-call` |
+| `eod` | 17:00 | seg–sex | snapshot EOD → alertas → `/snapshot` |
+| `weekend` | 08:00 | sáb–dom | `/relatorio-semanal` (dom) + `/relatorio-mensal` (1° fds) |
+
+**Execução manual por slot (com `--dry-run` para simular sem executar):**
+
+```powershell
+python scripts/automation/main.py --slot morning
+python scripts/automation/main.py --slot morning --dry-run
+```
+
+> **PC em sleep:** `WakeToRun` acorda o computador automaticamente.
+> **PC desligado:** `StartWhenAvailable` executa no próximo boot.
+> Log em: `logs/automation.log`
+
+---
+
 ## Comandos de sistema
 
 ```powershell
@@ -591,15 +679,16 @@ python sbwaa.py /status    # versão atual, modo e data
 
 ## Os 8 agentes
 
-| Agente             | Modelo            | Função                                         |
-|--------------------|-------------------|------------------------------------------------|
-| Market Researcher  | claude-sonnet-4-6 | Análise macro, setorial e posicionamento        |
-| Earnings Reviewer  | claude-sonnet-4-6 | Revisão de resultados trimestrais               |
-| Model Builder      | claude-opus-4-6   | Construção de DCF e modelos de valuation        |
-| Valuation Reviewer | claude-sonnet-4-6 | Revisão crítica do modelo, equity research      |
-| Quant/Data Eng.    | claude-sonnet-4-6 | Métricas quantitativas: Sharpe, VaR, correlação |
-| Risk Engineer      | claude-opus-4-6   | VaR, CVaR, stress tests, circuit breakers       |
-| Portfolio Manager  | claude-opus-4-6   | Decisão final: COMPRAR / AGUARDAR / EVITAR      |
+| Agente             | Modelo            | Função                                                       |
+|--------------------|-------------------|--------------------------------------------------------------|
+| Market Researcher  | claude-sonnet-4-6 | Análise macro, setorial e posicionamento                     |
+| Earnings Reviewer  | claude-sonnet-4-6 | Revisão de resultados trimestrais                            |
+| Model Builder      | claude-opus-4-6   | Construção de DCF e modelos de valuation                     |
+| Valuation Reviewer | claude-sonnet-4-6 | Revisão crítica do modelo, equity research                   |
+| Quant/Data Eng.    | claude-sonnet-4-6 | Métricas quantitativas: Sharpe, VaR, correlação              |
+| Econometrician     | claude-sonnet-4-6 | GARCH, beta dinâmico rolling, Fama-French 3F, macro BCB      |
+| Risk Engineer      | claude-opus-4-6   | VaR, CVaR, stress tests, circuit breakers, Fronteira Markowitz |
+| Portfolio Manager  | claude-opus-4-6   | Decisão final: COMPRAR / AGUARDAR / EVITAR / MANTER / SAIR  |
 
 Cada agente tem um `SKILL.md` com seu sistema de instruções e um `run_*.py`
 que pode ser chamado diretamente ou via pipeline `/analisar`.
