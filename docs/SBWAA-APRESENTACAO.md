@@ -222,6 +222,74 @@ Cada nota usa **wikilinks automáticos** — a tese de um ativo linka para o DCF
 
 ---
 
+## Workflow — Como o Sistema é Usado na Prática
+
+O fluxo de trabalho tem dois eixos: o **calendário fixo** (o que roda automaticamente ou por hábito) e os **fluxos oportunísticos** (gatilhados por eventos de mercado ou decisões).
+
+### Fluxo Diário — O que você faz em 5–10 minutos
+
+```
+Acorda
+  └── Abre o vault / terminal
+       └── Lê o morning call que o sistema gerou às 07:45
+            ├── Nenhum alerta → dia normal, nada a fazer
+            └── Alerta presente?
+                 ├── Circuit breaker (VaR ou drawdown) → /risco-carteira → /rebalancear
+                 ├── Ativo caiu >5%                    → /pm TICKER → decidir
+                 └── Dividendo próximo                 → /dividendos → conferir
+```
+
+### Fluxo Semanal — Revisão de 20–30 minutos (domingo)
+
+```
+Ler /relatorio-semanal  (gerado automaticamente sábado/domingo)
+  ├── Performance OK e sem alertas → /watchlist --rever  (ver o que está defasado)
+  │    └── Ativo com análise > 45 dias → /analisar TICKER
+  └── Performance abaixo do esperado → /rebalancear → /pm (decidir ajuste)
+```
+
+### Fluxo de Análise de Ativo — Do zero à decisão
+
+```
+Ativo novo?
+  └── /tese TICKER  (análise rápida — 5 min)
+       ├── EVITAR → não entra na watchlist
+       └── Tese favorável → /analisar TICKER  (análise completa — 15 min)
+            └── Agentes rodam: Macro → Quant → DCF → Earnings → Risk → PM
+                 ├── AGUARDAR → fica na watchlist, /pm quando gatilho surgir
+                 ├── COMPRAR  → /pm TICKER para confirmar preço e tamanho
+                 └── /adicionar TICKER para registrar a entrada
+```
+
+### Fluxo de Aporte — Onde colocar capital novo
+
+```
+Tem capital para aportar?
+  └── /pm 700  (ou qualquer valor)
+       ├── PM lê o IPS, a carteira atual e os ativos da watchlist
+       ├── Calcula gap de alocação vs metas
+       ├── Filtra ativos elegíveis (análise < 60d, veredicto ≥ AGUARDAR)
+       └── Distribui o capital com justificativa por ativo
+            └── Você executa na corretora e roda /adicionar para registrar
+```
+
+### Fluxo Oportunístico — Eventos de mercado
+
+```
+Evento relevante surgiu (queda de mercado, notícia macro, resultado trimestral)?
+  ├── Queda do mercado  → /stress-test  → ver impacto real na carteira
+  ├── Notícia macro     → /mundo-economico  → interpretar impacto nos ativos
+  ├── Resultado trimestral → /earnings TICKER  → avaliar vs expectativa
+  └── "Qual o melhor ativo agora?" → /investimento-do-dia  → sugestão contextualizada
+```
+
+> [!tip] A regra dos 60 dias
+> O Portfolio Manager (`/pm`) pressupõe que a análise do ativo no vault está atualizada.
+> Com análise **acima de 60 dias**, o sistema exige `/analisar` antes de emitir decisão —
+> fundamentos, preço e contexto macro podem ter mudado.
+
+---
+
 ## Stack Técnica
 
 | Camada | Tecnologia |
