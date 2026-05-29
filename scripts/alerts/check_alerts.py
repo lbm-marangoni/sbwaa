@@ -29,7 +29,8 @@ ALERTAS_CONFIG = {
     "circuit_breaker_var":      {"severidade": "CRÍTICO"},
     "circuit_breaker_drawdown": {"severidade": "CRÍTICO"},
     "circuit_breaker_concentracao": {"severidade": "ALTO"},
-    "earnings_amanha":          {"severidade": "MÉDIO"},
+    "earnings_amanha":          {"severidade": "ALTO"},     # D-1: lembrete urgente
+    "earnings_semana":          {"severidade": "MÉDIO"},    # D-7: prepare análise
     "dividendo_proximo":        {"severidade": "BAIXO"},
     "correlacao_subiu":         {"threshold_delta": 0.15, "severidade": "MÉDIO"},
 }
@@ -48,6 +49,7 @@ SEVERIDADE_ACAO = {
     "queda_ativo":                  "python sbwaa.py /analisar {ticker}",
     "alta_ativo":                   "python sbwaa.py /analisar {ticker}",
     "earnings_amanha":              "python sbwaa.py /earnings {ticker}",
+    "earnings_semana":              "python sbwaa.py /earnings {ticker}",
     "dividendo_proximo":            "python sbwaa.py /dividendos",
     "correlacao_subiu":             "python sbwaa.py /risco-carteira",
 }
@@ -287,6 +289,64 @@ def exibir_alertas(alertas: list[dict]):
     print(f"\n{'═'*55}\n")
 
 
+def verificar_earnings_proximos() -> list[dict]:
+    """
+    Verifica earnings próximos via earnings-calendar.json.
+    Dispara em D-7 (prepare análise) e D-1 (lembrete urgente).
+    Não dispara em dias intermediários para evitar spam.
+    """
+    cal_path = VAULT_ROOT / "00-portfolio" / "earnings-calendar.json"
+    if not cal_path.exists():
+        return []
+    try:
+        dados = json.loads(cal_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+
+    alertas = []
+    hoje = date.today()
+
+    for evento in dados.get("eventos", []):
+        data_str = evento.get("data")
+        if not data_str:
+            continue
+        try:
+            data_ev = datetime.strptime(data_str, "%Y-%m-%d").date()
+        except Exception:
+            continue
+
+        dias = (data_ev - hoje).days
+        if dias < 0 or dias > 7:
+            continue
+
+        ticker    = evento.get("ticker", "?")
+        trimestre = evento.get("trimestre", "")
+        tipo      = evento.get("tipo", "")
+        eh_fii    = "fii" in tipo
+        estimado  = " (estimado)" if tipo != "confirmado" else ""
+
+        if dias == 1:
+            alertas.append({
+                "tipo":      "earnings_amanha",
+                "severidade": ALERTAS_CONFIG["earnings_amanha"]["severidade"],
+                "ticker":     ticker,
+                "mensagem":   f"{ticker} — resultado {trimestre}{estimado} AMANHÃ ({data_ev.strftime('%d/%m')})",
+            })
+        elif dias == 7:
+            if eh_fii:
+                msg = f"{ticker} — DF trimestral {trimestre} em 7 dias{estimado} ({data_ev.strftime('%d/%m')})"
+            else:
+                msg = f"{ticker} — resultado {trimestre}{estimado} em 7 dias — prepare /earnings {ticker}"
+            alertas.append({
+                "tipo":      "earnings_semana",
+                "severidade": ALERTAS_CONFIG["earnings_semana"]["severidade"],
+                "ticker":     ticker,
+                "mensagem":   msg,
+            })
+
+    return alertas
+
+
 def verificar_precos_alvo() -> list[dict]:
     """Verifica alertas de preço-alvo configurados em alertas.json (gerados pelos agentes)."""
     alertas: list[dict] = []
@@ -429,6 +489,9 @@ def verificar_alertas() -> list[dict]:
 
     # Preços-alvo configurados pelos agentes
     alertas += verificar_precos_alvo()
+
+    # Earnings próximos (D-7 e D-1)
+    alertas += verificar_earnings_proximos()
 
     return alertas
 

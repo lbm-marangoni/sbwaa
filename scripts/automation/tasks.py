@@ -16,7 +16,8 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 SCRIPTS_DATA = PROJECT_ROOT / "scripts" / "data"
 AGENTS_DIR = PROJECT_ROOT / ".claude" / "agents"
 ALERTS_SCRIPT        = PROJECT_ROOT / "scripts" / "alerts" / "check_alerts.py"
-FLUXO_CAIXA_SCRIPT   = PROJECT_ROOT / "scripts" / "data"   / "fluxo_caixa.py"
+FLUXO_CAIXA_SCRIPT      = PROJECT_ROOT / "scripts" / "data" / "fluxo_caixa.py"
+EARNINGS_CAL_SCRIPT     = PROJECT_ROOT / "scripts" / "data" / "earnings_calendar.py"
 PERFORMANCE_SCRIPT   = PROJECT_ROOT / "scripts" / "data"   / "performance.py"
 UPDATE_CARTEIRA_SCRIPT = PROJECT_ROOT / "scripts" / "data" / "update_carteira.py"
 KNOWLEDGE_DIR        = PROJECT_ROOT / "knowledge"
@@ -147,6 +148,13 @@ WEEKEND_TASKS: list[Task] = [
 ]
 
 MONTHLY_TASKS: list[Task] = [
+    Task(
+        name="earnings_calendar",
+        description="Atualiza calendário de resultados trimestrais (ações + FIIs)",
+        task_type="python",
+        command=[PYTHON, str(EARNINGS_CAL_SCRIPT)],
+        timeout=300,
+    ),
     Task(
         name="relatorio_mensal",
         description="Relatório mensal completo — performance, risco, revisão de teses",

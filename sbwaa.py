@@ -55,6 +55,7 @@ COMANDOS_LOCAIS = {
     "/performance":         "scripts/data/performance.py",
     "/fluxo-caixa":         "scripts/data/fluxo_caixa.py",
     "/correlacao":          "scripts/data/correlacao.py",
+    "/earning-calendar":    "scripts/data/earnings_calendar.py",
 }
 
 # Comandos de IA — redirecionados para Claude Code (sem API key)
@@ -284,6 +285,18 @@ def exibir_help():
 
   python sbwaa.py /help
       Este menu.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  EARNING CALENDAR  (local — sem IA, sem API key)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  python sbwaa.py /earning-calendar
+      Calendário de resultados trimestrais da carteira (próximos 180 dias).
+      Ações: data via yfinance (confirmado) ou última data +91d (estimado).
+      FIIs: estimativa baseada no calendário CVM (~45 dias após o trimestre).
+      Cria stub earnings-TICKER-TRIMESTRE.md no vault automaticamente.
+      Alertas automáticos via check_alerts: D-7 (prepare /earnings) e D-1 (urgente).
+      Atualizado automaticamente no primeiro fim de semana de cada mês.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   CORRELAÇÃO  (local — sem IA, sem API key)

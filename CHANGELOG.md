@@ -2,6 +2,31 @@
 
 ---
 
+## [2.19.0] — 2026-05-29 — /EARNING-CALENDAR: CALENDÁRIO DE RESULTADOS
+
+### Added
+- **`scripts/data/earnings_calendar.py`** — calendário de resultados trimestrais:
+  - **Ações (AÇÃO ON/PN)**: tenta `yfinance.calendar['Earnings Date']` → se vazio, usa `earnings_dates` histórico + 91 dias (`tipo: estimado`)
+  - **FIIs**: estimativa baseada no calendário CVM (~45 dias após fechamento do trimestre); datas fixas: 15/02, 15/05, 15/08, 15/11 (`tipo: estimado-fii`)
+  - ETFs, RF, TD, DEB, CRI/CRA: ignorados
+  - Cria automaticamente `vault/01-ativos/TICKER/earnings-TICKER-TRIMESTRE.md` (stub com template) se não existir
+  - Salva `vault/00-portfolio/earnings-calendar.json` (lido pelo check_alerts)
+  - Salva `vault/00-portfolio/earnings-calendar.md` (visualização Obsidian com wikilinks)
+  - Output terminal: tabela dos próximos 90 dias com status confirmado/estimado
+
+- **`scripts/alerts/check_alerts.py`** — `verificar_earnings_proximos()` implementada:
+  - Lê `earnings-calendar.json`
+  - Dispara `earnings_semana` (MÉDIO) no exato D-7 antes do resultado
+  - Dispara `earnings_amanha` (ALTO) no exato D-1 — não dispara em dias intermediários
+  - `earnings_semana` adicionado ao `ALERTAS_CONFIG` e `SEVERIDADE_ACAO`
+  - `earnings_amanha` atualizado de MÉDIO para ALTO (lembrete mais urgente)
+
+### Changed
+- **`scripts/automation/tasks.py`** — `earnings_calendar` adicionado ao `MONTHLY_TASKS` (antes de `relatorio_mensal`)
+- **`sbwaa.py`** — `/earning-calendar` em `COMANDOS_LOCAIS` + bloco no `/help`
+
+---
+
 ## [2.18.0] — 2026-05-29 — SUPORTE A ATIVOS INTERNACIONAIS USD
 
 ### Added
