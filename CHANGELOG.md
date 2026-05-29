@@ -2,6 +2,29 @@
 
 ---
 
+## [2.17.0] — 2026-05-29 — /CORRELACAO: HEATMAP + FIX QUANT PIPELINE
+
+### Added
+- **`scripts/data/correlacao.py`** — heatmap de correlações da carteira:
+  - Lê `quant_YYYY-MM-DD.json`; se vazio/ausente, roda `run_quant.py` inline (subprocess)
+  - **Terminal**: tabela ASCII com ANSI colors (verde < 0.40 | amarelo 0.40–0.70 | vermelho ≥ 0.70)
+  - **PNG**: heatmap matplotlib dark theme em `vault/02-relatorios/correlacao-YYYY-MM-DD.png`
+    - N×N matriz com valores anotados + borda vermelha nos pares ≥ threshold
+    - Coluna extra IBOV à direita com correlação de cada ativo
+    - Colormap RdBu_r (red=+1, blue=-1, white=0)
+  - **Obsidian**: `vault/02-relatorios/correlacao-YYYY-MM-DD.md` com `![[png]]`, tabela de pares, matriz completa com wikilinks, métricas de diversificação
+  - Flag `--threshold` (default 0.70)
+- **`sbwaa.py`** — `/correlacao` em `COMANDOS_LOCAIS` + bloco CORRELAÇÃO no `/help`
+
+### Fixed
+- **`run_quant.py` — `extrair_carteira()`** — dois bugs corrigidos:
+  1. `elif dentro: break` → `elif dentro and stripped: break` — linhas em branco dentro da tabela não quebravam mais o loop prematuramente (causa raiz do cache vazio)
+  2. Agora lê a coluna Tipo e filtra `TIPOS_RF_SKIP` + `TICKERS_ESPECIAIS_SKIP` (RF-OPRT, CDB001, etc.) — evita falhas em yfinance que tornavam `historicos = {}`
+- **`run_quant.py` — `main()`** — `sys.exit(1)` quando `historicos` vazio substituído por save gracioso de JSON parcial (não derruba o slot morning)
+- **`run_quant.py` — métricas por ativo`** — novo campo `correlacao_ibov` calculado para cada ativo (correlação direta com retornos do IBOV, não beta)
+
+---
+
 ## [2.16.0] — 2026-05-29 — /FLUXO-CAIXA: PROJEÇÃO DE RENDA PASSIVA
 
 ### Added

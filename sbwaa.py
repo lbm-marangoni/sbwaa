@@ -54,6 +54,7 @@ COMANDOS_LOCAIS = {
     "/alerta":              "scripts/alerts/alerta_cmd.py",
     "/performance":         "scripts/data/performance.py",
     "/fluxo-caixa":         "scripts/data/fluxo_caixa.py",
+    "/correlacao":          "scripts/data/correlacao.py",
 }
 
 # Comandos de IA — redirecionados para Claude Code (sem API key)
@@ -283,6 +284,18 @@ def exibir_help():
 
   python sbwaa.py /help
       Este menu.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CORRELAÇÃO  (local — sem IA, sem API key)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  python sbwaa.py /correlacao
+      Heatmap de correlações da carteira (252 dias úteis).
+      Tabela ANSI no terminal + PNG + nota Obsidian com wikilinks.
+      Destaca pares > 0.70 que reduzem diversificação.
+      Coluna extra: correlação de cada ativo com IBOV.
+      Se cache quant ausente: roda Quant/Data Engineer automaticamente.
+      Flag: --threshold 0.6   (muda o limiar de alerta)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   FLUXO DE CAIXA  (local — sem IA, sem API key)

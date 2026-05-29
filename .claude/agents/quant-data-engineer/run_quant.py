@@ -43,6 +43,13 @@ CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
 IBOV_TICKER = "^BVSP"
 SELIC_PADRAO = 0.1275
 
+# Tipos sem cotação em bolsa — excluídos do quant (sem série histórica no yfinance)
+TIPOS_RF_SKIP = {
+    "⬜ RF", "🟪 TD", "🟫 DEB", "🟧 CRI/CRA",
+    "RF", "TD", "DEB", "CRI/CRA",
+}
+TICKERS_ESPECIAIS_SKIP = {"RF-OPRT"}
+
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -58,7 +65,10 @@ def ticker_yahoo(ticker: str) -> str:
 
 
 def extrair_carteira() -> dict:
-    """Retorna {ticker: peso_decimal} lendo apenas Ticker e posição relativa."""
+    """
+    Retorna {ticker: peso_decimal} lendo Ticker e Tipo da carteira.md.
+    Filtra tipos RF/TD/DEB/CRI-CRA (sem histórico em bolsa).
+    """
     tickers = []
     if not CARTEIRA_PATH.exists():
         return {}
@@ -76,11 +86,14 @@ def extrair_carteira() -> dict:
             if len(celulas) >= 1:
                 t = celulas[0].replace("[[", "").replace("]]", "").split("|")[0].strip()
                 t = re.sub(r"01-ativos/([^/]+)/tese", r"\1", t).upper()
-                if t:
+                tipo = celulas[1].strip() if len(celulas) >= 2 else ""
+                # Pula RF/TD/DEB/CRI-CRA e tickers especiais sem histórico em bolsa
+                if t and t not in TICKERS_ESPECIAIS_SKIP and tipo not in TIPOS_RF_SKIP:
                     tickers.append(t)
-        elif dentro:
+        elif dentro and stripped:
+            # Linha não-vazia e não-pipe dentro da tabela = fim da tabela
             break
-    # Pesos iguais se não especificados
+        # Linhas em branco dentro da tabela são silenciosamente ignoradas
     n = len(tickers)
     if n == 0:
         return {}
@@ -166,8 +179,23 @@ def main():
             print(f"  AVISO: histórico não disponível para {ticker}")
 
     if not historicos:
-        print("Nenhum histórico disponível. Abortando cálculos quantitativos.")
-        sys.exit(1)
+        print("Nenhum histórico disponível. Salvando JSON vazio e encerrando.")
+        carteira_sem_dados = {
+            "data_calculo": hoje,
+            "periodo_historico_dias": 0,
+            "selic_anual": selic,
+            "ativos": {},
+            "carteira": {"retorno_ponderado_pct": None, "volatilidade_pct": None,
+                         "sharpe": None, "drawdown_maximo_pct": None,
+                         "beta_ibov": None, "num_ativos": 0},
+            "matriz_correlacao": {},
+            "contribuicao_risco": {},
+            "pares_alta_correlacao": [],
+        }
+        CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        cache_path = CACHE_DIR / f"quant_{hoje}.json"
+        cache_path.write_text(json.dumps(carteira_sem_dados, ensure_ascii=False, indent=2), encoding="utf-8")
+        return carteira_sem_dados
 
     # ── Métricas por ativo ────────────────────────────────────────────────────
     metricas_ativos = {}
@@ -182,12 +210,23 @@ def main():
         dd = drawdown_maximo(prices)
         beta_v = calc_beta(prices, hist_ibov) if hist_ibov is not None else float("nan")
 
+        # Correlação direta com IBOV
+        corr_ibov_val = None
+        if hist_ibov is not None:
+            r_ativo = prices.pct_change().dropna()
+            r_ibov  = hist_ibov.pct_change().dropna()
+            df_pair = pd.concat([r_ativo, r_ibov], axis=1).dropna()
+            if len(df_pair) >= 20:
+                c = df_pair.iloc[:, 0].corr(df_pair.iloc[:, 1])
+                corr_ibov_val = round(float(c), 3) if not math.isnan(c) else None
+
         metricas_ativos[ticker] = {
             "retorno_total_pct": round(r_total * 100, 2),
             "retorno_anualizado_pct": round(r_anual * 100, 2),
             "volatilidade_anualizada_pct": round(vol * 100, 2),
             "sharpe": round(sh, 3) if not math.isnan(sh) else None,
             "beta_ibov": round(beta_v, 3) if not math.isnan(beta_v) else None,
+            "correlacao_ibov": corr_ibov_val,
             "drawdown_maximo_pct": round(dd * 100, 2),
             "retorno_1m": safe_pct(retorno_periodo(prices, 21)),
             "retorno_3m": safe_pct(retorno_periodo(prices, 63)),
