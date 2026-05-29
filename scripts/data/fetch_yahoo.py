@@ -81,6 +81,16 @@ def buscar_ticker(ticker_yahoo: str, nome_alias: str = "") -> dict:
     return dados
 
 
+def buscar_brl_usd() -> float | None:
+    """Retorna cotação BRL/USD atual (quanto reais por 1 dólar)."""
+    try:
+        dados = buscar_ticker("BRL=X", "BRL/USD")
+        v = dados.get("cotacao_atual")
+        return float(v) if v else None
+    except Exception:
+        return None
+
+
 def exibir_resumo(dados: dict) -> None:
     d = dados
     var = f"{d['variacao_dia_pct']:+.2f}%" if d["variacao_dia_pct"] is not None else "—"

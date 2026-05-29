@@ -2,6 +2,41 @@
 
 ---
 
+## [2.18.0] — 2026-05-29 — SUPORTE A ATIVOS INTERNACIONAIS USD
+
+### Added
+- **`fetch_yahoo.py`** — nova função `buscar_brl_usd()`: retorna cotação BRL/USD via `BRL=X`
+
+### Changed
+- **`add_ativo.py`** — suporte a ativos USD-listed (tipo `etf-intl`):
+  - Detecta `moeda: USD` via yfinance após validar o ticker
+  - Busca BRL/USD automaticamente e converte PM: `$450 USD × 5.50 = R$ 2.475`
+  - Armazena no vault note: `moeda: USD`, `pm_usd: 450.00`, `brl_usd_entrada: 5.50`
+  - Flag `--moeda` implícita: se yfinance retorna USD, conversão é automática
+  - Para B3 ETF INTL (moeda BRL): comportamento inalterado
+
+- **`update_carteira.py`** — nova infraestrutura FX:
+  - `_ler_moeda_ativo(ticker)`: lê `moeda:` do frontmatter de `vault/01-ativos/TICKER/tese.md`
+  - `cotacao_intl(ticker, moeda)`: se `moeda=USD`, converte yfinance USD × BRL/USD atual
+  - BRL/USD cacheado uma vez por execução (sem chamadas redundantes)
+  - Nova `_exibir_fx_exposicao()`: exibe e salva seção `## 💱 Exposição Cambial` em carteira.md
+    - Separa USD direto (ativos NYSE/NASDAQ) vs USD indireto (B3 ETF INTL como IVVB11)
+    - Mostra BRL/USD atual, valor em USD, sensibilidade +10% e -10% câmbio
+
+- **`stress_test.py` (calculators)** — corrigido e ampliado:
+  - `impacto_cenario()`: agora usa `brl_usd_alta_pct` (estava definido mas NUNCA aplicado)
+  - Nova componente FX: `peso_intl_direto × brl_usd_alta × 1.0` + `peso_intl_indireto × brl_usd_alta × 0.92`
+  - FX é POSITIVO para carteira (USD assets sobem em BRL quando BRL enfraquece)
+  - 2 novos cenários: `brl_usd_mais_20` (câmbio +20% isolado) e `crise_fiscal_br` (IBOV -25%, câmbio +30%)
+
+- **`stress_test.py` (command)** — novo display e lógica:
+  - `calcular_peso_intl()`: lê carteira.md + vault notes para derivar `peso_ind` e `peso_dir`
+  - `exibir_stress()`: quando há exposição FX, exibe 3 colunas: Mercado% | Câmbio% | Total%
+  - Exibe resumo de exposição USD ao final
+  - `custom` scenario agora também recebe `peso_intl` para FX breakdown correto
+
+---
+
 ## [2.17.0] — 2026-05-29 — /CORRELACAO: HEATMAP + FIX QUANT PIPELINE
 
 ### Added

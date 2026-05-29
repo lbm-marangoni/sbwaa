@@ -10,10 +10,11 @@ import json
 from datetime import datetime, date, timedelta
 from pathlib import Path
 
-VAULT_ROOT = Path(__file__).parent.parent.parent / "vault"
+VAULT_ROOT  = Path(__file__).parent.parent.parent / "vault"
 CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
 IPS_PATH      = VAULT_ROOT / "00-portfolio" / "ips.md"
-SCRIPTS_DIR = Path(__file__).parent
+ATIVOS_DIR    = VAULT_ROOT / "01-ativos"
+SCRIPTS_DIR   = Path(__file__).parent
 
 sys.path.insert(0, str(SCRIPTS_DIR))
 from fetch_fundamentals import buscar_ticker as brapi_buscar
@@ -284,10 +285,47 @@ def cotacao_br(ticker: str) -> float | None:
     return None
 
 
-def cotacao_intl(ticker: str) -> float | None:
+def _ler_moeda_ativo(ticker: str) -> str:
+    """Lê campo 'moeda' do frontmatter de vault/01-ativos/TICKER/tese.md."""
+    tese = ATIVOS_DIR / ticker / "tese.md"
+    if not tese.exists():
+        return "BRL"
+    for linha in tese.read_text(encoding="utf-8").splitlines():
+        if linha.lower().startswith("moeda:"):
+            return linha.split(":", 1)[1].strip().strip('"').strip("'").upper()
+    return "BRL"
+
+
+_brl_usd_cache: float | None = None
+
+
+def _buscar_brl_usd_atual() -> float | None:
+    """Retorna BRL/USD atual (cacheado dentro da execução)."""
+    global _brl_usd_cache
+    if _brl_usd_cache is not None:
+        return _brl_usd_cache
+    try:
+        from fetch_yahoo import buscar_brl_usd
+        _brl_usd_cache = buscar_brl_usd()
+        return _brl_usd_cache
+    except Exception:
+        return None
+
+
+def cotacao_intl(ticker: str, moeda: str = "BRL") -> float | None:
+    """Busca cotação internacional. Se moeda=USD, converte para BRL via BRL/USD."""
     try:
         dados = yahoo_buscar(ticker)
-        return dados.get("cotacao_atual")
+        preco = dados.get("cotacao_atual")
+        if preco is None:
+            return None
+        if moeda == "USD":
+            brl_usd = _buscar_brl_usd_atual()
+            if brl_usd:
+                return round(float(preco) * brl_usd, 4)
+            print(f"  AVISO: BRL/USD indisponível para {ticker} — cotação em USD não convertida.")
+            return None
+        return preco
     except Exception as e:
         print(f"  AVISO Yahoo [{ticker}]: {e}")
     return None
@@ -466,6 +504,85 @@ def _secoes_visuais(linhas_novas: list[dict], total_atual: float) -> str:
     return "\n".join(md)
 
 
+def _exibir_fx_exposicao(fx_posicoes: list[dict], total_atual: float):
+    """Exibe seção de exposição cambial no terminal e appenda em carteira.md."""
+    brl_usd = _buscar_brl_usd_atual()
+    agora = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    direto   = [p for p in fx_posicoes if p["moeda"] != "BRL"]
+    indireto = [p for p in fx_posicoes if p["moeda"] == "BRL"]
+
+    val_direto   = sum(p["valor_brl"] for p in direto)
+    val_indireto = sum(p["valor_brl"] for p in indireto)
+    val_total_fx = val_direto + val_indireto
+
+    peso_direto   = val_direto   / total_atual * 100 if total_atual else 0
+    peso_indireto = val_indireto / total_atual * 100 if total_atual else 0
+    peso_total    = val_total_fx / total_atual * 100 if total_atual else 0
+
+    # Sensibilidade: variação +10% e -10% no câmbio
+    sens_10 = val_total_fx * 0.10
+    usd_direto = val_direto / brl_usd if brl_usd and val_direto else 0
+
+    print(f"\n  EXPOSIÇÃO CAMBIAL (ETF INTL)")
+    print(f"  {'─'*60}")
+    if direto:
+        print(f"  USD direto       : R$ {val_direto:>10,.2f}  ({peso_direto:.1f}%)", end="")
+        if usd_direto:
+            print(f"  ≈ US$ {usd_direto:,.0f}", end="")
+        print()
+        for p in direto:
+            print(f"    {p['ticker']:<8} {p['moeda']}   R$ {p['valor_brl']:>10,.2f}")
+    if indireto:
+        print(f"  USD indireto*    : R$ {val_indireto:>10,.2f}  ({peso_indireto:.1f}%)")
+        for p in indireto:
+            print(f"    {p['ticker']:<8} BRL/B3  R$ {p['valor_brl']:>10,.2f}")
+    if brl_usd:
+        print(f"  BRL/USD hoje     : R$ {brl_usd:.4f}")
+    print(f"  Total exposição  : R$ {val_total_fx:>10,.2f}  ({peso_total:.1f}% carteira)")
+    print(f"  Sensib. +10% USD : R$ {+sens_10:>+10,.2f}  (câmbio sobe → carteira sobe)")
+    print(f"  Sensib. -10% USD : R$ {-sens_10:>+10,.2f}  (câmbio cai  → carteira cai)")
+    if indireto:
+        print(f"  * ETFs B3 com exposição USD indireta (IVVB11, XFIX11 etc.)")
+    print(f"  {'─'*60}")
+
+    # Append em carteira.md — seção FX
+    if not CARTEIRA_PATH.exists():
+        return
+    conteudo = CARTEIRA_PATH.read_text(encoding="utf-8")
+    # Remove seção FX anterior se existir
+    conteudo = re.sub(r"\n---\n\n## 💱 Exposição Cambial.*$", "", conteudo, flags=re.DOTALL)
+    brl_usd_str = f"R$ {brl_usd:.4f}" if brl_usd else "N/D"
+    linhas_fx = [
+        "",
+        "---",
+        "",
+        "## 💱 Exposição Cambial",
+        "",
+        f"*Atualizado em {agora}*",
+        "",
+        "| Tipo | Ativos | Valor BRL | % Carteira |",
+        "|------|--------|-----------|-----------|",
+    ]
+    if direto:
+        tks = ", ".join(p["ticker"] for p in direto)
+        linhas_fx.append(f"| USD direto | {tks} | R$ {val_direto:,.2f} | {peso_direto:.1f}% |")
+    if indireto:
+        tks = ", ".join(p["ticker"] for p in indireto)
+        linhas_fx.append(f"| USD indireto* | {tks} | R$ {val_indireto:,.2f} | {peso_indireto:.1f}% |")
+    linhas_fx += [
+        f"| **Total exposição USD** | | **R$ {val_total_fx:,.2f}** | **{peso_total:.1f}%** |",
+        "",
+        f"> BRL/USD: {brl_usd_str} | "
+        f"Sensib. +10%: R$ {+sens_10:+,.0f} | "
+        f"Sensib. -10%: R$ {-sens_10:+,.0f}",
+        "",
+        "> \\* ETFs B3 com exposição USD indireta (ex: IVVB11, XFIX11).",
+    ]
+    conteudo = conteudo.rstrip() + "\n" + "\n".join(linhas_fx) + "\n"
+    CARTEIRA_PATH.write_text(conteudo, encoding="utf-8")
+
+
 def atualizar_carteira():
     if not CARTEIRA_PATH.exists():
         print(f"Erro: {CARTEIRA_PATH} não encontrado.")
@@ -492,6 +609,7 @@ def atualizar_carteira():
     total_investido = 0.0
     total_atual = 0.0
     linhas_novas = []
+    fx_posicoes: list[dict] = []   # coleta exposição cambial para seção FX
 
     for pos in posicoes_validas:
         ticker_raw = pos["Ticker"].strip().strip("[]").split("|")[0].replace("[[", "").strip()
@@ -513,7 +631,15 @@ def atualizar_carteira():
         elif eh_ticker_br(ticker):
             preco_atual = cotacao_br(ticker)
         else:
-            preco_atual = cotacao_intl(ticker)
+            moeda_ativo = _ler_moeda_ativo(ticker)
+            preco_atual = cotacao_intl(ticker, moeda_ativo)
+            # Registra para seção de exposição cambial
+            if tipo in ("🟥 ETF INTL", "ETF INTL"):
+                fx_posicoes.append({
+                    "ticker": ticker, "tipo": tipo, "qtd": qtd, "pm": pm,
+                    "moeda": moeda_ativo,
+                    "valor_brl": round(qtd * preco_atual, 2) if preco_atual else qtd * pm,
+                })
 
         if preco_atual is None:
             if tipo in TIPOS_RF_SEM_MERCADO:
@@ -615,6 +741,10 @@ def atualizar_carteira():
     # Snapshot JSON diário
     if linhas_novas and total_atual > 0:
         _salvar_snapshot_json(linhas_novas, total_atual, total_investido, _posicoes_estimadas)
+
+    # Seção de exposição cambial (terminal + append em carteira.md)
+    if fx_posicoes and total_atual > 0:
+        _exibir_fx_exposicao(fx_posicoes, total_atual)
 
     # ── Bloco de renda (lê cache do /dividendos) ──────────────────────────────
     cache_path = VAULT_ROOT / "00-portfolio" / ".proventos-cache.json"

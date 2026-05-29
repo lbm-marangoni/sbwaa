@@ -183,7 +183,9 @@ def adicionar_historico(ticker: str, tipo: str, qtd: float, pm: float,
 
 def criar_nota_ativo(ticker: str, tipo: str, setor: str, data_entrada: str,
                      nome: str | None = None, indexador: str | None = None,
-                     taxa: str | None = None, vencimento: str | None = None):
+                     taxa: str | None = None, vencimento: str | None = None,
+                     moeda: str | None = None, pm_usd: float | None = None,
+                     brl_usd_entrada: float | None = None):
     pasta = ATIVOS_DIR / ticker
     pasta.mkdir(parents=True, exist_ok=True)
     tese_path = pasta / "tese.md"
@@ -194,7 +196,7 @@ def criar_nota_ativo(ticker: str, tipo: str, setor: str, data_entrada: str,
     eh_rf = tipo in TIPOS_OFF_EXCHANGE
     titulo = nome if nome else ticker
 
-    # Frontmatter extra para RF/TD/DEB/CRI-CRA
+    # Frontmatter extra
     extra_front = ""
     if eh_rf:
         if indexador:
@@ -204,6 +206,13 @@ def criar_nota_ativo(ticker: str, tipo: str, setor: str, data_entrada: str,
         if vencimento:
             extra_front += f"vencimento: {vencimento}\n"
         extra_front += f"emissor: {setor}\n"
+    # ETF internacional em moeda estrangeira
+    if moeda and moeda.upper() != "BRL":
+        extra_front += f"moeda: {moeda.upper()}\n"
+        if pm_usd is not None:
+            extra_front += f"pm_{moeda.lower()}: {pm_usd:.4f}\n"
+        if brl_usd_entrada is not None:
+            extra_front += f"brl_usd_entrada: {brl_usd_entrada:.4f}\n"
 
     # Descrição legível para RF
     descricao_rf = ""
@@ -238,8 +247,14 @@ def criar_nota_ativo(ticker: str, tipo: str, setor: str, data_entrada: str,
 - [[ips]] — adequação ao perfil
 """
     else:
+        fx_linha = ""
+        if moeda and moeda.upper() != "BRL" and pm_usd and brl_usd_entrada:
+            fx_linha = (
+                f"\n> 💱 PM original: ${pm_usd:.2f} {moeda.upper()} × "
+                f"BRL/{moeda.upper()} {brl_usd_entrada:.4f} = R$ {pm_usd * brl_usd_entrada:.2f}\n"
+            )
         corpo = f"""> Análise pendente. Execute `/analisar {ticker}` para gerar.
-
+{fx_linha}
 ## Links
 - [[carteira]] — posição atual
 - [[ips]] — adequação ao perfil
@@ -318,6 +333,10 @@ def main():
 
     # Cotação — RF não tem cotação em bolsa: usa preco_medio como valor atual
     preco_atual = None
+    moeda_ativo = "BRL"         # padrão
+    pm_usd_original: float | None = None
+    brl_usd_na_entrada: float | None = None
+
     if eh_rf or args.skip_validacao:
         if eh_rf:
             print(f"  Tipo {args.tipo} — off-exchange, validacao de API pulada.")
@@ -328,7 +347,39 @@ def main():
             print(f"Erro: ticker {ticker} não encontrado no Yahoo Finance (fetch_fundamentals).")
             print("Use --skip-validacao para adicionar mesmo assim.")
             sys.exit(1)
-        print(f"  Ticker {ticker} validado.  Cotação atual: R$ {preco_atual:.2f}" if preco_atual else f"  Ticker {ticker} validado.")
+
+        # Detectar moeda do ativo e converter PM se necessário
+        if args.tipo == "etf-intl":
+            try:
+                from fetch_yahoo import buscar_ticker as yf_buscar, buscar_brl_usd
+                info_yf = yf_buscar(ticker)
+                moeda_ativo = (info_yf.get("moeda") or "BRL").upper()
+            except Exception:
+                moeda_ativo = "BRL"
+
+            if moeda_ativo != "BRL":
+                print(f"  Moeda detectada: {moeda_ativo}")
+                print(f"  Buscando BRL/{moeda_ativo}...")
+                try:
+                    from fetch_yahoo import buscar_brl_usd
+                    brl_usd_na_entrada = buscar_brl_usd()
+                except Exception:
+                    brl_usd_na_entrada = None
+
+                if brl_usd_na_entrada:
+                    pm_usd_original = args.preco_medio
+                    args.preco_medio = round(args.preco_medio * brl_usd_na_entrada, 2)
+                    print(f"  💱 PM: ${pm_usd_original:.2f} {moeda_ativo} × "
+                          f"BRL/{moeda_ativo} {brl_usd_na_entrada:.4f} = R$ {args.preco_medio:.2f}")
+                    if preco_atual:
+                        preco_atual = round(preco_atual * brl_usd_na_entrada, 2)
+                else:
+                    print(f"  ⚠️  Não foi possível buscar BRL/{moeda_ativo}. "
+                          f"PM inserido como BRL diretamente.")
+                    moeda_ativo = "BRL"
+
+        cotacao_disp = f"R$ {preco_atual:.2f}" if preco_atual else "—"
+        print(f"  Ticker {ticker} validado.  Cotação atual: {cotacao_disp}")
 
     if posicao_atual:
         # ── Compra adicional / aporte em RF ──────────────────────────────────
@@ -389,7 +440,9 @@ def main():
                             data_entrada, None, "—")
         criar_nota_ativo(ticker, args.tipo, args.setor, data_entrada,
                          nome=args.nome, indexador=args.indexador,
-                         taxa=args.taxa, vencimento=args.vencimento)
+                         taxa=args.taxa, vencimento=args.vencimento,
+                         moeda=moeda_ativo if moeda_ativo != "BRL" else None,
+                         pm_usd=pm_usd_original, brl_usd_entrada=brl_usd_na_entrada)
         print(f"\n[OK] {nome_display} adicionado. Pasta: vault/01-ativos/{ticker}/")
 
 
