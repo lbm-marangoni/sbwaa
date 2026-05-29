@@ -3,7 +3,7 @@
 > Referência completa de todos os comandos do sistema.
 > Para instalação e configuração inicial: [`README.md`](README.md)
 
-**Versão: v2.12.0**
+**Versão: v2.13.2**
 
 ---
 
@@ -665,6 +665,29 @@ python scripts/automation/main.py --slot morning --dry-run
 > **PC em sleep:** `WakeToRun` acorda o computador automaticamente.
 > **PC desligado:** `StartWhenAvailable` executa no próximo boot.
 > Log em: `logs/automation.log`
+
+---
+
+## Manutenção do sistema
+
+### `/att-info-system` — Sincronização completa de sessão
+
+```
+/att-info-system
+```
+
+Executa o protocolo completo de fechamento de sessão de forma autônoma:
+
+1. Lê `VERSION.md`, `git log`, `git diff` e `git status`
+2. Detecta automaticamente o que mudou (módulo, tipo: MAJOR/MINOR/PATCH)
+3. Cria ou complementa a entrada do `CHANGELOG.md`
+4. Atualiza strings de versão em todos os docs (README, GUIA-COMANDOS, REFERENCIA, WORKFLOW, APRESENTACAO, MASTER-BLUEPRINT, LOGO, sbwaa.py)
+5. Atualiza conteúdo onde necessário: novos comandos em sbwaa.py /help, botões em ui.py, seções em GUIA-COMANDOS, REFERENCIA, WORKFLOW, APRESENTACAO, MASTER-BLUEPRINT
+6. Verifica segurança git (bloqueia vault/00-portfolio/, .env, caches)
+7. Faz commit + push + gh release (obrigatório para MINOR/MAJOR)
+8. Exibe relatório final compacto do que foi feito
+
+> Usar este comando ao encerrar **qualquer sessão** que tenha alterado o sistema.
 
 ---
 

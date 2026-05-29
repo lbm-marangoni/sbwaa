@@ -1,8 +1,130 @@
 ---
-description: Decisão do Portfolio Manager para um ativo já analisado
+description: Decisão do Portfolio Manager para um ativo já analisado — ou Modo Aporte multi-ativo
 ---
 
 # /pm $ARGUMENTS
+
+## ROTEAMENTO — ler antes de qualquer coisa
+
+Analisar `$ARGUMENTS` e rotear para o modo correto:
+
+| Caso | Condição | Modo |
+|------|----------|------|
+| A | `$ARGUMENTS` vazio ou em branco | **Modo Aporte** (interativo completo) |
+| B | `$ARGUMENTS` é apenas um número (ex: `700`, `1500.50`) | **Modo Aporte** com valor pré-preenchido |
+| C | `$ARGUMENTS` é um ticker de ativo (letras+números, ex: `MXRF11`) | **Modo Análise** (fluxo original) |
+
+---
+
+## MODO APORTE (Casos A e B)
+
+> Ativar quando `$ARGUMENTS` está vazio OU é apenas um valor numérico.
+
+O PM distribui capital entre múltiplos ativos da watchlist, com base nas análises existentes e no IPS.
+
+**Se Caso B:** o valor de `$ARGUMENTS` é o valor do aporte em R$ — pular a pergunta do Passo 1 e usar esse valor diretamente.
+
+### Passo A1 — Ler contexto da carteira
+
+Ler antes de fazer qualquer pergunta:
+- `vault/00-portfolio/carteira.md` — posição atual, patrimônio total, pesos
+- `vault/00-portfolio/ips.md` — perfil, limites de risco, alocação alvo por classe
+- `vault/00-portfolio/watchlist.md` — ativos monitorados (se existir)
+- `vault/01-ativos/` — listar subpastas existentes (= ativos com análise disponível)
+- `scripts/data/cache/risk_*.json` — métricas de risco (mais recente)
+
+### Passo A2 — Perguntas interativas
+
+Fazer as perguntas **uma de cada vez**, aguardando resposta antes de continuar.
+
+**Pergunta 1 — Valor** (pular se Caso B):
+> **Quanto deseja aportar no total? (R$)**
+> Informe o valor em reais (ex: 700, 1500.50).
+
+**Pergunta 2 — Classe de ativos:**
+> **Em qual classe deseja aportar?**
+> a) Ações | b) FIIs | c) ETFs | d) Renda Fixa | e) Múltiplas classes | f) PM decide
+
+**Pergunta 3 — Número de ativos:**
+> **Quantos ativos deseja incluir no aporte?**
+> a) 1 | b) 2 | c) 3 | d) PM decide (baseado no sizing ótimo)
+
+**Pergunta 4 — Restrições:**
+> **Alguma restrição para este aporte?**
+> Ex: "não quero XPML11", "só ativos que já tenho na carteira", "sem ações agora" — ou **nenhuma**.
+
+### Passo A3 — RF Oportunidade
+
+Ler `vault/00-portfolio/rf-oportunidade.md`, extrair `saldo_bruto` e `data_deposito` do bloco ```yaml```.
+Se `saldo_bruto > 0` e `data_deposito != "—"`:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 RF OPORTUNIDADE — CAIXINHA NUBANK
+────────────────────────────────────────────────────
+  Saldo bruto:          R$ X.XXX,XX
+  Rendimento est.*:     R$ X.XX  (N dias)
+  IOF estimado:         R$ X.XX  ✅ zerado / ⚠️ XX%
+  IR estimado*:         R$ X.XX  (XX,X%)
+  Líquido disponível:   R$ X.XXX,XX
+────────────────────────────────────────────────────
+  Aporte solicitado:    R$ X.XXX,XX  ✅ / ⚠️ insuficiente
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  * CDI 14,75% a.a. — IR realizado apenas no resgate.
+```
+
+- IOF: 96%→0% dias 1–30 sobre rendimentos; 0% após D30
+- IR: 22,5% ≤180d · 20% 181–360d · 17,5% 361–720d · 15% >720d
+- Alertar se `dias < 30` (IOF incide) e se saldo insuficiente.
+- Se arquivo ausente ou saldo zero: omitir silenciosamente.
+
+### Passo A4 — Seleção dos ativos e distribuição
+
+Com base nas análises disponíveis em `vault/01-ativos/` e nas restrições informadas:
+
+1. **Verificar quais ativos têm análise** — listar arquivos em `vault/01-ativos/*/pm-decisao-*.md` ou `*/tese*.md`
+2. **Se um ativo da watchlist não tiver análise:** avisar o usuário e oferecer rodar `/analisar TICKER` antes de continuar
+3. **Ranquear** os ativos elegíveis por adequação ao IPS, upside estimado e déficit de alocação vs alvo
+4. **Distribuir o capital** entre os N ativos selecionados, respeitando:
+   - Concentração máxima: 20% por ativo
+   - VaR da carteira: ≤ 2%
+   - Sizing por ativo conforme IPS
+
+Exibir o plano de distribuição:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PLANO DE APORTE — PM
+────────────────────────────────────────────────────
+Total a aportar:  R$ X.XXX,XX
+
+  TICKER1  [Tipo]  R$ X.XXX  (XX%)  — sizing: XX% → XX% após
+  TICKER2  [Tipo]  R$ X.XXX  (XX%)  — sizing: XX% → XX% após
+  TICKER3  [Tipo]  R$ X.XXX  (XX%)  — sizing: XX% → XX% após
+
+Concentração max após:  XX,X%  ✅ / ⚠️
+VaR estimado após:      X,X%   ✅ / ⚠️
+Status IPS:             ✅ APROVADO / ⚠️ ACIMA DO IDEAL / 🚨 VIOLA IPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Passo A5 — Confirmação e registro
+
+Perguntar:
+> **Confirma este plano de aporte? (sim / ajustar / cancelar)**
+
+Se **ajustar**: perguntar o que mudar e refazer A4.
+Se **cancelar**: encerrar sem registrar.
+Se **sim**: para cada ativo do plano, acrescentar linha em `vault/00-portfolio/decisoes.md` e salvar `vault/01-ativos/TICKER/pm-decisao-TICKER-YYYY-MM-DD.md`.
+
+Se houver RF Oportunidade: informar o comando para registrar a movimentação:
+`python sbwaa.py /oportunidade --retirar X.XX --destino TICKERS`
+
+---
+
+## MODO ANÁLISE (Caso C)
+
+> Ativar quando `$ARGUMENTS` é um ticker de ativo.
 
 Decisão final do Portfolio Manager para **$ARGUMENTS**.
 

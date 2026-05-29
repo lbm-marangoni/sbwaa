@@ -69,6 +69,7 @@ COMANDOS_IA = {
     "/rebalancear":         "rebalancear",
     "/revisar-carteira":    "revisar-carteira",
     "/metas":               "metas",
+    "/att-info-system":     "att-info-system",
 }
 
 TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": None, "/help": None, "/status": None}
@@ -77,7 +78,7 @@ TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": No
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.13.0               ║
+║            SBWAA — Referência de Comandos  v2.13.2               ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]
@@ -268,6 +269,16 @@ def exibir_help():
 
   python sbwaa.py /help
       Este menu.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  MANUTENÇÃO  (digitar no chat do Claude Code)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  /att-info-system
+      Sincronização completa de sessão: lê git log/diff, detecta o que mudou,
+      atualiza todos os docs (versões, CHANGELOG, GUIA-COMANDOS, REFERENCIA,
+      WORKFLOW, APRESENTACAO, MASTER-BLUEPRINT, LOGO, sbwaa.py, ui.py),
+      faz commit + push + gh release. Rodar ao encerrar qualquer sessão.
 
 ══════════════════════════════════════════════════════════════════════
 """)

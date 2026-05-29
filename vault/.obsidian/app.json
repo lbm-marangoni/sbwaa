@@ -1,3 +1,4 @@
 {
-  "templateFolder": "_templates"
+  "templateFolder": "_templates",
+  "promptDelete": false
 }

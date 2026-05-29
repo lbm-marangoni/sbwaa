@@ -2,6 +2,33 @@
 
 ---
 
+## [2.13.2] — 2026-05-29 — COMANDO /att-info-system
+
+### Added
+- **`.claude/commands/att-info-system.md`** — novo slash command de fechamento de sessão completo:
+  - Fase 1: leitura de estado (VERSION.md, git log, git diff, git status, versões de todos os docs)
+  - Fase 2: diagnóstico automático — detecta se é MAJOR/MINOR/PATCH ou só sync de docs
+  - Fase 3: CHANGELOG — cria entrada se ausente, complementa se incompleta
+  - Fase 4: atualizações mecânicas de versão em todos os docs (README, GUIA-COMANDOS, REFERENCIA, WORKFLOW, APRESENTACAO, MASTER-BLUEPRINT, LOGO, sbwaa.py)
+  - Fase 5: atualizações de conteúdo — sbwaa.py /help, ui.py botões, GUIA-COMANDOS, REFERENCIA, WORKFLOW, APRESENTACAO, MASTER-BLUEPRINT
+  - Fase 6: verificação de segurança git (bloqueia vault/00-portfolio/, .env, caches privados)
+  - Fase 7: ciclo git completo — add seletivo, commit, push, gh release create (MINOR/MAJOR obrigatório; PATCH conforme criticidade)
+  - Fase 8: relatório final compacto do que foi feito
+- **`sbwaa.py`** — `/att-info-system` adicionado ao dict `COMANDOS_IA` e ao `/help` (bloco SISTEMA)
+- **`docs/GUIA-COMANDOS.md`** e **`docs/SBWAA-REFERENCIA.md`** — documentação do novo comando
+
+---
+
+## [2.13.1] — 2026-05-29 — FIX /pm MODO APORTE
+
+### Fixed
+- **`.claude/commands/pm.md`** — GUARD bloqueava `/pm` sem argumentos; substituído por roteamento A/B/C:
+  - Caso A (`$ARGUMENTS` vazio): dispara Modo Aporte interativo completo (5 passos)
+  - Caso B (`$ARGUMENTS` é número): Modo Aporte com valor pré-preenchido (pula pergunta de valor)
+  - Caso C (`$ARGUMENTS` é ticker): fluxo de análise original mantido intacto
+
+---
+
 ## [2.13.0] — 2026-05-29 — MOTOR TRIBUTÁRIO + RF OPORTUNIDADE
 
 ### Added

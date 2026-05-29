@@ -4,6 +4,10 @@ description: Pipeline completo de análise de ativo (8 etapas) sem API key — u
 
 # /analisar $ARGUMENTS
 
+> **GUARD:** Se `$ARGUMENTS` estiver vazio ou em branco, responda APENAS com:
+> `Uso: /analisar TICKER [TICKER2 ...] — ex: /analisar MXRF11` ou `/analisar MXRF11 PETR4`
+> e pare imediatamente.
+
 Execute o pipeline completo de análise para: **$ARGUMENTS**
 
 ## DETECÇÃO DE MODO

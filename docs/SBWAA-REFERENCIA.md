@@ -4,7 +4,7 @@
 > O guia cobre sintaxe e flags. Esta referência cobre **o que cada comando entrega**:
 > campos, estrutura do output e o que você pode esperar ver.
 
-**Versão: v2.12.0**
+**Versão: v2.13.2**
 
 ---
 
@@ -39,6 +39,9 @@
 - [/relatorio-mensal](#relatorio-mensal)
 - [/rebalancear](#rebalancear)
 - [/revisar-carteira](#revisar-carteira)
+
+**Manutenção**
+- [/att-info-system](#att-info-system)
 
 ---
 
@@ -916,6 +919,44 @@ PM revisa **todas as posições em carteira de uma vez** — não chama `/pm` ne
 ```
 
 > Salvo em: `vault/02-relatorios/revisoes/revisao-carteira-YYYY-MM-DD.md`
+
+---
+
+### /att-info-system
+
+**Tipo:** Manutenção — Claude Code slash command  
+**Uso:** digitar `/att-info-system` no chat do Claude Code
+
+**O que entrega:**
+
+Protocolo completo de fechamento de sessão em 8 fases:
+
+| Fase | Ação |
+|------|------|
+| 1 | Lê VERSION.md, git log -20, git diff HEAD, git status, versões de todos os docs |
+| 2 | Diagnóstico: detecta o que mudou e se é MAJOR/MINOR/PATCH ou só sync de docs |
+| 3 | CHANGELOG: cria entrada se ausente; complementa se incompleta |
+| 4 | Atualiza strings de versão em todos os docs mecanicamente |
+| 5 | Atualiza conteúdo: sbwaa.py /help, ui.py botões, GUIA-COMANDOS, REFERENCIA, WORKFLOW, APRESENTACAO, MASTER-BLUEPRINT |
+| 6 | Verificação de segurança git — nunca commita vault/00-portfolio/, .env, caches |
+| 7 | Ciclo git: add seletivo → commit → push → gh release (obrigatório MINOR/MAJOR) |
+| 8 | Relatório final compacto: o que foi atualizado, hash do commit, status do release |
+
+**Output esperado:**
+
+```
+✅ /att-info-system concluído — v2.13.2
+
+Docs atualizados: README, GUIA-COMANDOS, SBWAA-REFERENCIA, SBWAA-WORKFLOW,
+                  SBWAA-APRESENTACAO, SBWAA-MASTER-BLUEPRINT, SBWAA-LOGO, sbwaa.py
+Conteúdo atualizado: sbwaa.py /help (novo cmd), GUIA-COMANDOS (seção Manutenção)
+Commit: a1b2c3d — feat: /att-info-system — sincronização completa de sessão
+Push: origin/master ✓
+Release: não aplicável (PATCH de manutenção)
+```
+
+> Rodar ao encerrar qualquer sessão que tenha alterado o sistema.
+> Substitui o pedido manual "leia o CLAUDE.md e execute o que não foi feito".
 
 ---
 
