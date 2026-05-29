@@ -197,52 +197,39 @@ git push origin master
 
 **Sempre crie um release** para qualquer versão (MAJOR, MINOR ou PATCH) — sem exceção.
 
-#### Identificar o último release publicado
+#### Identificar versões sem release
 
 Execute:
 ```bash
-gh release list --limit 5
+gh release list --limit 20
 ```
 
-Anote a tag do release mais recente (ex: `v2.19.0`).
+Compare as tags listadas com as versões no `CHANGELOG.md`. Identifique todas as versões do CHANGELOG que **não têm release publicado** na lista.
 
-#### Montar as release notes com histórico acumulado
+#### Criar um release por versão sem release
 
-As notas do release devem cobrir **todas as versões desde o último release publicado** até a versão canônica atual — não apenas a versão corrente.
+Para **cada versão** que estiver no CHANGELOG mas sem release, crie um release individual com as notas daquela versão específica — **não acumule múltiplas versões em um único release**.
 
-Execute para extrair os commits entre o último release e o HEAD:
-```bash
-git log <ultima-tag>..HEAD --oneline
+Ordem: da mais antiga para a mais recente. O último release criado deve receber `--latest`.
+
+Para cada versão `vX.Y.Z`:
+1. Extraia do `CHANGELOG.md` a seção `## [X.Y.Z]` completa
+2. Formate como:
 ```
-
-Em seguida, extraia do `CHANGELOG.md` **todas as entradas** cujas versões estejam entre `<ultima-tag>` (exclusive) e a versão canônica atual (inclusive).
-
-Formate as notas assim:
+### Added / Fixed / Changed / Removed
+- item 1
+- item 2
 ```
-## Mudanças desde <ultima-tag>
-
-### vX.Y.Z — YYYY-MM-DD
-#### Added
-- ...
-#### Fixed
-- ...
-
-### vX.Y.(Z-1) — YYYY-MM-DD  ← se houver versões intermediárias não liberadas
-#### Added
-- ...
-```
-
-Se a versão canônica for a mesma do último release (somente sincronização de docs), ainda assim crie o release com as notas da versão atual.
-
-#### Criar o release
-
+3. Execute:
 ```bash
 gh release create vX.Y.Z \
-  --title "vX.Y.Z — <descrição curta da mudança principal>" \
-  --notes "<notas acumuladas conforme acima>" \
-  --latest \
+  --title "vX.Y.Z — <descrição da seção no CHANGELOG>" \
+  --notes "<conteúdo da seção [X.Y.Z] do CHANGELOG>" \
   --target master
+  # Adicionar --latest apenas no último release (versão canônica atual)
 ```
+
+Se a versão canônica já tiver release publicado (somente sincronização de docs), ainda assim recrie com `--latest` para garantir que está marcado como mais recente.
 
 ---
 
