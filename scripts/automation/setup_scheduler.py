@@ -41,7 +41,7 @@ SCHEDULER_TASKS = [
     {
         "name":     "SBWAA_Alerta",
         "slot":     "alerta",
-        "schedule": ["/SC", "MINUTE", "/MO", "60", "/D", "MON,TUE,WED,THU,FRI", "/ST", "10:00"],
+        "schedule": ["/SC", "MINUTE", "/MO", "60", "/ST", "10:00"],
         "desc":     "SBWAA — Monitor de preços intraday (seg–sex a cada 60min)",
     },
 ]
