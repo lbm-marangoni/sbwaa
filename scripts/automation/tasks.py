@@ -131,3 +131,18 @@ MONTHLY_TASKS: list[Task] = [
         timeout=1800,
     ),
 ]
+
+
+# ── SLOT ALERTA ────────────────────────────────────────────────────────────────
+# Roda seg-sex a cada 60 min (10:00–17:00) — monitor intraday de preços-alvo
+# Controle de horário feito em main.py — fora do pregão o slot retorna lista vazia
+
+ALERTA_TASKS: list[Task] = [
+    Task(
+        name="check_precos_alvo",
+        description="Monitor intraday — preços-alvo, circuit breakers e dividendos",
+        task_type="python",
+        command=[PYTHON, str(ALERTS_SCRIPT)],
+        timeout=120,
+    ),
+]

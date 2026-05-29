@@ -1,7 +1,7 @@
 ---
 tags: [apresentacao, sbwaa, sistema]
 cssclasses: [node-apresentacao]
-versao: v2.13.2
+versao: v2.14.0
 atualizado: 2026-05-29
 ---
 

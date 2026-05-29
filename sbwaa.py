@@ -51,6 +51,7 @@ COMANDOS_LOCAIS = {
     "/knowledge":           "knowledge/knowledge_cmd.py",
     "/otimizar-expansao":   "scripts/data/optimize_expansao.py",
     "/oportunidade":        "scripts/data/rf_oportunidade.py",
+    "/alerta":              "scripts/alerts/alerta_cmd.py",
 }
 
 # Comandos de IA — redirecionados para Claude Code (sem API key)
@@ -78,7 +79,7 @@ TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": No
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.13.2               ║
+║            SBWAA — Referência de Comandos  v2.14.0               ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]
@@ -269,6 +270,24 @@ def exibir_help():
 
   python sbwaa.py /help
       Este menu.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ALERTAS DE PREÇO  (local — sem IA, sem API key)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  python sbwaa.py /alerta --listar
+      Lista alertas de preço ativos. Gerados automaticamente por /analisar, /tese e /pm.
+      Tipos: teto, alvo, valor_justo, entrada, chao, stop, pessimista.
+
+  python sbwaa.py /alerta --historico
+      Histórico de alertas disparados. Não lidos primeiro.
+      Marcar como lido: editar alertas-historico.md no Obsidian (checkbox).
+
+  python sbwaa.py /alerta --verificar
+      Roda a verificação de preços agora (fora do scheduler automático).
+
+  python sbwaa.py /alerta --remover TICKER
+      Remove todos os alertas ativos de um ticker.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   MANUTENÇÃO  (digitar no chat do Claude Code)

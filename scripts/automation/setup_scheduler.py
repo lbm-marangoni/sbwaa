@@ -38,6 +38,12 @@ SCHEDULER_TASKS = [
         "schedule": ["/SC", "WEEKLY", "/D", "SAT,SUN", "/ST", "08:00"],
         "desc":     "SBWAA — Relatórios fim de semana (sáb–dom 08:00)",
     },
+    {
+        "name":     "SBWAA_Alerta",
+        "slot":     "alerta",
+        "schedule": ["/SC", "MINUTE", "/MO", "60", "/D", "MON,TUE,WED,THU,FRI", "/ST", "10:00"],
+        "desc":     "SBWAA — Monitor de preços intraday (seg–sex a cada 60min)",
+    },
 ]
 
 
@@ -185,11 +191,11 @@ Exemplos:
   python setup_scheduler.py --testar morning
         """,
     )
-    parser.add_argument("--instalar", action="store_true", help="Instala as 3 tarefas")
+    parser.add_argument("--instalar", action="store_true", help="Instala as 4 tarefas (morning, eod, weekend, alerta)")
     parser.add_argument("--remover", action="store_true", help="Remove todas as tarefas")
     parser.add_argument("--status", action="store_true", help="Mostra status")
     parser.add_argument("--sem-wake", action="store_true", help="Não ativa WakeToRun")
-    parser.add_argument("--testar", metavar="SLOT", help="Dispara um slot agora (morning|eod|weekend)")
+    parser.add_argument("--testar", metavar="SLOT", help="Dispara um slot agora (morning|eod|weekend|alerta)")
     args = parser.parse_args()
 
     if args.instalar:

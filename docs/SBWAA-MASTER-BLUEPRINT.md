@@ -1,7 +1,7 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.13.2  
+**Versão de referência:** v2.14.0  
 **Data de geração:** 2026-05-29  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 

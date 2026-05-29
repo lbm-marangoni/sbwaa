@@ -2,6 +2,52 @@
 
 ---
 
+## [2.14.0] — 2026-05-29 — /ALERTA: MONITOR DE PREÇOS BIDIRECIONAL
+
+### Added
+- **`scripts/alerts/extract_targets.py`** — parser automático de vault/01-ativos/:
+  - Extrai preços de teto, alvo, valor justo, chão, nível de entrada, stop e downside pessimista
+  - Lê frontmatter (`preco-alvo:`) e corpo do markdown com regex padronizada
+  - Prioridade de leitura: analise > pm-decisao > tese-rapida > tese
+  - Deduplica por tipo (o arquivo mais recente vence por tipo de alerta)
+  - Flags: `--ticker TICKER` (individual) e `--todos` (reprocessar toda a vault)
+  - Salva em `vault/00-portfolio/alertas.json`
+
+- **`scripts/alerts/alerta_cmd.py`** — CLI para gerenciar alertas:
+  - `--listar`: alertas ativos agrupados por ticker
+  - `--historico`: histórico com contagem de não lidos/lidos
+  - `--verificar`: dispara check_alerts agora (fora do scheduler)
+  - `--remover TICKER`: remove alertas de um ticker
+
+- **`vault/05-risk/alertas-historico.md`** — criado automaticamente no primeiro disparo:
+  - Formato Obsidian checkbox: `- [ ]` (não lido) / `- [x]` (lido)
+  - Novos alertas inseridos no topo (ancoragem via comentário HTML)
+  - Contém: timestamp, severidade, ticker, cotação vs alvo, ação sugerida
+
+- **Novo slot Task Scheduler `SBWAA_Alerta`** — seg–sex a cada 60 min:
+  - Horário: 10:00–17:00 (controle de pregão em main.py, não no scheduler)
+  - Roda `check_alerts.py` (incluindo verificação de preços-alvo)
+  - Custo: ~20–30s por execução, 0 tokens Claude
+
+### Changed
+- **`scripts/alerts/check_alerts.py`** — três extensões:
+  - Nova `verificar_precos_alvo()`: compara cotação yfinance com alertas.json; remove one-shot ao disparar
+  - Nova `adicionar_ao_historico()`: appenda alertas disparados em alertas-historico.md
+  - Nova `_notificar()`: toast Windows via notifier.py para severidade CRÍTICO/ALTO
+  - `verificar_alertas()` agora chama `verificar_precos_alvo()`
+  - `main()` agora chama `adicionar_ao_historico()` e `_notificar()`
+
+- **`scripts/automation/tasks.py`** — novo `ALERTA_TASKS` com task `check_precos_alvo`
+- **`scripts/automation/main.py`** — novo `elif slot == "alerta"` com guard de dia útil e horário
+- **`scripts/automation/setup_scheduler.py`** — `SBWAA_Alerta` adicionado à lista; `--testar` aceita `alerta`
+- **`sbwaa.py`** — `/alerta` adicionado a `COMANDOS_LOCAIS`; bloco `ALERTAS DE PREÇO` no `/help`
+- **`vault/_templates/pm-decisao.md`** — `## Nível de entrada` e `## Stop / Revisão` agora têm linhas padrão parseable (`**Nível de entrada:** R$ —` e `**Stop:** R$ —`)
+- **`.claude/commands/pm.md`** — Passo 4 (novo): roda `extract_targets.py --ticker` após salvar; instrução de formato obrigatório para Nível de entrada e Stop. Passo de decisoes.md renumerado para Passo 5
+- **`.claude/commands/tese.md`** — Passo 5 (novo): roda `extract_targets.py --ticker`; instrução de formato para seção Preço Teto
+- **`.claude/commands/analisar.md`** — Etapa 10 (nova): roda `extract_targets.py` para cada ticker; instrução de preenchimento do frontmatter `preco-alvo:`
+
+---
+
 ## [2.13.2] — 2026-05-29 — COMANDO /att-info-system
 
 ### Added

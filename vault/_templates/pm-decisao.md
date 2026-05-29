@@ -38,8 +38,11 @@ agente: portfolio-manager
 - Aporte sugerido: R$ —
 
 ## Nível de entrada
+**Nível de entrada:** R$ — *(preço máximo para entrada; ou "aguardar evento — {descrição}" se não for baseado em preço)*
 
 ## Stop / Revisão
+**Stop:** R$ — *(preço de stop; ou "— sem stop de preço" se baseado em evento)*
+**Condição de revisão:** —
 
 ## Adequação ao IPS
 

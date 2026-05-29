@@ -147,8 +147,8 @@ Leia `.claude/agents/portfolio-manager/SKILL.md` e emita a decisão com:
 1. **VEREDICTO:** COMPRAR / AGUARDAR / EVITAR (em destaque)
 2. **Tese em 3 bullets:** por que este veredicto agora
 3. **Sizing:** % sugerido do portfólio, posição atual vs alvo
-4. **Nível de entrada:** preço máximo aceitável ou gatilho de evento
-5. **Stop / Revisão:** condição que invalidaria a tese
+4. **Nível de entrada:** escrever obrigatoriamente como `**Nível de entrada:** R$ XX.XX` (preço máximo aceitável para entrada). Se for condicional a evento: `**Nível de entrada:** aguardar {evento/condição}`.
+5. **Stop / Revisão:** escrever obrigatoriamente em duas linhas: `**Stop:** R$ XX.XX` e `**Condição de revisão:** {motivo}`. Se não houver stop de preço: `**Stop:** — sem stop de preço`.
 6. **Adequação ao IPS:** confirmar que a operação respeita todos os limites
 
 Seja direto. Nenhuma análise de ativo vale mais do que a adequação ao perfil do investidor.
@@ -281,9 +281,22 @@ Próximo passo: execute a ordem na sua corretora.
 
 ---
 
-## Passo 4 — Salvar em decisoes.md
+## Passo 4 — Registrar alertas de preço
 
-Acrescente **uma linha** na tabela de `vault/00-portfolio/decisoes.md` com os dados da decisão:
+Após salvar os arquivos do passo anterior, executar:
+
+```powershell
+$env:PYTHONUTF8 = "1"; python scripts/alerts/extract_targets.py --ticker $ARGUMENTS
+```
+
+> Se $ARGUMENTS for vazio (Modo Aporte), executar para cada ticker do plano de aporte confirmado.
+> Se o comando falhar: ignorar silenciosamente e prosseguir.
+
+---
+
+## Passo 5 — Salvar em decisoes.md
+
+Acrescente **uma linha** na tabela de `vault/00-portfolio/decisoes.md` com os dados da decisão. (Renumerado de Passo 4 para Passo 5 — conteúdo inalterado.)
 
 | YYYY-MM-DD | $ARGUMENTS | {Tipo do ativo} | {VEREDICTO} | {Sizing sugerido %} | {Aporte planejado R$ ou —} | Sim/Não | [[pm-decisao-$ARGUMENTS-YYYY-MM-DD]] |
 

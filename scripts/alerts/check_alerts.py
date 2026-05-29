@@ -1,6 +1,7 @@
 """
 check_alerts.py — Verifica condições de alerta na carteira e no mercado.
-Chamado pelo heartbeat e pode ser chamado manualmente.
+Inclui: variação de ativos, circuit breakers, dividendos, correlação e preços-alvo.
+Chamado pelo heartbeat, pelo slot "alerta" e manualmente.
 Uso: python scripts/alerts/check_alerts.py
 """
 
@@ -18,6 +19,9 @@ LOGS_DIR = PROJECT_ROOT / "logs"
 CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
 IPS_PATH = VAULT_ROOT / "00-portfolio" / "ips.md"
 RISK_ALERTS_DIR = VAULT_ROOT / "05-risk" / "snapshots"
+ALERTAS_JSON = VAULT_ROOT / "00-portfolio" / "alertas.json"
+HISTORICO_MD = VAULT_ROOT / "05-risk" / "alertas-historico.md"
+HISTORICO_ANCORA = "<!-- ALERTAS DISPARADOS — não editar esta linha -->"
 
 ALERTAS_CONFIG = {
     "queda_ativo":              {"threshold_pct": 5.0,  "severidade": "ALTO"},
@@ -283,6 +287,125 @@ def exibir_alertas(alertas: list[dict]):
     print(f"\n{'═'*55}\n")
 
 
+def verificar_precos_alvo() -> list[dict]:
+    """Verifica alertas de preço-alvo configurados em alertas.json (gerados pelos agentes)."""
+    alertas: list[dict] = []
+    if not ALERTAS_JSON.exists():
+        return alertas
+    try:
+        dados = json.loads(ALERTAS_JSON.read_text(encoding="utf-8"))
+    except Exception:
+        return alertas
+
+    ativos = dados.get("alertas", [])
+    if not ativos:
+        return alertas
+
+    try:
+        import yfinance as yf
+        import re as _re
+        def eh_br(t): return bool(_re.match(r"^[A-Z]{4}[0-9]{1,2}[FBP]?$", t))
+        def ty(t): return f"{t}.SA" if eh_br(t) else t
+    except ImportError:
+        return alertas
+
+    disparados: list[str] = []
+
+    for alerta in ativos:
+        ticker = alerta["ticker"]
+        preco_alvo = float(alerta["preco"])
+        direcao = alerta["direcao"]
+        try:
+            info = yf.Ticker(ty(ticker)).info or {}
+            cotacao = info.get("regularMarketPrice") or info.get("currentPrice")
+            if not cotacao:
+                continue
+            cotacao = float(cotacao)
+            disparou = (
+                (direcao == "acima"  and cotacao >= preco_alvo) or
+                (direcao == "abaixo" and cotacao <= preco_alvo)
+            )
+            if disparou:
+                sinal = "↑" if direcao == "acima" else "↓"
+                sev = "ALTO" if alerta["tipo"] == "stop" else "MÉDIO"
+                alertas.append({
+                    "tipo":          f"preco_alvo_{alerta['tipo']}",
+                    "severidade":    sev,
+                    "ticker":        ticker,
+                    "mensagem":      f"{ticker} {sinal} R${cotacao:.2f} [{alerta['tipo']}] alvo R${preco_alvo:.2f} — {alerta['descricao']}",
+                    "acao_sugerida": alerta.get("acao_sugerida", f"/pm {ticker}"),
+                    "_alerta_id":    alerta["id"],
+                    "_cotacao":      cotacao,
+                    "_preco_alvo":   preco_alvo,
+                })
+                disparados.append(alerta["id"])
+        except Exception:
+            continue
+
+    # Remove alertas one-shot disparados
+    if disparados:
+        dados["alertas"] = [a for a in dados["alertas"] if a["id"] not in disparados]
+        ALERTAS_JSON.write_text(json.dumps(dados, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    return alertas
+
+
+def adicionar_ao_historico(alertas: list[dict]):
+    """Appenda alertas de preço-alvo em alertas-historico.md (formato Obsidian checkbox)."""
+    preco_alertas = [a for a in alertas if a.get("tipo", "").startswith("preco_alvo_")]
+    if not preco_alertas:
+        return
+
+    HISTORICO_MD.parent.mkdir(parents=True, exist_ok=True)
+
+    if not HISTORICO_MD.exists():
+        HISTORICO_MD.write_text(
+            "---\ntags: [alertas, historico]\ncssclasses: [node-alertas]\n---\n\n"
+            "# Alertas — Histórico\n\n"
+            "> Clique no checkbox para marcar como lido. Atualizado automaticamente pelo monitor.\n\n"
+            "---\n\n"
+            f"{HISTORICO_ANCORA}\n",
+            encoding="utf-8",
+        )
+
+    texto = HISTORICO_MD.read_text(encoding="utf-8")
+    agora = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    novas: list[str] = []
+    for a in preco_alertas:
+        icone = "⚠️" if a["severidade"] == "ALTO" else "ℹ️"
+        tipo_label = a["tipo"].replace("preco_alvo_", "").upper()
+        novas.append(f"- [ ] {agora} | {icone} {tipo_label} | {a['mensagem']} | {a['acao_sugerida']}")
+
+    insercao = "\n".join(novas) + "\n"
+    if HISTORICO_ANCORA in texto:
+        texto = texto.replace(HISTORICO_ANCORA, HISTORICO_ANCORA + "\n" + insercao, 1)
+    else:
+        texto += "\n" + HISTORICO_ANCORA + "\n" + insercao
+
+    HISTORICO_MD.write_text(texto, encoding="utf-8")
+
+
+def _notificar(alertas: list[dict]):
+    """Dispara notificação Windows para alertas CRÍTICO e ALTO."""
+    urgentes = [a for a in alertas if a.get("severidade") in ("CRÍTICO", "ALTO")]
+    if not urgentes:
+        return
+    try:
+        sys.path.insert(0, str(PROJECT_ROOT))
+        from scripts.automation.notifier import notify  # type: ignore
+        titulo = f"SBWAA — {len(urgentes)} alerta(s)"
+        linhas = [
+            f"{SEVERIDADE_ICONE.get(a['severidade'], '')} {a['mensagem']}"
+            for a in urgentes[:3]
+        ]
+        if len(urgentes) > 3:
+            linhas.append(f"... e mais {len(urgentes) - 3}")
+        notify(titulo, "\n".join(linhas))
+    except Exception:
+        pass
+
+
 def verificar_alertas() -> list[dict]:
     """Ponto de entrada principal — retorna lista de alertas ativos."""
     alertas = []
@@ -304,6 +427,9 @@ def verificar_alertas() -> list[dict]:
     if quant:
         alertas += verificar_correlacao(quant)
 
+    # Preços-alvo configurados pelos agentes
+    alertas += verificar_precos_alvo()
+
     return alertas
 
 
@@ -313,6 +439,8 @@ def main():
     if alertas:
         registrar_log(alertas)
         salvar_alerta_vault(alertas)
+        adicionar_ao_historico(alertas)
+        _notificar(alertas)
 
     exibir_alertas(alertas)
     return alertas

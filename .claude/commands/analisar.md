@@ -351,3 +351,22 @@ Prioridade de aporte (PM): TICK1 > TICK2
 Colunas obrigatórias: Ticker | Tipo | Veredicto PM | Valuation Reviewer | Upside DCF | Preço Teto (Graham ou Bazin) | Cotação atual | Sizing sugerido
 
 Linha "Prioridade de aporte": ordenar os ativos com veredicto COMPRAR por upside DCF decrescente. Ativos AGUARDAR/EVITAR ficam fora da ordenação de prioridade.
+
+---
+
+## ETAPA 10 — Registrar alertas de preço
+
+Após salvar todos os arquivos da Etapa 9, executar para **cada ticker** processado:
+
+```powershell
+$env:PYTHONUTF8 = "1"; python scripts/alerts/extract_targets.py --ticker {TICKER}
+```
+
+Em batch (2+ tickers): executar um comando por ticker, em sequência.
+Se o comando falhar: ignorar silenciosamente e prosseguir.
+
+Na nota consolidada (`analise-{TICKER}-YYYY-MM-DD.md`), garantir que a seção **Decisão PM** inclua:
+- `**Preço-alvo:** R$ XX.XX` (ou `**Preço teto (Graham/Bazin):** R$ XX.XX`)
+- `**Nível de entrada:** R$ XX.XX`
+
+E o frontmatter deve ter `preco-alvo: XX.XX` preenchido.

@@ -50,6 +50,11 @@ Emita:
 
 Salve em `vault/01-ativos/$ARGUMENTS/tese-rapida-$ARGUMENTS-YYYY-MM-DD.md` usando o template `vault/_templates/tese-ativo.md` como base. Preencher TODAS as seções.
 
+Na seção **Preço Teto / Nível de Entrada**, usar obrigatoriamente o formato:
+- `**Preço teto (Graham/Bazin 8%):** R$ XX.XX`
+- `**Preço chão (Bazin 12%):** R$ XX.XX` (somente FII)
+- `**Valor justo (base):** R$ XX.XX`
+
 ```markdown
 ---
 tags: [ativo, tese, {tipo-lowercase}]
@@ -91,3 +96,13 @@ status: ativa
 - [[carteira]]
 - [[ips]]
 ```
+
+## Passo 5 — Registrar alertas de preço
+
+Após salvar a tese, executar:
+
+```powershell
+$env:PYTHONUTF8 = "1"; python scripts/alerts/extract_targets.py --ticker $ARGUMENTS
+```
+
+> Se o comando falhar: ignorar silenciosamente e prosseguir.
