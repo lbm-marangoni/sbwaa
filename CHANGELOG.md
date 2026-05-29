@@ -2,6 +2,26 @@
 
 ---
 
+## [2.16.0] — 2026-05-29 — /FLUXO-CAIXA: PROJEÇÃO DE RENDA PASSIVA
+
+### Added
+- **`scripts/data/fluxo_caixa.py`** — projeção de renda passiva mês a mês (12 meses):
+  - **Seção A — Renda Periódica** (ações, FIIs, ETFs): tabela calendário mês × ticker
+    - Pagamentos históricos recebidos (✅), declarados futuros (📢), projetados por frequência (~)
+    - Frequência detectada automaticamente (mensal/trimestral/semestral/anual) via histórico Brapi/yfinance
+    - Declarados têm prioridade sobre projetados para evitar duplicatas
+  - **Seção B — Valorização RF/TD/DEB/CRI-CRA** (separada): crescimento mensal estimado
+    - Bruto: PM × qtd × taxa_mensal (CDI/IPCA/PRE via indexador+taxa de tese.md)
+    - Líquido: bruto − IR estimado (alíquota regressiva pelo prazo de holding em cada mês)
+    - CRI/CRA: IR isento explicitamente; IOF = zero (posições ativas > 30 dias)
+  - **Alerta vs meta**: lê `alvo_mensal` de `vault/00-portfolio/metas.md`; alerta ⚠️ se < meta
+  - Output: `vault/00-portfolio/fluxo-caixa.md` com wikilinks `[[TICKER]]` para cada ativo
+  - Importa funções de `dividendos.py` (sem duplicar lógica de fetch/análise)
+- **`scripts/automation/tasks.py`** — `fluxo_caixa_build` no slot WEEKEND (toda semana, domingo)
+- **`sbwaa.py`** — `/fluxo-caixa` em `COMANDOS_LOCAIS` + bloco FLUXO DE CAIXA no `/help`
+
+---
+
 ## [2.15.1] — 2026-05-29 — PERSISTÊNCIA DE P&L HISTÓRICO
 
 ### Added

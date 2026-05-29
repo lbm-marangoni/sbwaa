@@ -53,6 +53,7 @@ COMANDOS_LOCAIS = {
     "/oportunidade":        "scripts/data/rf_oportunidade.py",
     "/alerta":              "scripts/alerts/alerta_cmd.py",
     "/performance":         "scripts/data/performance.py",
+    "/fluxo-caixa":         "scripts/data/fluxo_caixa.py",
 }
 
 # Comandos de IA — redirecionados para Claude Code (sem API key)
@@ -282,6 +283,19 @@ def exibir_help():
 
   python sbwaa.py /help
       Este menu.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  FLUXO DE CAIXA  (local — sem IA, sem API key)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  python sbwaa.py /fluxo-caixa
+      Projeção de renda passiva mês a mês — próximos 12 meses.
+      Seção A: ações/FIIs/ETFs — dividendos recebidos, declarados e projetados.
+        Tabela mês × ticker com status (✅ recebido | 📢 declarado | ~ projetado).
+      Seção B: RF/TD/DEB/CRI-CRA — valorização mensal estimada bruta + líquida (IR).
+      Alerta se renda projetada < meta de metas.md.
+      Salva: vault/00-portfolio/fluxo-caixa.md (wikilinks para cada ativo).
+      Atualizado automaticamente pelo slot weekend do Task Scheduler (toda semana).
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   PERFORMANCE  (local — sem IA, sem API key)

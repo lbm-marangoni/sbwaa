@@ -16,6 +16,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 SCRIPTS_DATA = PROJECT_ROOT / "scripts" / "data"
 AGENTS_DIR = PROJECT_ROOT / ".claude" / "agents"
 ALERTS_SCRIPT        = PROJECT_ROOT / "scripts" / "alerts" / "check_alerts.py"
+FLUXO_CAIXA_SCRIPT   = PROJECT_ROOT / "scripts" / "data"   / "fluxo_caixa.py"
 PERFORMANCE_SCRIPT   = PROJECT_ROOT / "scripts" / "data"   / "performance.py"
 UPDATE_CARTEIRA_SCRIPT = PROJECT_ROOT / "scripts" / "data" / "update_carteira.py"
 KNOWLEDGE_DIR        = PROJECT_ROOT / "knowledge"
@@ -129,6 +130,13 @@ EOD_TASKS: list[Task] = [
 # Lógica de quando aplicar cada task está no main.py (domingo = semanal, 1° fds = mensal)
 
 WEEKEND_TASKS: list[Task] = [
+    Task(
+        name="fluxo_caixa_build",
+        description="Atualiza projeção de fluxo de caixa — renda passiva 12 meses",
+        task_type="python",
+        command=[PYTHON, str(FLUXO_CAIXA_SCRIPT)],
+        timeout=300,
+    ),
     Task(
         name="relatorio_semanal",
         description="Relatório semanal de performance e risco",
