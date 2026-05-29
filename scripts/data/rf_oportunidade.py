@@ -24,7 +24,11 @@ ARQ_OPORT   = VAULT_ROOT / "00-portfolio" / "rf-oportunidade.md"
 
 def _ler_yaml_bloco(conteudo: str) -> dict:
     """Extrai saldo_bruto e data_deposito do bloco ```yaml``` no arquivo."""
-    m = re.search(r"```yaml\s*\nsaldo_bruto:\s*([\d.,]+)\ndata_deposito:\s*\"([^\"]+)\"", conteudo)
+    # Aceita tanto "data" (aspas normais) quanto \"data\" (aspas escapadas)
+    m = re.search(
+        r"```yaml\s*\nsaldo_bruto:\s*([\d.,]+)\ndata_deposito:\s*\\?\"([^\"\\]+)\\?\"",
+        conteudo,
+    )
     if not m:
         return {"saldo_bruto": 0.0, "data_deposito": "—"}
     saldo = float(m.group(1).replace(",", ""))
@@ -32,9 +36,10 @@ def _ler_yaml_bloco(conteudo: str) -> dict:
 
 
 def _escrever_yaml_bloco(conteudo: str, saldo: float, data_dep: str) -> str:
+    nova_linha = f'saldo_bruto: {saldo:.2f}\ndata_deposito: "{data_dep}"'
     return re.sub(
         r"(```yaml\s*\n)saldo_bruto:.*\ndata_deposito:.*",
-        rf"\1saldo_bruto: {saldo:.2f}\ndata_deposito: \"{data_dep}\"",
+        lambda m: m.group(1) + nova_linha,
         conteudo,
     )
 
