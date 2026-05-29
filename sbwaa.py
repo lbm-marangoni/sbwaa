@@ -52,6 +52,7 @@ COMANDOS_LOCAIS = {
     "/otimizar-expansao":   "scripts/data/optimize_expansao.py",
     "/oportunidade":        "scripts/data/rf_oportunidade.py",
     "/alerta":              "scripts/alerts/alerta_cmd.py",
+    "/performance":         "scripts/data/performance.py",
 }
 
 # Comandos de IA — redirecionados para Claude Code (sem API key)
@@ -281,6 +282,17 @@ def exibir_help():
 
   python sbwaa.py /help
       Este menu.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PERFORMANCE  (local — sem IA, sem API key)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  python sbwaa.py /performance
+      Retorno da carteira vs IBOV, CDI, IPCA para MTD / YTD / 12m.
+      Alpha vs IBOV e vs CDI. Beta, Tracking Error, Sharpe, Volatilidade.
+      Decomposição por classe de ativo. Salva série histórica em
+      vault/02-relatorios/performance-historico.json.
+      Atualizado automaticamente pelo slot EOD do Task Scheduler.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   ALERTAS DE PREÇO  (local — sem IA, sem API key)

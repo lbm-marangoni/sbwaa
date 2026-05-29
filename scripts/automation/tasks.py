@@ -15,8 +15,9 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 SCRIPTS_DATA = PROJECT_ROOT / "scripts" / "data"
 AGENTS_DIR = PROJECT_ROOT / ".claude" / "agents"
-ALERTS_SCRIPT = PROJECT_ROOT / "scripts" / "alerts" / "check_alerts.py"
-KNOWLEDGE_DIR = PROJECT_ROOT / "knowledge"
+ALERTS_SCRIPT      = PROJECT_ROOT / "scripts" / "alerts" / "check_alerts.py"
+PERFORMANCE_SCRIPT = PROJECT_ROOT / "scripts" / "data"   / "performance.py"
+KNOWLEDGE_DIR      = PROJECT_ROOT / "knowledge"
 
 PYTHON = sys.executable
 
@@ -97,6 +98,13 @@ EOD_TASKS: list[Task] = [
         task_type="python",
         command=[PYTHON, str(ALERTS_SCRIPT)],
         timeout=180,
+    ),
+    Task(
+        name="performance_build",
+        description="Performance vs benchmarks — atualiza série histórica",
+        task_type="python",
+        command=[PYTHON, str(PERFORMANCE_SCRIPT)],
+        timeout=300,
     ),
     Task(
         name="risk_snapshot_eod",

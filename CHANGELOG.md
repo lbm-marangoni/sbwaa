@@ -2,6 +2,26 @@
 
 ---
 
+## [2.15.0] — 2026-05-29 — /PERFORMANCE: BENCHMARK AUTOMÁTICO
+
+### Added
+- **`scripts/data/performance.py`** — benchmark local sem IA:
+  - Retorno da carteira vs IBOV, CDI, IPCA para MTD / YTD / 12m
+  - Carteira ponderada por capital investido (qtd × PM); RF estimada por indexador/taxa de tese.md
+  - CDI e IPCA via BCB SGS (cache local fetch_bcb.py; auto-fetch se cache > 7 dias)
+  - IBOV via yfinance (`^BVSP`)
+  - Alpha vs IBOV e vs CDI (excesso de retorno simples)
+  - Beta vs IBOV, Tracking Error, Sharpe, Volatilidade, Max Drawdown (base: 12m)
+  - Série diária do portfólio construída por posição (equity via yfinance + RF via CDI diário)
+  - Decomposição de retorno MTD por classe (Ações BR, FIIs, ETFs, RF, TD)
+  - Salva snapshot mensal em `vault/02-relatorios/performance-historico.json`
+  - Cada execução atualiza o snapshot do mês corrente (sem duplicar)
+  - RF com `indexador=CDI`: `retorno = CDI_periodo × taxa%`; IPCA+spread; PRE taxa fixa
+- **`scripts/automation/tasks.py`** — nova task `performance_build` no slot EOD
+- **`sbwaa.py`** — `/performance` em `COMANDOS_LOCAIS` + bloco PERFORMANCE no `/help`
+
+---
+
 ## [2.14.1] — 2026-05-29 — /VENDER RF/TD: IR REGRESSIVO + IOF + RESGATE PARCIAL
 
 ### Changed
