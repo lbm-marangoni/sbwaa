@@ -171,6 +171,39 @@ Se **não**: registrar `aporte_planejado: —` e ir para ETAPA 9.
 Se **sim**, perguntar:
 > **Quanto deseja aportar em {TICKER}? (R$)**
 
+**Etapa B1 — RF Oportunidade (executar após receber o valor)**
+Ler `vault/00-portfolio/rf-oportunidade.md`, extrair `saldo_bruto` e `data_deposito`
+do bloco ```yaml```. Se `saldo_bruto > 0` e `data_deposito != "—"`:
+
+Calcular e exibir antes do bloco C:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 RF OPORTUNIDADE — CAIXINHA NUBANK
+────────────────────────────────────────────────────
+  Saldo bruto:          R$ X.XXX,XX
+  Rendimento est.*:     R$ X.XX  (N dias)
+  IOF estimado:         R$ X.XX  ✅ zerado / ⚠️ XX%
+  IR estimado*:         R$ X.XX  (XX,X%)
+  Líquido disponível:   R$ X.XXX,XX
+────────────────────────────────────────────────────
+  Aporte solicitado:    R$ X.XXX,XX  ✅ / ⚠️ insuficiente
+────────────────────────────────────────────────────
+  Movimentação:
+    − R$ X.XXX,XX  RF Oportunidade
+    + R$ X.XXX,XX  {TICKER}
+  Saldo bruto após:     R$ X.XXX,XX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  * CDI 14,75% a.a. — IR realizado apenas no resgate.
+```
+
+Tabelas de referência (mesmas do PM):
+- IOF: 96%→0% dias 1-30, sobre rendimentos; 0% após D30
+- IR: 22,5% ≤180d · 20% 181-360d · 17,5% 361-720d · 15% >720d
+
+Se `saldo_bruto == 0` ou arquivo ausente: omitir silenciosamente.
+Alertar se `dias < 30` (IOF incide) e se saldo insuficiente para o aporte.
+Após confirmação: `python sbwaa.py /oportunidade --retirar X.XX --destino {TICKER}`
+
 **Etapa C — Validação do PM**
 Com o valor informado (`V`), calcular e exibir:
 
