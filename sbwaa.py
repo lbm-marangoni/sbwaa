@@ -127,9 +127,20 @@ def exibir_help():
                                --indexador IPCA --taxa "+6.12%" --vencimento 2035-05-15
 
   python sbwaa.py /vender --ticker PETR4 --quantidade 50 --preco 45.00
-      Registra venda parcial ou total. Calcula P&L realizado.
+      Registra venda parcial ou total. Calcula P&L realizado e IR estimado.
       Remove ativo da carteira se quantidade chegar a zero.
       Flag opcional: --data 2024-03-15      (data da venda; padrão: hoje)
+
+  Para Renda Fixa / Tesouro Direto (use --valor em vez de --preco):
+  python sbwaa.py /vender --ticker CDB001 --quantidade 1 --valor 5500.00
+      Resgate total com cálculo automático de IR regressivo + IOF.
+      Lê data de entrada de vault/01-ativos/CDB001/tese.md automaticamente.
+
+  python sbwaa.py /vender --ticker CDB001 --quantidade 0.6 --valor 3300.00
+      Resgate parcial (60% da posição). P.M. das unidades restantes inalterado.
+
+  python sbwaa.py /vender --ticker CDB001 --quantidade 1 --valor 5500 --data-entrada 2025-01-10
+      Força data de entrada para cálculo de IR/IOF (fallback se tese.md não tiver a data).
 
   python sbwaa.py /oportunidade --saldo
       Exibe saldo bruto + estimativa tributária (IOF, IR, líquido) da Caixinha Nubank.

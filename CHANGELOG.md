@@ -2,6 +2,24 @@
 
 ---
 
+## [2.14.1] — 2026-05-29 — /VENDER RF/TD: IR REGRESSIVO + IOF + RESGATE PARCIAL
+
+### Changed
+- **`scripts/data/vender_ativo.py`** — reescrito para suportar RF/TD/DEB/CRI-CRA:
+  - Nova flag `--valor X` para resgate por valor total bruto (em vez de `--preco` por unidade)
+  - Nova flag `--data-entrada YYYY-MM-DD` como override da data da aplicação
+  - Leitura automática de `data_entrada` do frontmatter de `vault/01-ativos/TICKER/tese.md`
+  - Cálculo automático de IR regressivo (22,5%→15%) e IOF (96%→0%) para RF/TD/DEB via `calculos_tributarios.py`
+  - CRI/CRA: IR isento para PF (Lei 12.431/2011) — exibido explicitamente
+  - DEB: aviso sobre verificar se é incentivada (isenção) no extrato
+  - Resgate parcial funciona com `--quantidade 0.6 --valor 3300` (60% de uma posição com qtd=1)
+  - P&L exibido em bruto e líquido separadamente para RF
+  - Rótulo de unidade corrigido: "ações" → "unidades" (RF/DEB/CRI-CRA) / "títulos" (TD)
+  - P&L histórico registrado como "X% bruto / Y% líq." para RF
+- **`sbwaa.py`** — bloco `/vender` no `/help` atualizado com sintaxe RF e exemplos
+
+---
+
 ## [2.14.0] — 2026-05-29 — /ALERTA: MONITOR DE PREÇOS BIDIRECIONAL
 
 ### Added
