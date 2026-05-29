@@ -7,7 +7,7 @@ Nunca transmite dados privados (quantidade, preço médio) para fora.
 import re
 import sys
 import json
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from pathlib import Path
 
 VAULT_ROOT = Path(__file__).parent.parent.parent / "vault"
@@ -48,6 +48,212 @@ CLASSE_IPS_PADRAO = {
     "Ações BR": 25.0, "FIIs": 35.0, "Renda Fixa": 20.0,
     "Tesouro Direto": 12.0, "ETFs Internac.": 8.0,
 }
+
+# Tipos RF sem cotação em bolsa — estimados pelo motor tributário
+TIPOS_RF_SEM_MERCADO = {"⬜ RF", "🟪 TD", "🟫 DEB", "🟧 CRI/CRA",
+                         "RF", "TD", "DEB", "CRI/CRA"}
+
+DIARIOS_DIR = VAULT_ROOT / "02-relatorios" / "diarios"
+ATIVOS_DIR  = VAULT_ROOT / "01-ativos"
+
+
+# ── RF Estimation ──────────────────────────────────────────────────────────────
+
+def _carregar_bcb_cache() -> dict:
+    """Carrega cache BCB mais recente (até 7 dias)."""
+    hoje = date.today()
+    for d in range(8):
+        dt = (hoje - timedelta(days=d)).isoformat()
+        path = SCRIPTS_DIR / "cache" / f"bcb_{dt}.json"
+        if path.exists():
+            try:
+                return json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+    return {}
+
+
+def _ler_rf_params(ticker: str) -> dict:
+    """Lê indexador, taxa e data_entrada do frontmatter de tese.md."""
+    params = {"indexador": "CDI", "taxa": "100%", "data_entrada": None}
+    tese = ATIVOS_DIR / ticker / "tese.md"
+    if not tese.exists():
+        return params
+    for linha in tese.read_text(encoding="utf-8").splitlines():
+        for chave in ("indexador", "taxa", "data_entrada"):
+            if linha.lower().startswith(f"{chave}:"):
+                val = linha.split(":", 1)[1].strip().strip('"').strip("'")
+                if val:
+                    params[chave] = val
+    return params
+
+
+def _acumular_bcb_mensal(bcb: dict, serie: str, d_inicio: date, d_fim: date) -> float:
+    """Compõe taxas mensais BCB entre d_inicio e d_fim."""
+    try:
+        historico = bcb["series"][serie]["historico"]
+    except (KeyError, TypeError):
+        return 0.0
+    acum = 1.0
+    for entry in historico:
+        try:
+            partes = entry["data"].split("/")
+            mes = date(int(partes[2]), int(partes[1]), 1)
+        except Exception:
+            continue
+        if d_inicio <= mes <= d_fim:
+            acum *= (1 + entry["valor"] / 100)
+    return acum - 1
+
+
+def _estimar_preco_rf(ticker: str, qtd: float, pm: float, bcb: dict) -> float | None:
+    """
+    Estima preço atual de posição RF usando indexador/taxa/data_entrada.
+    Retorna preco_unitario estimado (valor_total / qtd).
+    """
+    params = _ler_rf_params(ticker)
+    indexador   = (params.get("indexador") or "CDI").upper()
+    taxa_str    = params.get("taxa") or "100%"
+    data_entrada = params.get("data_entrada")
+
+    if not data_entrada:
+        return None  # sem data → não estima, usa PM
+
+    try:
+        d_entrada = datetime.strptime(data_entrada, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+
+    hoje = date.today()
+    dias = max(0, (hoje - d_entrada).days)
+    inicio_mes = date(d_entrada.year, d_entrada.month, 1)
+    fim_mes    = date(hoje.year, hoje.month, 1)
+
+    # Parse taxa
+    try:
+        s = taxa_str.strip().replace(",", ".")
+        if s.startswith("+"):
+            fator = float(s.replace("+", "").replace("%", "")) / 100
+            modo = "spread"
+        else:
+            pct = float(s.replace("%", ""))
+            if indexador in ("CDI", "SELIC") and pct > 20:
+                fator = pct / 100   # 110% do CDI
+                modo = "pct_indexador"
+            elif pct > 2:
+                fator = pct / 100   # PRE fixo, ex: 13.5%
+                modo = "pre"
+            else:
+                fator = pct
+                modo = "pct_indexador"
+    except Exception:
+        fator, modo = 1.0, "pct_indexador"
+
+    if indexador in ("CDI", "SELIC"):
+        base = _acumular_bcb_mensal(bcb, "selic_acum_mes", inicio_mes, fim_mes)
+        if not base and dias > 0:
+            base = (1 + 0.1475) ** (dias / 252) - 1  # fallback Selic
+        if modo == "pct_indexador":
+            retorno = (1 + base) ** fator - 1 if fator != 1.0 else base
+        elif modo == "spread":
+            retorno = base + fator * (dias / 252)
+        else:
+            retorno = (1 + fator) ** (dias / 252) - 1
+
+    elif indexador == "IPCA":
+        base = _acumular_bcb_mensal(bcb, "ipca_mensal", inicio_mes, fim_mes)
+        if modo == "spread":
+            retorno = (1 + base) * (1 + fator * dias / 252) - 1
+        else:
+            retorno = (1 + base) * fator - 1
+
+    elif indexador in ("PRE", "IGPM"):
+        retorno = (1 + fator) ** (dias / 252) - 1
+
+    else:
+        retorno = _acumular_bcb_mensal(bcb, "selic_acum_mes", inicio_mes, fim_mes)
+
+    principal = qtd * pm
+    valor_total = round(principal * (1 + retorno), 2)
+    return round(valor_total / qtd, 4) if qtd else pm
+
+
+# ── Snapshot JSON diário ───────────────────────────────────────────────────────
+
+def _salvar_snapshot_json(
+    linhas_novas: list[dict],
+    total_atual: float,
+    total_investido: float,
+    estimados: set,
+):
+    """Salva snapshot diário em vault/02-relatorios/diarios/YYYY-MM-DD.json."""
+    hoje_str = datetime.now().strftime("%Y-%m-%d")
+    hora_str = datetime.now().strftime("%H:%M")
+
+    pl_rs  = round(total_atual - total_investido, 2)
+    pl_pct = round(pl_rs / total_investido * 100, 2) if total_investido else 0.0
+
+    por_classe: dict[str, dict] = {}
+    posicoes_json = []
+
+    for row in linhas_novas:
+        ticker = row.get("Ticker", "")
+        tipo   = row.get("Tipo", "")
+        setor  = row.get("Setor", "")
+        classe = TIPO_CLASSE.get(tipo, "Outros")
+
+        try:
+            qtd = float(str(row.get("Qtd", "0")).replace(",", "."))
+            pm  = float(str(row.get("Preço Médio", "0")).replace(",", ".").replace("R$", ""))
+        except Exception:
+            continue
+
+        try:
+            valor_rs = float(str(row.get("Valor (R$)", "0")).replace(",", ""))
+            preco_at = float(str(row.get("Preço Atual", str(pm))))
+        except Exception:
+            valor_rs = qtd * pm
+            preco_at = pm
+
+        pl_pos_rs  = round(valor_rs - qtd * pm, 2)
+        pl_pos_pct = round((preco_at - pm) / pm * 100, 2) if pm else 0.0
+        peso_pct   = round(valor_rs / total_atual * 100, 2) if total_atual else 0.0
+
+        posicoes_json.append({
+            "ticker":      ticker,
+            "tipo":        tipo,
+            "classe":      classe,
+            "qtd":         qtd,
+            "pm":          round(pm, 4),
+            "preco_atual": round(preco_at, 4),
+            "valor_rs":    round(valor_rs, 2),
+            "pl_rs":       pl_pos_rs,
+            "pl_pct":      pl_pos_pct,
+            "peso_pct":    peso_pct,
+            "estimado":    ticker in estimados,
+        })
+
+        c = por_classe.setdefault(classe, {"valor_rs": 0.0})
+        c["valor_rs"] = round(c["valor_rs"] + valor_rs, 2)
+
+    for c in por_classe.values():
+        c["peso_pct"] = round(c["valor_rs"] / total_atual * 100, 2) if total_atual else 0.0
+
+    snap = {
+        "data":             hoje_str,
+        "hora":             hora_str,
+        "patrimonio_total": round(total_atual, 2),
+        "total_investido":  round(total_investido, 2),
+        "pl_total_rs":      pl_rs,
+        "pl_total_pct":     pl_pct,
+        "por_classe":       por_classe,
+        "posicoes":         posicoes_json,
+    }
+
+    DIARIOS_DIR.mkdir(parents=True, exist_ok=True)
+    path = DIARIOS_DIR / f"{hoje_str}.json"
+    path.write_text(json.dumps(snap, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"  Snapshot P&L salvo: {path}")
 
 
 def cotacao_rf_oportunidade() -> float | None:
@@ -268,6 +474,10 @@ def atualizar_carteira():
     conteudo = CARTEIRA_PATH.read_text(encoding="utf-8")
     posicoes = parsear_tabela(conteudo)
 
+    # Carrega cache BCB uma vez para todas as estimativas RF
+    _bcb_cache = _carregar_bcb_cache()
+    _posicoes_estimadas: set[str] = set()
+
     posicoes_validas = [
         p for p in posicoes
         if p.get("Ticker", "").strip() and
@@ -306,9 +516,18 @@ def atualizar_carteira():
             preco_atual = cotacao_intl(ticker)
 
         if preco_atual is None:
-            print(f"  AVISO: cotação não obtida para {ticker}, mantendo linha sem cálculo.")
-            linhas_novas.append(pos)
-            continue
+            if tipo in TIPOS_RF_SEM_MERCADO:
+                preco_atual = _estimar_preco_rf(ticker, qtd, pm, _bcb_cache)
+                if preco_atual is not None:
+                    _posicoes_estimadas.add(ticker)
+                    print(f"  {ticker} (RF) — estimado R$ {preco_atual:.4f}/un.")
+                else:
+                    preco_atual = pm  # fallback: custo médio
+                    print(f"  {ticker} (RF) — sem data_entrada em tese.md, usando PM.")
+            else:
+                print(f"  AVISO: cotação não obtida para {ticker}, mantendo linha sem cálculo.")
+                linhas_novas.append(pos)
+                continue
 
         valor_pos = round(qtd * preco_atual, 2)
         pl_rs = round(valor_pos - qtd * pm, 2)
@@ -392,6 +611,10 @@ def atualizar_carteira():
     print(f"  P&L Total        : R$ {pl_total:+,.2f} ({pl_total_pct:+.1f}%)")
     if linhas_novas and total_atual > 0:
         print(f"  📄 Visão visual    : vault/00-portfolio/carteira.md")
+
+    # Snapshot JSON diário
+    if linhas_novas and total_atual > 0:
+        _salvar_snapshot_json(linhas_novas, total_atual, total_investido, _posicoes_estimadas)
 
     # ── Bloco de renda (lê cache do /dividendos) ──────────────────────────────
     cache_path = VAULT_ROOT / "00-portfolio" / ".proventos-cache.json"

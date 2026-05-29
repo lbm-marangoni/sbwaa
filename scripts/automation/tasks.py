@@ -15,9 +15,10 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 SCRIPTS_DATA = PROJECT_ROOT / "scripts" / "data"
 AGENTS_DIR = PROJECT_ROOT / ".claude" / "agents"
-ALERTS_SCRIPT      = PROJECT_ROOT / "scripts" / "alerts" / "check_alerts.py"
-PERFORMANCE_SCRIPT = PROJECT_ROOT / "scripts" / "data"   / "performance.py"
-KNOWLEDGE_DIR      = PROJECT_ROOT / "knowledge"
+ALERTS_SCRIPT        = PROJECT_ROOT / "scripts" / "alerts" / "check_alerts.py"
+PERFORMANCE_SCRIPT   = PROJECT_ROOT / "scripts" / "data"   / "performance.py"
+UPDATE_CARTEIRA_SCRIPT = PROJECT_ROOT / "scripts" / "data" / "update_carteira.py"
+KNOWLEDGE_DIR        = PROJECT_ROOT / "knowledge"
 
 PYTHON = sys.executable
 
@@ -91,6 +92,13 @@ EOD_TASKS: list[Task] = [
         task_type="python",
         command=[PYTHON, str(SCRIPTS_DATA / "market_snapshot.py")],
         timeout=180,
+    ),
+    Task(
+        name="update_carteira_eod",
+        description="Atualiza carteira e salva snapshot JSON diário de P&L",
+        task_type="python",
+        command=[PYTHON, str(UPDATE_CARTEIRA_SCRIPT)],
+        timeout=240,
     ),
     Task(
         name="check_alerts_eod",

@@ -2,6 +2,40 @@
 
 ---
 
+## [2.15.1] — 2026-05-29 — PERSISTÊNCIA DE P&L HISTÓRICO
+
+### Added
+- **`update_carteira.py`** — salva `vault/02-relatorios/diarios/YYYY-MM-DD.json` a cada execução:
+  - `patrimonio_total`, `total_investido`, `pl_total_rs`, `pl_total_pct`
+  - `por_classe`: valor_rs e peso_pct por classe de ativo
+  - `posicoes`: detalhe completo por ticker (qtd, pm, preco_atual, valor_rs, pl_rs, pl_pct, peso_pct)
+  - Campo `estimado: true` marca posições RF sem cotação em bolsa
+  - Arquivo sobrescrevido se rodar mais de uma vez no mesmo dia (versão mais recente do dia)
+
+- **RF Estimation** em `update_carteira.py` — posições RF/TD/DEB/CRI-CRA recebem preço estimado:
+  - CDI-linked: `selic_acum_mes` (BCB série 4189) composta desde `data_entrada`; multiplicador % do CDI
+  - IPCA-linked: `ipca_mensal` (série 433) + spread anual
+  - PRE: taxa fixa anual pro-rata
+  - Fallback: PM × qtd se BCB indisponível ou `data_entrada` ausente em `tese.md`
+  - BCB cache carregado uma vez por execução (até 7 dias de cache)
+
+- **`simulacao_carteira.py --real`** — novo modo de curva de equity real:
+  - Lê todos os JSONs de `vault/02-relatorios/diarios/YYYY-MM-DD.json`
+  - Normaliza patrimônio_total a base 100 no primeiro ponto
+  - Plota Carteira vs IBOV vs CDI com retornos anotados e alpha vs cada benchmark
+  - Salva `logs/simulacao/equity_real_YYYY-MM-DD.png`
+  - Exibe resumo no terminal (retorno, alpha vs IBOV e CDI, n° de snapshots)
+  - Compatível com `--no-graficos`; se < 2 snapshots, exibe aviso e continua
+
+- **`scripts/automation/tasks.py`** — nova task `update_carteira_eod` no slot EOD:
+  - Roda após `market_snapshot_eod`, antes de `performance_build`
+  - Garante snapshot diário às 17h sem intervenção manual
+
+### Changed
+- Slot EOD agora tem 4 tasks: market_snapshot → update_carteira → performance_build → /snapshot
+
+---
+
 ## [2.15.0] — 2026-05-29 — /PERFORMANCE: BENCHMARK AUTOMÁTICO
 
 ### Added

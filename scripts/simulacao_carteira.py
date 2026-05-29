@@ -17,6 +17,7 @@ Uso:
 
 import argparse
 import io
+import json
 import sys
 import warnings
 from datetime import date, timedelta
@@ -66,6 +67,155 @@ COR_CART   = "#4CAF50"
 COR_IBOV   = "#2196F3"
 COR_CDI    = "#FF9800"
 COR_PAINEL = "#161b27"
+
+
+# ─── Curva de equity real (JSONs diários) ────────────────────────────────────
+
+DIARIOS_DIR = PROJECT_ROOT / "vault" / "02-relatorios" / "diarios"
+
+
+def ler_historico_json() -> pd.DataFrame:
+    """Lê todos os snapshots JSON diários e retorna DataFrame {data, patrimonio_total}."""
+    if not DIARIOS_DIR.exists():
+        return pd.DataFrame()
+    registros = []
+    for f in sorted(DIARIOS_DIR.glob("????-??-??.json")):
+        try:
+            dados = json.loads(f.read_text(encoding="utf-8"))
+            registros.append({
+                "data":      pd.Timestamp(dados["data"]),
+                "patrimonio": float(dados["patrimonio_total"]),
+                "pl_pct":    float(dados.get("pl_total_pct", 0)),
+            })
+        except Exception:
+            pass
+    if not registros:
+        return pd.DataFrame()
+    df = pd.DataFrame(registros).set_index("data").sort_index()
+    return df
+
+
+def plot_curva_equity_real(df: pd.DataFrame, output_path: Path):
+    """Plota curva de equity real vs IBOV e CDI. Salva PNG."""
+    import json as _json
+
+    inicio = df.index[0].date()
+    fim    = df.index[-1].date()
+    n_dias = (fim - inicio).days
+
+    # IBOV
+    try:
+        ibov_hist = yf.download("^BVSP", start=str(inicio), progress=False, auto_adjust=True)
+        close_ibov = ibov_hist["Close"]
+        if isinstance(close_ibov, pd.DataFrame):
+            close_ibov = close_ibov.iloc[:, 0]
+        close_ibov = close_ibov.dropna()
+        ibov_idx  = (close_ibov / close_ibov.iloc[0] * 100)
+    except Exception:
+        ibov_idx = pd.Series(dtype=float)
+
+    # CDI (BCB série 4189 do cache)
+    cdi_idx = pd.Series(dtype=float)
+    try:
+        hoje_s = TODAY_STR
+        for d in range(8):
+            dt = (TODAY - timedelta(days=d)).isoformat()
+            bcb_path = PROJECT_ROOT / "scripts" / "data" / "cache" / f"bcb_{dt}.json"
+            if bcb_path.exists():
+                bcb = _json.loads(bcb_path.read_text(encoding="utf-8"))
+                hist = bcb["series"]["selic_acum_mes"]["historico"]
+                # Converte para série diária (interpolação constante dentro do mês)
+                records = []
+                for entry in hist:
+                    partes = entry["data"].split("/")
+                    mes = pd.Timestamp(int(partes[2]), int(partes[1]), 1)
+                    records.append({"mes": mes, "taxa_m": entry["valor"] / 100})
+                if records:
+                    df_cdi = pd.DataFrame(records).set_index("mes")
+                    # Alinha ao index do portfólio
+                    port_idx = df.index
+                    taxa_diaria = ((1 + df_cdi["taxa_m"]) ** (1 / 22) - 1)
+                    taxa_diaria_al = taxa_diaria.reindex(port_idx, method="ffill").fillna(taxa_diaria.mean())
+                    cdi_cum = (1 + taxa_diaria_al).cumprod()
+                    cdi_idx = cdi_cum / cdi_cum.iloc[0] * 100
+                break
+    except Exception:
+        pass
+
+    # Normaliza portfólio
+    port_idx = df["patrimonio"] / df["patrimonio"].iloc[0] * 100
+
+    # Estatísticas
+    ret_cart = (port_idx.iloc[-1] - 100)
+    ret_ibov = (ibov_idx.iloc[-1] - 100) if not ibov_idx.empty else float("nan")
+    ret_cdi  = (cdi_idx.iloc[-1]  - 100) if not cdi_idx.empty  else float("nan")
+    alpha_ibov = ret_cart - ret_ibov if not (isinstance(ret_ibov, float) and ret_ibov != ret_ibov) else float("nan")
+    alpha_cdi  = ret_cart - ret_cdi  if not (isinstance(ret_cdi,  float) and ret_cdi  != ret_cdi)  else float("nan")
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(12, 6), facecolor=COR_FUNDO)
+    ax.set_facecolor(COR_PAINEL)
+    ax.grid(True, color=COR_GRADE, linewidth=0.5, alpha=0.6)
+
+    ax.plot(port_idx.index, port_idx.values, color=COR_CART, lw=2.2, label="Carteira (real)")
+    if not ibov_idx.empty:
+        ibov_al = ibov_idx.reindex(port_idx.index, method="ffill").dropna()
+        ax.plot(ibov_al.index, ibov_al.values, color=COR_IBOV, lw=1.5, linestyle="--", label="IBOV", alpha=0.85)
+    if not cdi_idx.empty:
+        ax.plot(cdi_idx.index, cdi_idx.values, color=COR_CDI, lw=1.5, linestyle=":", label="CDI", alpha=0.85)
+    ax.axhline(100, color="#555577", lw=0.8, linestyle=":")
+
+    # Anotar retornos finais
+    def _fmt_ret(v: float) -> str:
+        if v != v: return "N/D"
+        return f"{v:+.1f}%"
+
+    ax.annotate(f"Carteira {_fmt_ret(ret_cart)}", xy=(port_idx.index[-1], port_idx.iloc[-1]),
+                xytext=(-80, 10), textcoords="offset points",
+                color=COR_CART, fontsize=9, fontweight="bold",
+                arrowprops=dict(arrowstyle="->", color=COR_CART, lw=0.8))
+
+    # Info box
+    linhas_info = [
+        f"Período: {str(inicio)} → {str(fim)} ({n_dias}d)",
+        f"Retorno:  Carteira {_fmt_ret(ret_cart)}",
+        f"          IBOV     {_fmt_ret(ret_ibov)}",
+        f"          CDI      {_fmt_ret(ret_cdi)}",
+        f"Alpha vs IBOV: {_fmt_ret(alpha_ibov)}",
+        f"Alpha vs CDI:  {_fmt_ret(alpha_cdi)}",
+        f"Pontos de dados: {len(df)}",
+    ]
+    ax.text(0.02, 0.97, "\n".join(linhas_info),
+            transform=ax.transAxes, color=COR_TEXTO, fontsize=8.5,
+            verticalalignment="top", fontfamily="monospace",
+            bbox=dict(facecolor="#1a1a2e", alpha=0.82, boxstyle="round,pad=0.5"))
+
+    ax.set_title("Curva de Equity — Carteira Real vs Benchmarks", color=COR_TEXTO,
+                 fontsize=13, fontweight="bold")
+    ax.set_xlabel("Data", color=COR_TEXTO)
+    ax.set_ylabel("Retorno acumulado (base 100)", color=COR_TEXTO)
+    ax.tick_params(colors=COR_TEXTO)
+    for sp in ax.spines.values():
+        sp.set_color(COR_GRADE)
+    ax.legend(facecolor="#1a1a2e", labelcolor=COR_TEXTO, fontsize=9, framealpha=0.8)
+
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150, bbox_inches="tight", facecolor=COR_FUNDO)
+    plt.close(fig)
+    print(f"  OK: Curva real salva: {output_path}")
+
+    # Resumo terminal
+    print("\n" + "=" * 62)
+    print("  CURVA DE EQUITY REAL")
+    print("=" * 62)
+    print(f"  Período          : {inicio} → {fim} ({n_dias} dias)")
+    print(f"  Carteira         : {_fmt_ret(ret_cart)}")
+    print(f"  IBOV             : {_fmt_ret(ret_ibov)}")
+    print(f"  CDI              : {_fmt_ret(ret_cdi)}")
+    print(f"  Alpha vs IBOV    : {_fmt_ret(alpha_ibov)}")
+    print(f"  Alpha vs CDI     : {_fmt_ret(alpha_cdi)}")
+    print(f"  Snapshots lidos  : {len(df)}")
+    print("=" * 62)
 
 
 # ─── Coleta de dados ─────────────────────────────────────────────────────────
@@ -503,6 +653,9 @@ def main():
                         help="Número de simulações [padrão: 10000]")
     parser.add_argument("--no-graficos", action="store_true",
                         help="Apenas terminal, sem gerar PNGs")
+    parser.add_argument("--real", action="store_true",
+                        help="Gera curva de equity real (histórico de snapshots JSON) "
+                             "antes do Monte Carlo")
     args = parser.parse_args()
 
     print("=" * 62)
@@ -513,6 +666,19 @@ def main():
     for cfg in PROXY_CONFIG:
         label = cfg["ticker"] or cfg["tipo"].upper()
         print(f"    {cfg['nome']:<20}  {cfg['peso']*100:.0f}%   [{label}]")
+
+    # ── Curva de equity real (opcional) ──────────────────────────────────────
+    if args.real:
+        df_hist = ler_historico_json()
+        if len(df_hist) < 2:
+            print("\n  [--real] Histórico insuficiente — menos de 2 snapshots JSON encontrados.")
+            print(f"  Execute /carteira algumas vezes para construir a série em {DIARIOS_DIR}\n")
+        else:
+            print(f"\n  [--real] {len(df_hist)} snapshots encontrados "
+                  f"({df_hist.index[0].strftime('%Y-%m-%d')} → {df_hist.index[-1].strftime('%Y-%m-%d')})")
+            if not args.no_graficos:
+                path_real = OUTPUT_DIR / f"equity_real_{TODAY_STR}.png"
+                plot_curva_equity_real(df_hist, path_real)
 
     # Dados históricos
     ret_cart, _ = build_portfolio_returns(args.historico)
