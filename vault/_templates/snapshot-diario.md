@@ -21,8 +21,8 @@ data: {{date:YYYY-MM-DD}}
 
 ## Carteira — Posições Hoje
 
-| Ticker | Tipo | Preço | Variação | P&L acum. |
-|--------|------|-------|----------|-----------|
+| Ticker | Tipo | Preço | Variação | P&L acum. (bruto) | P&L acum. (líq. est.) | IR alíq. |
+|--------|------|-------|----------|--------------------|----------------------|----------|
 
 ## Links
 - [[carteira]] — posição completa

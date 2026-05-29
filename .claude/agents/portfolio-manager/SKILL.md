@@ -143,6 +143,43 @@ Se não: registrar `aporte_planejado: —` e encerrar.
 **B — Perguntar valor (se sim):**
 > "Quanto deseja aportar em {TICKER}? (R$)"
 
+**B1 — Verificar RF Oportunidade (sempre após B):**
+Ler `vault/00-portfolio/rf-oportunidade.md`, extrair `saldo_bruto` e `data_deposito`
+do bloco ```yaml```. Se `saldo_bruto > 0` e `data_deposito != "—"`:
+
+1. Calcular tributos estimados usando `calculos_tributarios.py`:
+   - `dias` = hoje − `data_deposito` (dias corridos)
+   - IOF: tabela regressiva (96%→0% em 30 dias) sobre o rendimento estimado
+   - IR: tabela regressiva (22,5%→15%) sobre rendimento após IOF
+   - `liquido_disponivel` = `saldo_bruto` − IOF − IR (estimativas)
+
+2. Exibir o bloco abaixo **antes** do bloco C:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 RF OPORTUNIDADE — CAIXINHA NUBANK
+────────────────────────────────────────────────────
+  Saldo bruto:          R$ X.XXX,XX
+  Rendimento est.*:     R$ X.XXX,XX  (N dias)
+  IOF estimado:         R$ X.XX      ✅ zerado / ⚠️ XX%
+  IR estimado*:         R$ X.XX      (XX,X%)
+  Líquido disponível:   R$ X.XXX,XX
+────────────────────────────────────────────────────
+  Aporte solicitado:    R$ X.XXX,XX  ✅ / ⚠️ insuficiente
+────────────────────────────────────────────────────
+  Movimentação:
+    − R$ X.XXX,XX  RF Oportunidade
+    + R$ X.XXX,XX  {TICKER}
+  Saldo bruto após:     R$ X.XXX,XX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  * CDI 14,75% a.a. — IR realizado apenas no resgate.
+```
+
+- Se `liquido_disponivel < aporte_solicitado`: marcar ⚠️ e informar o déficit.
+- Se `saldo_bruto == 0` ou arquivo ausente: omitir o bloco silenciosamente.
+- **IOF: alertar se `dias < 30`** — mencionar que o resgate antes de 30 dias incorre IOF.
+  Em geral preferir aguardar completar 30 dias quando o valor do IOF for material (> R$ 5).
+
 **C — Validar e exibir:**
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -161,6 +198,10 @@ Status: ✅ APROVADO / ⚠️ ACIMA DO IDEAL / 🚨 VIOLA IPS
 > a) Prosseguir mesmo assim | b) Ajustar para sizing sugerido | c) Cancelar
 
 **E — Confirmar e registrar** o valor final decidido como `aporte_planejado`.
+Após confirmação, informar o comando para registrar a movimentação:
+```
+Para registrar: python sbwaa.py /oportunidade --retirar X.XX --destino {TICKER}
+```
 
 ### Passo 6 — Output final
 Usar o template `vault/_templates/pm-decisao.md` como base estrutural obrigatória.

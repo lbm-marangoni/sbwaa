@@ -2,6 +2,55 @@
 
 ---
 
+## [2.13.0] — 2026-05-29 — MOTOR TRIBUTÁRIO + RF OPORTUNIDADE
+
+### Added
+- **`scripts/data/calculos_tributarios.py`** — motor tributário completo:
+  - IOF regressivo (Decreto 6.306/2007): 96%→0% dias 1-30, sobre rendimentos
+  - IR RF regressivo (Lei 11.033/2004): 22,5%→20%→17,5%→15% por prazo
+  - IR renda variável: ações (15% swing / 20% day / isenção R$20k), FIIs (20% ganho / isento dividendos), ETF BR/Intl (15%)
+  - `bloco_rf_oportunidade()`: formata bloco de aporte para o PM com bruto/IOF/IR/líquido
+  - `tabela_ir_por_classe()`: tabela markdown de referência tributária por tipo de ativo
+
+- **`vault/00-portfolio/rf-oportunidade.md`** — arquivo de controle da Caixinha Nubank:
+  - Saldo bruto + data depósito (bloco YAML machine-readable)
+  - Tabela de estimativa tributária atualizada automaticamente
+  - Histórico de movimentações (depósitos e retiradas para aportes)
+  - Referência de IOF/IR do RDB 100% CDI
+
+- **`scripts/data/rf_oportunidade.py`** — script de gerenciamento da RF Oportunidade:
+  - `--saldo`: exibe bruto, rendimento, IOF, IR, líquido disponível
+  - `--depositar X`: registra depósito
+  - `--retirar X --destino TICKER`: registra retirada para aporte
+  - `--atualizar-saldo X --data-deposito YYYY-MM-DD`: sincroniza com saldo real
+  - `--checar-aporte X`: exibe bloco de validação para o PM
+
+- **`/oportunidade`** — novo comando local em `sbwaa.py`
+
+### Changed
+- **`portfolio-manager/SKILL.md`** — Passo 5 (Fluxo de Aporte) reformulado:
+  - Novo Passo B1: lê `rf-oportunidade.md` e exibe bloco com saldo bruto, IOF estimado, IR estimado, líquido disponível e movimentação proposta
+  - Alerta automático quando IOF incide (< 30 dias) e quando saldo é insuficiente
+  - Instrução de registro pós-confirmação via `/oportunidade --retirar`
+
+- **`vault/00-portfolio/ips.md`** — adicionada seção "Tributação por Classe" com tabela completa de IR/IOF por tipo de ativo; nota sobre RF Oportunidade no bucket RF
+
+- **`vault/00-portfolio/carteira.md`** — adicionada seção "RF Circulante — Oportunidade" com referência ao arquivo; Resumo passa a distinguir patrimônio de investimentos vs. Oportunidade
+
+- **Templates de relatório** — P&L líquido estimado adicionado em todos:
+  - `snapshot-diario.md`: colunas P&L bruto / P&L líq. est. / IR alíq.
+  - `semana.md`: colunas P&L bruto / P&L líq. est. + tabela dividendos bruto/líquido
+  - `mensal.md`: colunas P&L bruto / P&L líq. est. + seção Dividendos do Mês com IR
+
+- **`earnings.md`**: DPA marcado como "bruto" com nota de isenção de IR para FIIs
+
+- **`sbwaa.py`**: versão → v2.13.0; comando `/oportunidade` adicionado ao help
+
+### Versões de módulo
+- `investments` → **v1.21.0** (RF Oportunidade + motor tributário)
+
+---
+
 ## [2.12.0] — 2026-05-27 — AUTOMATION LAYER: TASK SCHEDULER LOCAL
 
 ### Added

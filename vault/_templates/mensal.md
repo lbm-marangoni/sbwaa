@@ -12,8 +12,8 @@ agente: portfolio-manager
 - Retorno carteira vs IBOV (base R$ 100k):
 - Retorno acumulado no ano:
 
-| Ticker | Retorno mês | Contribuição | Posição atual |
-|--------|-------------|--------------|---------------|
+| Ticker | Retorno mês | P&L bruto | P&L líq. est. | IR alíq. | Contribuição | Posição atual |
+|--------|-------------|-----------|---------------|----------|--------------|---------------|
 
 ## 2. Análise de Risco
 
@@ -23,17 +23,24 @@ agente: portfolio-manager
 - Volatilidade vs mês anterior:
 - Circuit breakers violados: Sim / Não
 
-## 3. Movimentações do Mês
+## 3. Dividendos do Mês
+
+> FIIs: **isentos de IR** para PF. Ações/ETFs: sujeitos a IR conforme tipo de rendimento.
+
+| Ticker | Tipo | DPA (R$/cota) | Cotas | Bruto (R$) | IR | Líquido (R$) |
+|--------|------|--------------|-------|-----------|----|--------------| 
+
+## 4. Movimentações do Mês
 
 (com base em [[historico-trades]])
 
-## 4. Revisão de Teses
+## 5. Revisão de Teses
 
 | Ticker | Status da tese | Observação |
 |--------|----------------|------------|
 | | Válida / Atenção / Reavaliar | |
 
-## 5. Alocação vs IPS
+## 6. Alocação vs IPS
 
 | Classe | Alvo % | Atual % | Desvio | Ação |
 |--------|--------|---------|--------|------|
@@ -43,7 +50,7 @@ agente: portfolio-manager
 | ETF Intl | 8% | | | |
 | Tesouro | 12% | | | |
 
-## 6. Outlook Próximo Mês
+## 7. Outlook Próximo Mês
 
 ## Links
 - [[carteira]]

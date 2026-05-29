@@ -3,7 +3,7 @@
 > Sistema multi-agente de gestão de portfólio e análise de ativos financeiros.
 > Operação 100% local. Dados 100% privados. Motor de IA: Claude Code.
 
-![Version](https://img.shields.io/badge/versão-v2.12.0-blue)
+![Version](https://img.shields.io/badge/versão-v2.13.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![Platform](https://img.shields.io/badge/plataforma-Windows-lightgrey)
 ![License](https://img.shields.io/badge/licença-privado-red)
@@ -52,7 +52,7 @@ SBWAA é um **sistema operacional de investimentos pessoais** que roda inteirame
 | Risk Engineer | Opus | VaR, CVaR, circuit breakers, Fronteira Eficiente |
 | Portfolio Manager | Opus | Decisão final: COMPRAR / MANTER / REDUZIR / SAIR / AGUARDAR / EVITAR |
 
-### Automação diária (v2.12.0)
+### Automação diária (v2.13.0)
 
 Três slots via Windows Task Scheduler — roda silenciosamente, sem abrir janela:
 

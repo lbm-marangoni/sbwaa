@@ -50,6 +50,7 @@ COMANDOS_LOCAIS = {
     "/snapshot":            "scripts/data/market_snapshot.py",
     "/knowledge":           "knowledge/knowledge_cmd.py",
     "/otimizar-expansao":   "scripts/data/optimize_expansao.py",
+    "/oportunidade":        "scripts/data/rf_oportunidade.py",
 }
 
 # Comandos de IA — redirecionados para Claude Code (sem API key)
@@ -76,7 +77,7 @@ TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": No
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.12.0               ║
+║            SBWAA — Referência de Comandos  v2.13.0               ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]
@@ -127,6 +128,18 @@ def exibir_help():
       Registra venda parcial ou total. Calcula P&L realizado.
       Remove ativo da carteira se quantidade chegar a zero.
       Flag opcional: --data 2024-03-15      (data da venda; padrão: hoje)
+
+  python sbwaa.py /oportunidade --saldo
+      Exibe saldo bruto + estimativa tributária (IOF, IR, líquido) da Caixinha Nubank.
+
+  python sbwaa.py /oportunidade --depositar 500.00 [--data 2026-05-29]
+      Registra depósito na RF Oportunidade. Atualiza rf-oportunidade.md.
+
+  python sbwaa.py /oportunidade --retirar 300.00 --destino MXRF11
+      Registra retirada para aporte. Atualiza saldo e histórico de movimentações.
+
+  python sbwaa.py /oportunidade --atualizar-saldo 1847.32 --data-deposito 2026-05-01
+      Atualiza saldo manualmente (útil para sincronizar com o saldo real do app Nubank).
 
   python sbwaa.py /dividendos
       Próximos dividendos (60 dias), histórico do ano e Yield on Cost.

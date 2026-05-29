@@ -20,8 +20,9 @@ agente: earnings-reviewer
 | Dívida Líq./EBITDA | | | | |
 
 > **Para FIIs** — substituir Lucro Líquido / Margem Líquida por:
-> | DPA (R$/cota/mês) | | | | |
-> | DY trimestral | | | | |
+> | DPA bruto (R$/cota/mês)¹ | | | | |
+> | DY trimestral (bruto) | | | | |
+> ¹ Dividendos FII são **isentos de IR para PF** — DPA bruto = DPA líquido.
 > Receita e EBITDA: registrar N/D se indisponíveis (Yahoo Finance não cobre FII).
 
 ## Resultados vs Estimativa

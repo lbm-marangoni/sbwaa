@@ -14,8 +14,8 @@ agente: portfolio-manager
 
 ## Performance por Ativo
 
-| Ticker | Retorno 1S | Contribuição | Destaque |
-|--------|------------|--------------|----------|
+| Ticker | Retorno 1S | Contribuição | P&L bruto | P&L líq. est. | IR alíq. | Destaque |
+|--------|------------|--------------|-----------|---------------|----------|----------|
 
 ## Top 3 Melhores / Piores
 
@@ -38,6 +38,10 @@ agente: portfolio-manager
 - Circuit breakers: OK / Acionado
 
 ## Dividendos Recebidos
+
+> Registrar valor bruto. FIIs: **isentos de IR** para PF. Ações/ETFs: sujeitos a IR conforme tipo.
+> | Ticker | Tipo | Bruto (R$) | IR | Líquido (R$) |
+> |--------|------|-----------|----|--------------| 
 
 ## Outlook Próxima Semana
 
