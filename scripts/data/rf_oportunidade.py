@@ -16,8 +16,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from calculos_tributarios import calcular_rdb_nubank, bloco_rf_oportunidade
 
-VAULT_ROOT  = Path(__file__).parent.parent.parent / "vault"
-ARQ_OPORT   = VAULT_ROOT / "00-portfolio" / "rf-oportunidade.md"
+VAULT_ROOT    = Path(__file__).parent.parent.parent / "vault"
+ARQ_OPORT     = VAULT_ROOT / "00-portfolio" / "rf-oportunidade.md"
+CARTEIRA_PATH = VAULT_ROOT / "00-portfolio" / "carteira.md"
+OPORT_TICKER  = "RF-OPRT"
 
 
 # ── Leitura / escrita ──────────────────────────────────────────────────────────
@@ -78,6 +80,43 @@ def _atualizar_tabela_estimativa(conteudo: str, dados: dict) -> str:
     )
 
 
+def _ler_pm_carteira() -> float:
+    """Lê o preço médio atual do RF-OPRT na carteira (= custo total depositado)."""
+    if not CARTEIRA_PATH.exists():
+        return 0.0
+    for linha in CARTEIRA_PATH.read_text(encoding="utf-8").splitlines():
+        s = linha.strip()
+        if not s.startswith("|") or s.startswith("| Ticker") or s.startswith("|---"):
+            continue
+        cols = [c.strip() for c in s.split("|")[1:-1]]
+        if len(cols) >= 5 and cols[0].upper() == OPORT_TICKER:
+            try:
+                return float(cols[4].replace(",", ".").replace("R$", "").strip())
+            except ValueError:
+                return 0.0
+    return 0.0
+
+
+def _atualizar_pm_carteira(novo_pm: float):
+    """Atualiza o preço médio (custo) do RF-OPRT na carteira.md."""
+    if not CARTEIRA_PATH.exists():
+        return
+    conteudo = CARTEIRA_PATH.read_text(encoding="utf-8")
+    linhas = conteudo.splitlines()
+    for i, linha in enumerate(linhas):
+        s = linha.strip()
+        if not s.startswith("|") or s.startswith("| Ticker") or s.startswith("|---"):
+            continue
+        cols = [c.strip() for c in s.split("|")[1:-1]]
+        if len(cols) >= 5 and cols[0].upper() == OPORT_TICKER:
+            while len(cols) < 10:
+                cols.append("")
+            cols[4] = f"{novo_pm:.2f}"
+            linhas[i] = "| " + " | ".join(cols) + " |"
+            break
+    CARTEIRA_PATH.write_text("\n".join(linhas), encoding="utf-8")
+
+
 def ler_estado() -> tuple[float, str]:
     """Retorna (saldo_bruto, data_deposito) do arquivo."""
     if not ARQ_OPORT.exists():
@@ -136,6 +175,9 @@ def cmd_depositar(valor: float, data: str | None):
     novo_saldo = round(saldo_ant + valor, 2)
     data_dep = data or date.today().strftime("%Y-%m-%d")
     salvar_estado(novo_saldo, data_dep, "DEPÓSITO", valor, "Nubank Caixinha")
+    # Atualiza custo na carteira (PM = total depositado acumulado)
+    pm_ant = _ler_pm_carteira()
+    _atualizar_pm_carteira(round(pm_ant + valor, 2))
     print(f"\n[OK] Depósito de R$ {valor:,.2f} registrado.")
     print(f"     Saldo anterior: R$ {saldo_ant:,.2f}")
     print(f"     Saldo atual:    R$ {novo_saldo:,.2f}")
@@ -149,6 +191,11 @@ def cmd_retirar(valor: float, destino: str):
         sys.exit(1)
     novo_saldo = round(saldo_ant - valor, 2)
     salvar_estado(novo_saldo, data_dep, "RETIRADA", -valor, destino)
+    # Reduz custo proporcional à fração retirada
+    pm_ant = _ler_pm_carteira()
+    if pm_ant > 0 and saldo_ant > 0:
+        fracao_restante = novo_saldo / saldo_ant
+        _atualizar_pm_carteira(round(pm_ant * fracao_restante, 2))
     print(f"\n[OK] Retirada de R$ {valor:,.2f} → {destino} registrada.")
     print(f"     Saldo anterior: R$ {saldo_ant:,.2f}")
     print(f"     Saldo atual:    R$ {novo_saldo:,.2f}")

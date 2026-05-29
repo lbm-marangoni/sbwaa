@@ -21,8 +21,22 @@ from fetch_yahoo import buscar_ticker as yahoo_buscar
 
 TICKERS_BR_SUFFIX = ".SA"
 
-# Mapeamento tipo → classe IPS
+# Ticker reservado para a RF Oportunidade (Caixinha Nubank)
+OPORT_TICKER  = "RF-OPRT"
+RF_OPORT_PATH = VAULT_ROOT / "00-portfolio" / "rf-oportunidade.md"
+
+# Mapeamento tipo → classe IPS (usa os labels com emoji gravados por add_ativo.py)
 TIPO_CLASSE = {
+    "🟦 AÇÃO ON":  "Ações BR",
+    "🟦 AÇÃO PN":  "Ações BR",
+    "🟩 FII":      "FIIs",
+    "🟨 ETF BR":   "ETFs BR",
+    "🟥 ETF INTL": "ETFs Internac.",
+    "⬜ RF":       "Renda Fixa",
+    "🟪 TD":       "Tesouro Direto",
+    "🟫 DEB":      "Renda Fixa",
+    "🟧 CRI/CRA":  "Renda Fixa",
+    # fallbacks sem emoji (compatibilidade)
     "AÇÃO ON": "Ações BR", "AÇÃO PN": "Ações BR",
     "FII": "FIIs", "ETF BR": "ETFs BR", "ETF INTL": "ETFs Internac.",
     "RF": "Renda Fixa", "TD": "Tesouro Direto",
@@ -34,6 +48,19 @@ CLASSE_IPS_PADRAO = {
     "Ações BR": 25.0, "FIIs": 35.0, "Renda Fixa": 20.0,
     "Tesouro Direto": 12.0, "ETFs Internac.": 8.0,
 }
+
+
+def cotacao_rf_oportunidade() -> float | None:
+    """Lê o saldo_bruto da Caixinha como 'preço atual' do RF-OPRT."""
+    if not RF_OPORT_PATH.exists():
+        return None
+    try:
+        sys.path.insert(0, str(SCRIPTS_DIR))
+        from rf_oportunidade import ler_estado
+        saldo, _ = ler_estado()
+        return saldo if saldo > 0 else None
+    except Exception:
+        return None
 
 
 def cotacao_br(ticker: str) -> float | None:
@@ -271,7 +298,9 @@ def atualizar_carteira():
         setor = pos.get("Setor", "").strip()
 
         print(f"  Atualizando {ticker}...")
-        if eh_ticker_br(ticker):
+        if ticker == OPORT_TICKER:
+            preco_atual = cotacao_rf_oportunidade()
+        elif eh_ticker_br(ticker):
             preco_atual = cotacao_br(ticker)
         else:
             preco_atual = cotacao_intl(ticker)
