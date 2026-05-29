@@ -3,7 +3,7 @@
 > Referência completa de todos os comandos do sistema.
 > Para instalação e configuração inicial: [`README.md`](README.md)
 
-**Versão: v2.14.0**
+**Versão: v2.19.0**
 
 ---
 

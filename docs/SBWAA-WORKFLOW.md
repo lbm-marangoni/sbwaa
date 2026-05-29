@@ -3,7 +3,7 @@
 > Rotinas de uso do sistema por cadência e por fluxo oportunístico.
 > Para referência de comandos e sintaxe: [`GUIA-COMANDOS.md`](GUIA-COMANDOS.md)
 
-**Versão: v2.14.0**
+**Versão: v2.19.0**
 
 ---
 

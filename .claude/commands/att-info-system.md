@@ -188,21 +188,58 @@ Se as mudanças cobrem múltiplos módulos, use o módulo principal ou omita o e
 
 ### 7c. Push
 
+**Sempre** faça push para o repositório remoto:
 ```bash
 git push origin master
 ```
 
-### 7d. GitHub Release
+### 7d. GitHub Release — SEMPRE criar
 
-Crie release **obrigatoriamente** para versões MINOR (`x.Y.0`) ou MAJOR (`X.0.0`).
+**Sempre crie um release** para qualquer versão (MAJOR, MINOR ou PATCH) — sem exceção.
 
-Para PATCHes: crie release apenas se a mudança for crítica (bug que afetava uso real, feature relevante completada). Para patches de doc puro ou sincronização de versões: **não criar release**.
+#### Identificar o último release publicado
 
-Formato:
+Execute:
+```bash
+gh release list --limit 5
+```
+
+Anote a tag do release mais recente (ex: `v2.19.0`).
+
+#### Montar as release notes com histórico acumulado
+
+As notas do release devem cobrir **todas as versões desde o último release publicado** até a versão canônica atual — não apenas a versão corrente.
+
+Execute para extrair os commits entre o último release e o HEAD:
+```bash
+git log <ultima-tag>..HEAD --oneline
+```
+
+Em seguida, extraia do `CHANGELOG.md` **todas as entradas** cujas versões estejam entre `<ultima-tag>` (exclusive) e a versão canônica atual (inclusive).
+
+Formate as notas assim:
+```
+## Mudanças desde <ultima-tag>
+
+### vX.Y.Z — YYYY-MM-DD
+#### Added
+- ...
+#### Fixed
+- ...
+
+### vX.Y.(Z-1) — YYYY-MM-DD  ← se houver versões intermediárias não liberadas
+#### Added
+- ...
+```
+
+Se a versão canônica for a mesma do último release (somente sincronização de docs), ainda assim crie o release com as notas da versão atual.
+
+#### Criar o release
+
 ```bash
 gh release create vX.Y.Z \
   --title "vX.Y.Z — <descrição curta da mudança principal>" \
-  --notes "<entrada correspondente do CHANGELOG.md>" \
+  --notes "<notas acumuladas conforme acima>" \
   --latest \
   --target master
 ```
