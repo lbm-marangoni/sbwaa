@@ -19,9 +19,7 @@ from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
 
-CACHE_DIR = Path(__file__).parent / "cache"
-CACHE_DIR.mkdir(exist_ok=True)
-CACHE_TTL_HORAS = 4
+from cache_manager import CACHE_DIR, is_valid as cache_valido
 
 HEADERS = {
     "User-Agent": (
@@ -39,13 +37,6 @@ SESSION.headers.update(HEADERS)
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
-
-def cache_valido(caminho: Path) -> bool:
-    if not caminho.exists():
-        return False
-    modificado = datetime.fromtimestamp(caminho.stat().st_mtime)
-    return datetime.now() - modificado < timedelta(hours=CACHE_TTL_HORAS)
-
 
 def _num(texto: str) -> float | None:
     """Converte '1.234,56', 'R$ 6,47 Bilhões', '10,30%', '704.712' para float.

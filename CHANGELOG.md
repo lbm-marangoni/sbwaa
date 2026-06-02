@@ -2,6 +2,32 @@
 
 ---
 
+## [2.20.0] — 2026-06-01 — CACHE INTELIGENTE COM TTL CONFIGURÁVEL
+
+### Added
+- **`scripts/data/cache_manager.py`** — módulo centralizado de cache:
+  - TTL por tipo: Cotação (15min), Macro (60min), Dividendos (6h), Fundamentais/Histórico/BCB/Modelos (24h)
+  - Configurável via variáveis de ambiente no `.env` (ex: `CACHE_TTL_COTACAO_MIN=15`)
+  - `is_valid(path)` — drop-in para `cache_valido()` de todos os fetchers; detecta tipo automaticamente pelo prefixo do arquivo
+  - `tipo_do_arquivo(nome)` — classifica arquivos: cotacao / macro / dividendos / fundamentals / historico / macro_bcb / modelos / outros
+  - `status(filtro?)` — tabela Fresh/Stale/Tamanho por tipo; detalhe de arquivos stale quando filtrado
+  - `clear(filtro, force=False)` — remove stale (ou tudo com `--force-clear`) de um tipo ou de todos (`stale`)
+  - CLI: `python cache_manager.py --status [tipo]`, `--clear <tipo|stale>`, `--force-clear <tipo>`
+
+- **`/cache`** adicionado ao `sbwaa.py`:
+  - `python sbwaa.py /cache --status` — dashboard de status com totais e ícones ✅/⚠️
+  - `python sbwaa.py /cache --status <tipo>` — filtrado + lista detalhada dos arquivos stale
+  - `python sbwaa.py /cache --clear stale` — limpa arquivos fora do TTL de todos os tipos
+  - `python sbwaa.py /cache --clear <tipo>` — limpa stale de um tipo específico
+  - `python sbwaa.py /cache --force-clear <tipo>` — força limpeza total de um tipo
+
+- **`.env.template`** — seção com todas as variáveis `CACHE_TTL_*_MIN` documentadas e comentadas
+
+### Changed
+- **`fetch_yahoo.py`**, **`fetch_fundamentals.py`**, **`fetch_brapi.py`**, **`fetch_consensus.py`**, **`fetch_investidor10.py`** — migrados para `from cache_manager import CACHE_DIR, is_valid as cache_valido`; TTL hardcoded removido de cada fetcher
+
+---
+
 ## [2.19.0] — 2026-05-29 — /EARNING-CALENDAR: CALENDÁRIO DE RESULTADOS
 
 ### Added

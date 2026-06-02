@@ -56,6 +56,7 @@ COMANDOS_LOCAIS = {
     "/fluxo-caixa":         "scripts/data/fluxo_caixa.py",
     "/correlacao":          "scripts/data/correlacao.py",
     "/earning-calendar":    "scripts/data/earnings_calendar.py",
+    "/cache":               "scripts/data/cache_manager.py",
 }
 
 # Comandos de IA — redirecionados para Claude Code (sem API key)
@@ -83,7 +84,7 @@ TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": No
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.14.0               ║
+║            SBWAA — Referência de Comandos  v2.20.0               ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]
@@ -279,6 +280,16 @@ def exibir_help():
 
   python sbwaa.py /ui
       Abre o painel visual (customtkinter) com todos os comandos em botões.
+
+  python sbwaa.py /cache --status
+      Tabela de status de todos os caches (fresh/stale por tipo, tamanho total).
+      Flag: --status <tipo>   (cotacao | macro | dividendos | fundamentals |
+                               historico | macro_bcb | modelos)
+
+  python sbwaa.py /cache --clear stale
+      Remove apenas arquivos stale (fora do TTL) de todos os tipos.
+      Flag: --clear <tipo>           (apenas stale de um tipo específico)
+      Flag: --force-clear <tipo>     (remove tudo — stale + fresh — de um tipo)
 
   python sbwaa.py /status
       Versão atual, modo de operação e data/hora do sistema.

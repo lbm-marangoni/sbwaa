@@ -12,9 +12,7 @@ from pathlib import Path
 import yfinance as yf
 from bs4 import BeautifulSoup
 
-CACHE_DIR = Path(__file__).parent / "cache"
-CACHE_DIR.mkdir(exist_ok=True)
-CACHE_TTL_HORAS = 24
+from cache_manager import CACHE_DIR, is_valid as _cache_valido
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
@@ -22,12 +20,6 @@ HEADERS = {
     "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
     "Referer": "https://www.investing.com/",
 }
-
-
-def _cache_valido(path: Path) -> bool:
-    if not path.exists():
-        return False
-    return datetime.now() - datetime.fromtimestamp(path.stat().st_mtime) < timedelta(hours=CACHE_TTL_HORAS)
 
 
 def _rec_label(rec_key: str | None, rec_score: float | None) -> str:

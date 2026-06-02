@@ -7,21 +7,12 @@ import sys
 import json
 import time
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
-CACHE_DIR = Path(__file__).parent / "cache"
-CACHE_DIR.mkdir(exist_ok=True)
-CACHE_TTL_HORAS = 4
+from cache_manager import CACHE_DIR, is_valid as cache_valido
 
 BASE_URL = "https://brapi.dev/api/quote/{ticker}?modules=summaryProfile,defaultKeyStatistics,financialData,balanceSheetHistory"
-
-
-def cache_valido(caminho: Path) -> bool:
-    if not caminho.exists():
-        return False
-    modificado = datetime.fromtimestamp(caminho.stat().st_mtime)
-    return datetime.now() - modificado < timedelta(hours=CACHE_TTL_HORAS)
 
 
 def buscar_ticker(ticker: str) -> dict:
