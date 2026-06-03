@@ -6,6 +6,7 @@ Chamado pelo heartbeat diariamente.
 
 import json
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -106,6 +107,7 @@ def indexar_texto_rss(titulo: str, texto: str, url: str, fonte: str,
 def coletar_feed(feed_config: dict, max_artigos: int, max_idade_dias: int,
                   collection, modelo, log: dict) -> int:
     import feedparser
+    import time
 
     nome = feed_config["nome"]
     url_feed = feed_config["url"]
@@ -120,35 +122,46 @@ def coletar_feed(feed_config: dict, max_artigos: int, max_idade_dias: int,
         return 0
 
     limite_data = datetime.now(tz=timezone.utc) - timedelta(days=max_idade_dias)
-    coletados = 0
 
+    # Filtrar entradas candidatas antes de fazer qualquer HTTP
+    candidatos = []
     for entry in feed.entries[:max_artigos]:
         url = entry.get("link", "")
         titulo = entry.get("title", "Sem título")
-
-        if not url:
+        if not url or url_ja_indexada(log, url):
             continue
-
-        if url_ja_indexada(log, url):
-            continue
-
-        # Verificar data do artigo
         published = entry.get("published_parsed") or entry.get("updated_parsed")
         if published:
-            import time
             pub_dt = datetime.fromtimestamp(time.mktime(published), tz=timezone.utc)
             if pub_dt < limite_data:
                 continue
+        fallback = entry.get("summary", "") or entry.get("description", "")
+        candidatos.append((url, titulo, fallback))
 
-        texto = extrair_texto_artigo(url)
-        if not texto:
-            # Usar resumo do feed se disponível
-            texto = entry.get("summary", "") or entry.get("description", "")
+    if not candidatos:
+        return 0
 
+    # Buscar textos em paralelo — I/O bound, seguro com threads
+    def _fetch(item):
+        url, titulo, fallback = item
+        texto = extrair_texto_artigo(url) or fallback
+        return url, titulo, texto
+
+    textos: dict[str, tuple[str, str]] = {}
+    with ThreadPoolExecutor(max_workers=min(len(candidatos), 8)) as pool:
+        futures = {pool.submit(_fetch, c): c for c in candidatos}
+        for fut in as_completed(futures):
+            url, titulo, texto = fut.result()
+            textos[url] = (titulo, texto)
+
+    # Indexar sequencialmente (ChromaDB não é thread-safe para writes)
+    coletados = 0
+    for url, titulo, fallback in candidatos:
+        titulo_real, texto = textos.get(url, (titulo, ""))
         if texto.strip():
-            indexar_texto_rss(titulo, texto, url, nome, tipo, idioma,
+            indexar_texto_rss(titulo_real, texto, url, nome, tipo, idioma,
                                collection, modelo, log)
-            print(f"    ✅ {titulo[:60]}...")
+            print(f"    ✅ {titulo_real[:60]}...")
             coletados += 1
 
     return coletados

@@ -44,7 +44,7 @@ MORNING_TASKS: list[Task] = [
         description="Coletar feeds RSS para a base de conhecimento",
         task_type="python",
         command=[PYTHON, str(KNOWLEDGE_DIR / "rss_collector.py")],
-        timeout=120,
+        timeout=300,
     ),
     Task(
         name="market_snapshot",
