@@ -2,6 +2,36 @@
 
 ---
 
+## [2.21.0] — 2026-06-03 — TESE AUTOMÁTICO PÓS MORNING-CALL + BANNER DE ALERTAS
+
+### Added
+- **`scripts/automation/tese_trigger.py`** — pipeline pós-morning automático:
+  - Extrai tickers do "Ponto de Atenção do Dia" do morning call (somente ativos citados positivamente)
+  - Classifica cada ticker: `carteira` / `watchlist` / `novo`
+  - Roda `/tese TICKER` via `claude -p` para cada um (sequencial, timeout 600s/ticker)
+  - Lê veredicto do arquivo de tese salvo no vault (regex no terço final do arquivo)
+  - Calcula comando sugerido: `/pm` se tese <60d e status carteira/watchlist; `/analisar` caso contrário
+  - Salva `logs/tese_queue_{data}.json` com ticker, label, status, veredicto, tese_data, comando
+  - Dispara tray notification com contagem de COMPRAR ao concluir
+- **`scripts/automation/create_auto_flag.py`** — última task do slot morning:
+  - Cria `logs/morning_auto_{data}.flag` ao final do morning automático
+  - O flag é a única forma de ativar o slot tese — /morning-call manual não o cria
+- **`scripts/automation/startup_check.py`** — verificação na abertura do sistema:
+  - Lê `tese_queue` do dia (ou do dia anterior como fallback)
+  - Dispara tray notification se houver ativos com COMPRAR pendentes
+- **Banner persistente no `interface/ui.py`**:
+  - Aparece no topo da área de conteúdo quando há sinais COMPRAR na fila
+  - Exibe: ticker · label (🟩 FII etc.) · status (carteira/watchlist/novo) · comando sugerido
+  - Botão 📋 Copiar por linha — usa o `_clipboard` existente (mostra toast de confirmação)
+  - Botão × fecha para a sessão (reaparece no próximo startup se fila ainda for do dia)
+  - Recalcula comando a cada abertura (>60 dias desde a tese → sugere /analisar automaticamente)
+- **`scripts/automation/tasks.py`**: `create_auto_flag` adicionado ao MORNING_TASKS; novo `TESE_TASKS`
+- **`scripts/automation/main.py`**: slot `tese` com validação de flag + argparse atualizado
+- **`scripts/automation/setup_scheduler.py`**: `SBWAA_Tese` (seg–sex 08:30)
+- **`iniciar.bat`**: chama `startup_check.py` via pythonw antes de abrir o painel
+
+---
+
 ## [2.20.0] — 2026-06-01 — CACHE INTELIGENTE COM TTL CONFIGURÁVEL
 
 ### Added
