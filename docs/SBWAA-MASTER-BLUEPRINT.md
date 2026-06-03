@@ -1,8 +1,8 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.19.0  
-**Data de geração:** 2026-05-29  
+**Versão de referência:** v2.20.0  
+**Data de geração:** 2026-06-02  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
 ---
@@ -2210,6 +2210,18 @@ Modo de operação: Claude Code (sem API key)
 | v2.11.1 | 2026-05-26 | Outputs visuais Obsidian: carteira.md (barras █░, callouts), dividendos.md, risco-carteira.md, stress-test.md, watchlist datado; despolução de comandos |
 | v2.11.2 | 2026-05-27 | Varredura completa testes (55/55 OK); fix /help versão; fix optimize_expansao conflito de módulo |
 | v2.12.0 | 2026-05-28 | Automation Layer: scripts/automation/ — dispatcher modular, 3 slots Task Scheduler, launcher.vbs silencioso, toast notification, WakeToRun; SBWAA-APRESENTACAO.md |
+| v2.13.0 | 2026-05-29 | Motor tributário IR/IOF + RF Oportunidade (Caixinha Nubank): /vender RF, /comprar RF com check automático; TIPOS_OFF_EXCHANGE |
+| v2.13.1 | 2026-05-29 | Fix /pm Modo Aporte: roteamento A/B/C correto; check RF Oportunidade integrado ao fluxo de aporte |
+| v2.13.2 | 2026-05-29 | /att-info-system: protocolo completo de fechamento de sessão com 8 fases; releases individuais por versão |
+| v2.14.0 | 2026-05-29 | /alerta: monitor de preços bidirecional com extração automática de teto/chão do vault |
+| v2.14.1 | 2026-05-29 | /vender RF/TD: IR regressivo + IOF + resgate parcial por --valor; fix schtasks /D incompatível |
+| v2.15.0 | 2026-05-29 | /performance: benchmark MTD/YTD/12m vs IBOV/CDI/IPCA; fetch_yahoo.py histórico de índices |
+| v2.15.1 | 2026-05-29 | Persistência P&L diário em equity-curve.md + curva equity real no /carteira |
+| v2.16.0 | 2026-05-29 | /fluxo-caixa: projeção de renda passiva mês a mês para 12 meses com calendário de dividendos |
+| v2.17.0 | 2026-05-29 | /correlacao: heatmap ASCII por categoria; fix pipeline Quant (import relativo → absoluto) |
+| v2.18.0 | 2026-05-29 | Suporte a ativos internacionais USD: fetch_yahoo.py cotação em dólar; conversão BRL no portfólio |
+| v2.19.0 | 2026-05-29 | /earning-calendar: calendário de resultados com alertas D-7/D-1 integrados ao heartbeat |
+| v2.20.0 | 2026-06-01 | cache_manager.py centralizado: TTL configurável por tipo via .env; /cache --status/--clear; fetchers migrados |
 
 ### Diferenças do projeto original para o atual
 

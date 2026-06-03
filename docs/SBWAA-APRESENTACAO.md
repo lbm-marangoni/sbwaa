@@ -1,8 +1,8 @@
 ---
 tags: [apresentacao, sbwaa, sistema]
 cssclasses: [node-apresentacao]
-versao: v2.19.0
-atualizado: 2026-05-29
+versao: v2.20.0
+atualizado: 2026-06-02
 ---
 
 # SBWAA — Second Brain Wealth + Asset + Assessor Individual

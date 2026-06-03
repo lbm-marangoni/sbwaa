@@ -860,6 +860,106 @@
       "chunks": 1,
       "idioma": "en",
       "indexado_em": "2026-05-29 08:00"
+    },
+    {
+      "arquivo": "https://www.infomoney.com.br/politica/governo-tem-preocupacao-com-eventuais-novas-tarifas-dos-eua-afirma-durigan/",
+      "nome": "Governo tem preocupação com eventuais novas tarifas dos EUA, afirma Durigan",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.infomoney.com.br/politica/governo-tem-preocupacao-com-eventuais-novas-tarifas-dos-eua-afirma-durigan/",
+      "chunks": 1,
+      "idioma": "pt",
+      "indexado_em": "2026-06-01 15:06"
+    },
+    {
+      "arquivo": "https://www.infomoney.com.br/mercados/ibovespa-hoje-bolsa-de-valores-ao-vivo-01062026/",
+      "nome": "Ibovespa Hoje Ao Vivo: Bolsa cai com VALE3 e bancos; PETR4 sobe",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.infomoney.com.br/mercados/ibovespa-hoje-bolsa-de-valores-ao-vivo-01062026/",
+      "chunks": 3,
+      "idioma": "pt",
+      "indexado_em": "2026-06-01 15:06"
+    },
+    {
+      "arquivo": "https://www.infomoney.com.br/mercados/totvs-acao-avanca-3-acompanhando-movimento-global-do-setor-de-software/",
+      "nome": "Totvs: ação avança 3% acompanhando movimento global do setor de software",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.infomoney.com.br/mercados/totvs-acao-avanca-3-acompanhando-movimento-global-do-setor-de-software/",
+      "chunks": 1,
+      "idioma": "pt",
+      "indexado_em": "2026-06-01 15:06"
+    },
+    {
+      "arquivo": "https://www.infomoney.com.br/brasil/cigarros-e-bets-irregulares-serao-alvo-de-operacoes-contra-faccoes-diz-fonte/",
+      "nome": "Cigarros e bets irregulares serão alvo de operações contra facções, diz fonte",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.infomoney.com.br/brasil/cigarros-e-bets-irregulares-serao-alvo-de-operacoes-contra-faccoes-diz-fonte/",
+      "chunks": 2,
+      "idioma": "pt",
+      "indexado_em": "2026-06-01 15:06"
+    },
+    {
+      "arquivo": "https://www.infomoney.com.br/mercados/bolsa-barata-mas-ruidos-altos-e-hora-de-comprar-brasil-apos-queda-de-25-mil-pontos/",
+      "nome": "Bolsa barata, mas ruídos altos: é hora de comprar Brasil após queda de 25 mil po",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.infomoney.com.br/mercados/bolsa-barata-mas-ruidos-altos-e-hora-de-comprar-brasil-apos-queda-de-25-mil-pontos/",
+      "chunks": 3,
+      "idioma": "pt",
+      "indexado_em": "2026-06-01 15:06"
+    },
+    {
+      "arquivo": "https://www.bloomberg.com/news/articles/2026-05-31/latest-oil-market-news-and-analysis-for-june-1",
+      "nome": "Oil Climbs as Traders Weigh Latest Trump Comments on Iran Talks",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.bloomberg.com/news/articles/2026-05-31/latest-oil-market-news-and-analysis-for-june-1",
+      "chunks": 1,
+      "idioma": "en",
+      "indexado_em": "2026-06-01 15:06"
+    },
+    {
+      "arquivo": "https://www.bloomberg.com/news/articles/2026-06-01/illinois-passes-56-billion-budget-as-chicago-bears-deal-stalled",
+      "nome": "Illinois Passes $56 Billion Budget as Bears Deal Stalled",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.bloomberg.com/news/articles/2026-06-01/illinois-passes-56-billion-budget-as-chicago-bears-deal-stalled",
+      "chunks": 1,
+      "idioma": "en",
+      "indexado_em": "2026-06-01 15:06"
+    },
+    {
+      "arquivo": "https://www.bloomberg.com/news/articles/2026-05-31/oil-climbs-as-us-iran-ceasefire-remains-elusive-markets-wrap",
+      "nome": "Stocks Up as Trump Cites Rapid Pace in Iran Talks: Markets Wrap",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.bloomberg.com/news/articles/2026-05-31/oil-climbs-as-us-iran-ceasefire-remains-elusive-markets-wrap",
+      "chunks": 1,
+      "idioma": "en",
+      "indexado_em": "2026-06-01 15:06"
+    },
+    {
+      "arquivo": "https://www.bloomberg.com/news/videos/2026-05-30/why-britain-s-bond-market-is-sounding-the-alarm-video",
+      "nome": "Why Britain’s Bond Market Is Sounding the Alarm (Correct)",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.bloomberg.com/news/videos/2026-05-30/why-britain-s-bond-market-is-sounding-the-alarm-video",
+      "chunks": 1,
+      "idioma": "en",
+      "indexado_em": "2026-06-01 15:06"
+    },
+    {
+      "arquivo": "https://www.bloomberg.com/news/articles/2026-06-01/us-spot-petrochemical-prices-ease-as-export-demand-starts-to-lag",
+      "nome": "US Spot Petrochemical Prices Ease as Export Demand Starts to Lag",
+      "tipo": "macro",
+      "md5": "",
+      "url": "https://www.bloomberg.com/news/articles/2026-06-01/us-spot-petrochemical-prices-ease-as-export-demand-starts-to-lag",
+      "chunks": 1,
+      "idioma": "en",
+      "indexado_em": "2026-06-01 15:06"
     }
   ]
 }
