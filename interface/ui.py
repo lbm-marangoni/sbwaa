@@ -9,7 +9,7 @@ import sys
 import json
 import threading
 import subprocess
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import customtkinter as ctk
@@ -84,6 +84,7 @@ class App(ctk.CTk):
         self._nav_select("portfolio")
         self._tick()
         self.after(400, self._load_header_data)
+        self.after(700, self._check_tese_queue)
 
     # ── Header ────────────────────────────────────────────────────────────────
 
@@ -223,12 +224,20 @@ class App(ctk.CTk):
         main = ctk.CTkFrame(parent, corner_radius=0, fg_color="transparent")
         main.grid(row=0, column=1, sticky="nsew")
         main.grid_columnconfigure(0, weight=1)
-        main.grid_rowconfigure(0, weight=1)
-        main.grid_rowconfigure(1, weight=0)
+        main.grid_rowconfigure(0, weight=0)   # banner (oculto por padrão)
+        main.grid_rowconfigure(1, weight=1)   # content_host
+        main.grid_rowconfigure(2, weight=0)   # output
+
+        # Banner de alertas (oculto até ter sinais COMPRAR)
+        self._banner = ctk.CTkFrame(
+            main, corner_radius=0,
+            fg_color=ACC_BG, border_width=1, border_color=ACC,
+        )
+        # Não chama grid() — oculto até _check_tese_queue popular
 
         self._content_host = ctk.CTkFrame(main, corner_radius=0,
                                            fg_color="transparent")
-        self._content_host.grid(row=0, column=0, sticky="nsew")
+        self._content_host.grid(row=1, column=0, sticky="nsew")
         self._content_host.grid_columnconfigure(0, weight=1)
         self._content_host.grid_rowconfigure(0, weight=1)
 
@@ -238,7 +247,7 @@ class App(ctk.CTk):
         self._pages["relatorios"] = self._make_page_relatorios()
         self._pages["knowledge"]  = self._make_page_knowledge()
 
-        self._build_output(main, row=1)
+        self._build_output(main, row=2)
 
     def _nav_select(self, key: str):
         if self._active_page and self._active_page in self._pages:
@@ -301,6 +310,97 @@ class App(ctk.CTk):
     def _hide_toast(self):
         self._toast.place_forget()
         self._toast_job = None
+
+    # ── Banner de teses ───────────────────────────────────────────────────────
+
+    def _check_tese_queue(self):
+        """Lê fila de teses e exibe banner se houver sinais COMPRAR."""
+        logs_dir = PROJECT_ROOT / "logs"
+        queue_path = None
+        for delta in range(2):
+            d = (date.today() - timedelta(days=delta)).strftime("%Y-%m-%d")
+            p = logs_dir / f"tese_queue_{d}.json"
+            if p.exists():
+                queue_path = p
+                break
+        if not queue_path:
+            return
+
+        try:
+            data = json.loads(queue_path.read_text(encoding="utf-8"))
+        except Exception:
+            return
+
+        comprar = []
+        for ativo in data.get("ativos", []):
+            if ativo.get("veredicto") != "COMPRAR":
+                continue
+            ticker  = ativo["ticker"]
+            status  = ativo.get("status", "novo")
+            tese_dt = ativo.get("tese_data", "")
+            label   = ativo.get("label", "—")
+            try:
+                dias = (date.today() - datetime.strptime(tese_dt, "%Y-%m-%d").date()).days
+            except Exception:
+                dias = 999
+            cmd = f"/analisar {ticker}" if (dias >= 60 or status == "novo") else f"/pm {ticker}"
+            comprar.append({"ticker": ticker, "label": label, "status": status, "cmd": cmd})
+
+        if not comprar:
+            return
+
+        self._populate_banner(comprar)
+
+    def _populate_banner(self, sinais: list):
+        for w in self._banner.winfo_children():
+            w.destroy()
+
+        n = len(sinais)
+
+        # Título + fechar
+        title_bar = ctk.CTkFrame(self._banner, fg_color="transparent")
+        title_bar.pack(fill="x", padx=12, pady=(8, 4))
+        ctk.CTkLabel(
+            title_bar,
+            text=f"⚡  Teses de hoje — {n} sinal{'is' if n > 1 else ''} COMPRAR",
+            font=MONO_B, text_color=ACC,
+        ).pack(side="left")
+        ctk.CTkButton(
+            title_bar, text="×", width=26, height=22,
+            font=MONO_B, fg_color="transparent", hover_color=ELEV,
+            text_color=TXT2, corner_radius=4,
+            command=self._hide_banner,
+        ).pack(side="right")
+
+        # Linha por ativo
+        for sinal in sinais:
+            row = ctk.CTkFrame(self._banner, fg_color="transparent")
+            row.pack(fill="x", padx=12, pady=(0, 7))
+
+            ctk.CTkLabel(row, text=sinal["ticker"],
+                         font=MONO_B, text_color=TXT,
+                         width=72, anchor="w").pack(side="left")
+            ctk.CTkLabel(row, text=sinal["label"],
+                         font=MONO_SM, text_color=TXT2,
+                         width=90, anchor="w").pack(side="left")
+            status_color = POS if sinal["status"] == "carteira" else ACC_DIM
+            ctk.CTkLabel(row, text=sinal["status"],
+                         font=MONO_SM, text_color=status_color,
+                         width=72, anchor="w").pack(side="left")
+            ctk.CTkLabel(row, text=f"→  {sinal['cmd']}",
+                         font=MONO_SM, text_color=TXT,
+                         width=210, anchor="w").pack(side="left", padx=(10, 0))
+            ctk.CTkButton(
+                row, text="📋 Copiar", width=82, height=24,
+                font=MONO_SM, fg_color=ELEV, hover_color=BORDER,
+                text_color=ACC, corner_radius=4,
+                command=lambda c=sinal["cmd"]: self._clipboard(c),
+            ).pack(side="left", padx=(8, 0))
+
+        self._banner.grid(row=0, column=0, sticky="ew")
+
+    def _hide_banner(self):
+        self._banner.grid_remove()
 
     # ── Páginas ───────────────────────────────────────────────────────────────
 

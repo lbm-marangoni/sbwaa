@@ -35,7 +35,7 @@ log = logging.getLogger("sbwaa.automation")
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from scripts.automation.tasks import (
-    MORNING_TASKS, EOD_TASKS, WEEKEND_TASKS, MONTHLY_TASKS, ALERTA_TASKS,
+    MORNING_TASKS, EOD_TASKS, WEEKEND_TASKS, MONTHLY_TASKS, ALERTA_TASKS, TESE_TASKS,
 )
 from scripts.automation.runner import run_task
 from scripts.automation.notifier import notify
@@ -95,6 +95,16 @@ def selecionar_tasks(slot: str, hoje: date | None = None) -> list:
             log.info(f"Slot alerta: fora do horário de pregão ({hora}h). Ignorando.")
             return []
         return [t for t in ALERTA_TASKS if t.enabled]
+
+    elif slot == "tese":
+        if not eh_dia_util(hoje):
+            log.info(f"{hoje} não é dia útil — slot tese ignorado.")
+            return []
+        flag = LOGS_DIR / f"morning_auto_{hoje}.flag"
+        if not flag.exists():
+            log.info("Flag de morning automático não encontrada — slot tese ignorado.")
+            return []
+        return [t for t in TESE_TASKS if t.enabled]
 
     log.error(f"Slot desconhecido: '{slot}'")
     return []
@@ -163,7 +173,7 @@ Exemplos:
     )
     parser.add_argument(
         "--slot",
-        choices=["morning", "eod", "weekend"],
+        choices=["morning", "eod", "weekend", "tese", "alerta"],
         required=True,
         help="Qual slot executar",
     )

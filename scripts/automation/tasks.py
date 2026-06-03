@@ -81,6 +81,27 @@ MORNING_TASKS: list[Task] = [
         command="/morning-call",
         timeout=900,
     ),
+    Task(
+        name="create_auto_flag",
+        description="Registrar que morning-call automático rodou hoje (habilita slot tese)",
+        task_type="python",
+        command=[PYTHON, str(Path(__file__).parent / "create_auto_flag.py")],
+        timeout=10,
+    ),
+]
+
+
+# ── SLOT TESE ─────────────────────────────────────────────────────────────────
+# Roda seg-sex ~08:30 — 45 min após morning; só se flag de morning automático existir
+
+TESE_TASKS: list[Task] = [
+    Task(
+        name="tese_runner",
+        description="Rodar /tese para ativos do morning call e salvar fila de análises",
+        task_type="python",
+        command=[PYTHON, str(Path(__file__).parent / "tese_trigger.py")],
+        timeout=1800,  # até 30 min para múltiplos tickers
+    ),
 ]
 
 

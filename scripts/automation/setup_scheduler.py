@@ -39,6 +39,12 @@ SCHEDULER_TASKS = [
         "desc":     "SBWAA — Relatórios fim de semana (sáb–dom 08:00)",
     },
     {
+        "name":     "SBWAA_Tese",
+        "slot":     "tese",
+        "schedule": ["/SC", "WEEKLY", "/D", "MON,TUE,WED,THU,FRI", "/ST", "08:30"],
+        "desc":     "SBWAA — Teses pós morning call (seg–sex 08:30)",
+    },
+    {
         "name":     "SBWAA_Alerta",
         "slot":     "alerta",
         "schedule": ["/SC", "MINUTE", "/MO", "60", "/ST", "10:00"],
