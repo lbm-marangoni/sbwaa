@@ -1,8 +1,8 @@
 ---
 tags: [apresentacao, sbwaa, sistema]
 cssclasses: [node-apresentacao]
-versao: v2.21.0
-atualizado: 2026-06-03
+versao: v2.22.0
+atualizado: 2026-06-26
 ---
 
 # SBWAA — Second Brain Wealth + Asset + Assessor Individual
@@ -102,9 +102,10 @@ Os comandos se dividem em dois grupos: **locais** (Python puro, instantâneos) e
 |---------|--------------|
 | `/carteira` | Posições atualizadas, P&L, alocação por classe, barras visuais, projeção de metas |
 | `/dividendos` | Proventos recebidos, DY ponderado, renda mensal, próximas datas ex |
-| `/adicionar TICKER` | Registra nova posição com custo médio, quantidade e data |
-| `/vender TICKER` | Registra venda parcial ou total |
+| `/adicionar TICKER` | Registra nova posição com custo médio, quantidade e data; suporte a RF/TD com indexador, taxa e vencimento; ativos USD com conversão automática BRL/USD |
+| `/vender TICKER` | Registra venda parcial ou total; para RF/TD/DEB/CRI-CRA: calcula IR regressivo (22,5%→15%) e IOF automático; P&L exibido em bruto e líquido |
 | `/metas` | Dashboard de metas financeiras: renda passiva, patrimônio, reserva, metas livres |
+| `/oportunidade` | Gerencia RF de curto prazo (Caixinha/RDB): saldo bruto, IOF estimado, IR estimado, líquido disponível para aporte; integrado ao PM |
 
 ### Risco e Quantitativo
 
@@ -112,19 +113,23 @@ Os comandos se dividem em dois grupos: **locais** (Python puro, instantâneos) e
 |---------|--------------|
 | `/risco-carteira` | VaR, CVaR, Sharpe, Beta, Drawdown, Circuit Breakers, Fronteira Eficiente Markowitz |
 | `/snapshot` | Versão rápida do risco — salva no vault sem análise completa |
-| `/stress-test` | Simula 6 cenários de crise: -20%, +5% juros, crash crypto, recessão, deflação, guerra |
-| `/simulacao` | Monte Carlo + backtest histórico + projeção de patrimônio com aportes |
+| `/stress-test` | Simula 8 cenários de crise: -20%, +5% juros, crash crypto, recessão, deflação, guerra, câmbio +20%, crise fiscal BR; breakdown FX para carteiras com exposição USD |
+| `/simulacao` | Monte Carlo + backtest histórico + projeção de patrimônio com aportes; `--real` plota curva de equity real vs IBOV e CDI |
 | `/otimizar-expansao` | Compara fronteira atual vs fronteira expandida com a watchlist — identifica quais ativos melhoram o portfólio |
+| `/correlacao` | Heatmap de correlações da carteira: tabela ASCII colorida no terminal + PNG dark mode + nota Obsidian com pares de alta correlação e métricas de diversificação |
+| `/performance` | Benchmark local: retorno da carteira vs IBOV, CDI e IPCA para MTD/YTD/12m; alpha, beta, Sharpe, tracking error, decomposição por classe |
+| `/alerta` | Gerencia alertas de preço extraídos automaticamente das análises do vault; histórico de disparos em `alertas-historico.md`; verificação a cada 60 min no pregão |
 
 ### Análise de Ativos
 
 | Comando | O que entrega |
 |---------|--------------|
-| `/tese TICKER` | Análise rápida: macro, setor, DCF simplificado, decisão PM |
-| `/analisar TICKER` | Pipeline completo: 8 agentes, DCF, earnings, risco, valuation, decisão PM fundamentada |
+| `/tese TICKER` | Análise rápida: macro, setor, DCF simplificado, decisão PM; extrai preços-alvo automaticamente para o sistema de alertas |
+| `/analisar TICKER [TICKER2...]` | Pipeline completo: 8 agentes, DCF, earnings, risco, valuation, decisão PM fundamentada; aceita múltiplos tickers em batch com tabela comparativa ao final |
 | `/earnings TICKER` | Análise de resultado trimestral: receita, margem, EBITDA, guidance vs consenso |
+| `/earning-calendar` | Calendário de resultados dos próximos 90 dias: datas confirmadas (ações via yfinance) e estimadas (FIIs por calendário CVM); alertas automáticos em D-7 e D-1 |
 | `/comparar A B` | Análise lado a lado de dois ativos — qual o melhor ponto de entrada |
-| `/investimento-do-dia` | Sugestão de 1–2 ativos para explorar com base no macro do dia |
+| `/investimento-do-dia [categoria]` | Sugestão de 1–2 ativos para explorar com base no macro do dia; filtra por categoria: fii, acao, etf, rf, td |
 
 ### Decisão de Portfólio
 
@@ -139,8 +144,9 @@ Os comandos se dividem em dois grupos: **locais** (Python puro, instantâneos) e
 
 | Comando | O que entrega |
 |---------|--------------|
-| `/morning-call` | Briefing pré-mercado: macro global, Brasil, carteira, alertas, oportunidades do dia |
+| `/morning-call` | Briefing pré-mercado: macro global, Brasil, carteira, alertas, oportunidades do dia; inclui resumo compacto de metas e alertas econométricos críticos |
 | `/mundo-economico` | Análise macro profunda: Fed, Copom, câmbio, commodities, impacto na carteira |
+| `/fluxo-caixa` | Projeção de renda passiva mês a mês (12 meses): dividendos periódicos por ticker, valorização estimada de RF/TD/DEB/CRI-CRA líquida de IR; alerta vs meta de renda |
 | `/relatorio-semanal` | P&L da semana, métricas de risco, performance vs benchmark, outlook |
 | `/relatorio-mensal` | Relatório completo: performance, análise de risco, revisão de teses, next steps |
 
@@ -152,6 +158,8 @@ Os comandos se dividem em dois grupos: **locais** (Python puro, instantâneos) e
 | `/knowledge --coletar-rss` | Coleta feeds de Valor Econômico, InfoMoney, Bloomberg, Reuters, BCB |
 | `/ips` | Exibe ou edita a Política de Investimentos — os limites que o sistema respeita |
 | `/watchlist` | Lista todos os ativos analisados com veredicto, frescor e preço-alvo |
+| `/cache` | Dashboard de status do cache por tipo (cotação, fundamentais, macro, dividendos, modelos); limpa stale automaticamente ou por tipo; TTL configurável via `.env` |
+| `/att-info-system` | Fecha a sessão de trabalho: detecta versão, atualiza CHANGELOG, bump de versão em todos os docs, git commit + push + GitHub Release |
 
 ---
 
@@ -168,23 +176,40 @@ A partir da v2.12.0, o SBWAA tem um **sistema de automação local** que roda vi
    ├── Quant Metrics       → Sharpe, Vol, Beta da carteira
    ├── Risk Engineer       → VaR, drawdown, circuit breakers
    ├── Check Alerts        → verifica violações e dividendos próximos
-   └── /morning-call       → Claude gera briefing completo no vault
+   ├── /morning-call       → Claude gera briefing completo no vault
+   └── Auto Flag           → cria flag que ativa o slot de teses
+
+08:30 — Seg a Sex (somente após morning automático)
+   └── Tese Trigger        → extrai tickers do morning call e roda /tese em cada um;
+                             salva tese_queue com veredictos e comandos sugeridos
+
+10:00–17:00 — Seg a Sex (a cada 60 min, janela de pregão)
+   └── Check Preços-Alvo   → verifica alertas de preço da watchlist; dispara toast
+                             e registra em vault/05-risk/alertas-historico.md
 
 17:00 — Seg a Sex
    ├── Market Snapshot EOD → fechamento do mercado
+   ├── Update Carteira EOD → snapshot diário de P&L em vault/02-relatorios/diarios/
+   ├── Performance Build   → benchmark vs IBOV/CDI/IPCA atualizado
    ├── Check Alerts EOD    → alertas do fechamento
    └── /snapshot           → risk snapshot no vault
 
 08:00 — Domingo
+   ├── Fluxo de Caixa      → projeção de renda passiva atualizada (12 meses)
    └── /relatorio-semanal  → relatório semanal completo
 
 08:00 — 1° fim de semana do mês
+   ├── Earnings Calendar   → atualiza calendário de resultados da carteira
    └── /relatorio-mensal   → relatório mensal completo
 ```
 
 ### Notificação ao concluir
 
 O sistema envia uma **toast notification do Windows** ao terminar cada slot, informando quantas tarefas passaram e quais falharam — sem abrir nada, sem spam.
+
+### Banner de alertas na UI
+
+Ao abrir o painel, `startup_check.py` verifica se há ativos com sinal **COMPRAR** na fila de teses do dia. Se houver, um **banner persistente** aparece no topo da interface com: ticker, tipo de ativo, status (carteira/watchlist/novo) e comando sugerido (`/pm` ou `/analisar`). Botão de copiar por linha. Fecha para a sessão mas reaparece no próximo boot enquanto a fila for do dia.
 
 > [!important] PC em sleep/hibernate
 > O Task Scheduler está configurado com `WakeToRun = true` — acorda o PC do sleep para rodar as tarefas. Se o PC estiver completamente desligado, as tarefas rodam no próximo boot (`StartWhenAvailable = true`).
@@ -230,12 +255,16 @@ O fluxo de trabalho tem dois eixos: o **calendário fixo** (o que roda automatic
 
 ```
 Acorda
-  └── Abre o vault / terminal
+  └── Abre o painel ou vault
+       ├── Banner de COMPRAR? (tese_trigger rodou às 08:30)
+       │    ├── Sim → copiar comando sugerido (/pm ou /analisar) e executar
+       │    └── Não → continuar
        └── Lê o morning call que o sistema gerou às 07:45
             ├── Nenhum alerta → dia normal, nada a fazer
             └── Alerta presente?
                  ├── Circuit breaker (VaR ou drawdown) → /risco-carteira → /rebalancear
                  ├── Ativo caiu >5%                    → /pm TICKER → decidir
+                 ├── Alerta de preço-alvo disparado     → /alerta --historico → revisar
                  └── Dividendo próximo                 → /dividendos → conferir
 ```
 
@@ -327,7 +356,14 @@ Evento relevante surgiu (queda de mercado, notícia macro, resultado trimestral)
 | Decisão de portfólio com IA fundamentada | ✅ | ❌ | ❌ |
 | Análise de ativos com DCF + múltiplos | ✅ | Manual | ❌ |
 | Contexto macro integrado às decisões | ✅ | ❌ | ❌ |
-| Automação diária sem intervenção | ✅ | ❌ | Parcial |
+| Econometria aplicada (GARCH, Fama-French, beta dinâmico) | ✅ | ❌ | ❌ |
+| Automação diária sem intervenção (5 slots) | ✅ | ❌ | Parcial |
+| Tese automática pós-morning com alertas de COMPRAR | ✅ | ❌ | ❌ |
+| Alertas de preço com histórico navegável | ✅ | Manual | Parcial |
+| Motor tributário IR/IOF por tipo de ativo | ✅ | Manual | Raro |
+| P&L histórico diário + curva de equity real | ✅ | Manual | Parcial |
+| Benchmark automático vs IBOV/CDI/IPCA | ✅ | Manual | Parcial |
+| Suporte a ativos internacionais (USD) com exposição cambial | ✅ | Manual | Parcial |
 | 100% local — dados privados nunca saem | ✅ | ✅ | ❌ |
 | Vault navegável com histórico de teses | ✅ | ❌ | ❌ |
 | Modo aporte — distribui capital entre ativos | ✅ | Manual | ❌ |
@@ -336,14 +372,19 @@ Evento relevante surgiu (queda de mercado, notícia macro, resultado trimestral)
 
 ---
 
-## Estado Atual — v2.12.0
+## Estado Atual — v2.22.0
 
-- **25+ comandos** operacionais
-- **8 agentes** especializados
-- **3 slots automatizados** via Task Scheduler
-- **Pipeline de dados próprio** — sem dependência de APIs pagas
+- **35+ comandos** operacionais
+- **8 agentes** especializados (+ Econometrician: GARCH, beta dinâmico, Fama-French 3 fatores, macro regression)
+- **5 slots automatizados** via Task Scheduler (morning, tese, alerta, eod, weekend)
+- **Pipeline de dados próprio** — sem dependência de APIs pagas; scraping Investidor10, Yahoo Finance, BCB SGS, Brapi
 - **11 templates Obsidian** para padronizar todo output
 - **Base RAG local** com feeds de 5+ fontes financeiras
+- **Motor tributário completo** — IR regressivo e IOF para RF/TD/DEB/CRI-CRA; IR renda variável por classe; P&L líquido em todos os relatórios
+- **Cache centralizado com TTL por tipo** — cotação 15min, macro 60min, dividendos 6h, fundamentais/histórico 24h; configurável via `.env`
+- **P&L histórico diário** — snapshot automático às 17h; curva de equity real vs IBOV e CDI com `/simulacao --real`
+- **Suporte a ativos internacionais (USD)** — conversão automática BRL/USD na entrada e no P&L; exposição cambial separada em USD direto vs indireto
+- **Sistema de alertas de preço** — preços-alvo extraídos automaticamente das análises; verificação horária no pregão; histórico navegável no vault
 
 ---
 

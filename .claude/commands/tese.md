@@ -48,54 +48,14 @@ Emita:
 
 ## Passo 4 — Salvar
 
-Salve em `vault/01-ativos/$ARGUMENTS/tese-rapida-$ARGUMENTS-YYYY-MM-DD.md` usando o template `vault/_templates/tese-ativo.md` como base. Preencher TODAS as seções.
+Salve em `vault/01-ativos/$ARGUMENTS/tese-rapida-$ARGUMENTS-YYYY-MM-DD.md` usando o template `vault/_templates/tese-ativo.md` como base. Preencher TODAS as seções do template. Não criar seções extras fora do template.
 
-Na seção **Preço Teto / Nível de Entrada**, usar obrigatoriamente o formato:
-- `**Preço teto (Graham/Bazin 8%):** R$ XX.XX`
-- `**Preço chão (Bazin 12%):** R$ XX.XX` (somente FII)
-- `**Valor justo (base):** R$ XX.XX`
-
-```markdown
----
-tags: [ativo, tese, {tipo-lowercase}]
-ticker: {TICKER}
-tipo: {label do tipo conforme CLAUDE.md — ex: 🟩 FII}
-setor: {setor}
-data: {YYYY-MM-DD}
-status: ativa
----
-
-# Tese — {TICKER}
-
-## Por que este ativo
-{Setor/posição competitiva, vantagem, por que hoje — 3-5 linhas}
-
-## Catalisadores
-- {catalisador 1}
-- {catalisador 2}
-- {macro relevante}
-
-## Riscos principais
-- {risco 1}
-- {risco 2}
-
-## Preço teto / Nível de entrada
-- **Método:** Gordon Growth / DCF simplificado / Graham / Bazin
-- **Premissas:** taxa X%, g X%
-- **Valor justo (base):** R$ XX,XX — upside +/-X%
-- **Valor justo (pessimista):** R$ XX,XX
-- **Preço teto (Graham/Bazin 8%):** R$ XX,XX
-- **Preço chão (Bazin 12%):** R$ XX,XX (apenas FII)
-- **Veredicto PM:** COMPRAR / AGUARDAR / EVITAR — sizing X%
-- **Gatilho:** {preço ou evento se AGUARDAR}
-
-## Condição de saída
-- {stop de tese — preço, resultado, evento}
-
-## Links
-- [[carteira]]
-- [[ips]]
-```
+Regras obrigatórias para a seção **Preço Teto / Nível de Entrada**:
+- Usar vírgula como separador decimal (R$ XX,XX — padrão BR)
+- `**Preço teto (Bazin DY 8% / Graham):** R$ XX,XX` — se não aplicável, indicar N/A com justificativa
+- `**Preço chão (Bazin DY 12%):** R$ XX,XX` — somente FII
+- `**Valor justo (base):** R$ XX,XX — upside +X%`
+- `**Valor justo (pessimista):** R$ XX,XX — downside -X%`
 
 ## Passo 5 — Registrar alertas de preço
 

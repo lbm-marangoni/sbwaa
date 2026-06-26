@@ -3,7 +3,7 @@
 > Sistema multi-agente de gestão de portfólio e análise de ativos financeiros.
 > Operação 100% local. Dados 100% privados. Motor de IA: Claude Code.
 
-![Version](https://img.shields.io/badge/versão-v2.21.0-blue)
+![Version](https://img.shields.io/badge/versão-v2.22.0-blue)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![Platform](https://img.shields.io/badge/plataforma-Windows-lightgrey)
 ![License](https://img.shields.io/badge/licença-privado-red)

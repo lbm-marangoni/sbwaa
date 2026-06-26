@@ -102,6 +102,7 @@ def inserir_linha_carteira(ticker: str, tipo: str, setor: str, qtd: float, pm: f
     for i, l in enumerate(linhas):
         if l.strip().startswith("|---") and i > 0 and "Ticker" in linhas[i - 1]:
             idx = i + 1
+            break  # usa a primeira tabela com cabeçalho "Ticker" (Posições Ativas)
     if idx is None:
         for i, l in enumerate(linhas):
             if "|-----" in l:

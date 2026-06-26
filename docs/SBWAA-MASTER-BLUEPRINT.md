@@ -1,8 +1,8 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.21.0  
-**Data de geração:** 2026-06-03  
+**Versão de referência:** v2.22.0  
+**Data de geração:** 2026-06-26  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
 ---
@@ -2223,6 +2223,7 @@ Modo de operação: Claude Code (sem API key)
 | v2.19.0 | 2026-05-29 | /earning-calendar: calendário de resultados com alertas D-7/D-1 integrados ao heartbeat |
 | v2.20.0 | 2026-06-01 | cache_manager.py centralizado: TTL configurável por tipo via .env; /cache --status/--clear; fetchers migrados |
 | v2.21.0 | 2026-06-03 | Tese automático pós morning-call: tese_trigger.py + flag de autorização + banner persistente na UI + tray notification no startup |
+| v2.22.0 | 2026-06-26 | Dias úteis brasileiros na tributação de RF: dias_uteis_brasil() + feriados nacionais; RDB Nubank com CDI por dias úteis e IOF por dias corridos; refinamento do template de tese |
 
 ### Diferenças do projeto original para o atual
 

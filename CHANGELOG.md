@@ -2,6 +2,26 @@
 
 ---
 
+## [2.22.0] — 2026-06-26 — DIAS ÚTEIS BRASILEIROS NO CÁLCULO DE RF/CDI
+
+### Added
+- **`scripts/data/calculos_tributarios.py`** — cálculo de dias úteis brasileiros:
+  - `_feriados_nacionais(ano)` — feriados nacionais fixos + móveis derivados da Páscoa (Carnaval, Sexta-Feira Santa, Corpus Christi)
+  - `dias_uteis_brasil(data_inicio, data_fim)` — conta dias úteis (exclui fins de semana e feriados) com cache de feriados por ano
+  - `ResultadoTributarioRF.dias_uteis` — novo campo para registrar dias úteis junto aos dias corridos
+  - `calcular_tributario_rf()` passa a aceitar `dias_uteis`
+
+### Changed
+- **`scripts/data/calculos_tributarios.py`** — `calcular_rdb_nubank()` agora separa as bases: CDI capitaliza por **dias úteis** e IOF incide sobre **dias corridos** (cálculo de rendimento mais fiel ao RDB Nubank)
+- **`scripts/data/rf_oportunidade.py`** — `cmd_saldo()` exibe dias corridos e dias úteis lado a lado
+- **`.claude/commands/tese.md`** — Passo 4 referencia o template `vault/_templates/tese-ativo.md` sem duplicar o bloco; padroniza separador decimal BR (vírgula), formato de preço teto (Bazin DY 8% / Graham), preço chão (Bazin DY 12%, só FII) e valor justo base/pessimista; proíbe seções extras fora do template
+- **`docs/SBWAA-APRESENTACAO.md`** — sincronizado com o estado atual do sistema
+
+### Fixed
+- **`scripts/data/add_ativo.py`** — `inserir_linha_carteira()` agora usa a primeira tabela com cabeçalho "Ticker" (Posições Ativas) via `break`, evitando inserção na tabela errada
+
+---
+
 ## [2.21.0] — 2026-06-03 — TESE AUTOMÁTICO PÓS MORNING-CALL + BANNER DE ALERTAS
 
 ### Added

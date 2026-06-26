@@ -160,7 +160,7 @@ def cmd_saldo():
     print("💰 RF OPORTUNIDADE — CAIXINHA NUBANK")
     print(f"{'─'*52}")
     print(f"  Saldo bruto:          R$ {saldo:>10,.2f}")
-    print(f"  Data depósito base:   {data_dep}  ({trib.dias} dias corridos)")
+    print(f"  Data depósito base:   {data_dep}  ({trib.dias} dias corridos / {trib.dias_uteis} úteis)")
     print(f"  Rendimento est.*:     R$ {trib.rendimento_bruto:>10,.2f}")
     print(f"  IOF ({trib.iof_aliquota_pct:.0f}%):            R$ {trib.iof_valor:>10,.2f}  {'✅ zerado' if trib.iof_valor == 0 else '⚠️'}")
     print(f"  IR  ({trib.ir_aliquota_pct:.1f}%):           R$ {trib.ir_valor:>10,.2f}  (só no resgate)")

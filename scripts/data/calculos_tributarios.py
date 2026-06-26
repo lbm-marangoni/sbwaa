@@ -6,7 +6,7 @@ Importável por qualquer script ou agente do sistema.
 
 from __future__ import annotations
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 # ── Tabelas Legais ─────────────────────────────────────────────────────────────
 
@@ -41,6 +41,55 @@ DIAS_UTEIS_ANO    = 252
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+
+def _feriados_nacionais(ano: int) -> set:
+    """Feriados nacionais brasileiros (fixos + móveis via Páscoa)."""
+    def _pascoa(y: int) -> date:
+        a = y % 19; b = y // 100; c = y % 100
+        d = b // 4; e = b % 4; f = (b + 8) // 25
+        g = (b - f + 1) // 3
+        h = (19 * a + b - d - g + 15) % 30
+        i = c // 4; k = c % 4
+        l = (32 + 2 * e + 2 * i - h - k) % 7
+        m = (a + 11 * h + 22 * l) // 451
+        mes = (h + l - 7 * m + 114) // 31
+        dia = ((h + l - 7 * m + 114) % 31) + 1
+        return date(y, mes, dia)
+
+    p = _pascoa(ano)
+    return {
+        date(ano, 1, 1),   date(ano, 4, 21),  date(ano, 5, 1),
+        date(ano, 9, 7),   date(ano, 10, 12), date(ano, 11, 2),
+        date(ano, 11, 15), date(ano, 12, 25),
+        p - timedelta(days=48), p - timedelta(days=47),  # Carnaval
+        p - timedelta(days=2),                            # Sexta Santa
+        p + timedelta(days=60),                           # Corpus Christi
+    }
+
+
+def dias_uteis_brasil(data_inicio: date | str, data_fim: date | str | None = None) -> int:
+    """Dias úteis brasileiros de data_inicio (inclusive) até data_fim (exclusive)."""
+    if isinstance(data_inicio, str):
+        data_inicio = datetime.strptime(data_inicio, "%Y-%m-%d").date()
+    if data_fim is None:
+        data_fim = date.today()
+    elif isinstance(data_fim, str):
+        data_fim = datetime.strptime(data_fim, "%Y-%m-%d").date()
+    if data_fim <= data_inicio:
+        return 0
+    cache: dict[int, set] = {}
+    count = 0
+    current = data_inicio
+    while current < data_fim:
+        if current.weekday() < 5:
+            ano = current.year
+            if ano not in cache:
+                cache[ano] = _feriados_nacionais(ano)
+            if current not in cache[ano]:
+                count += 1
+        current += timedelta(days=1)
+    return count
+
 
 def dias_corridos(data_inicio: date | str, data_fim: date | str | None = None) -> int:
     """Retorna dias corridos entre data_inicio e data_fim (padrão: hoje)."""
@@ -99,7 +148,8 @@ class ResultadoTributarioRF:
     ir_aliquota_pct: float
     liquido: float
     total_bruto: float
-    dias: int
+    dias: int           # dias corridos (IOF)
+    dias_uteis: int = 0  # dias úteis (CDI)
 
     def linha_resumo(self, label: str = "") -> str:
         pfx = f"{label}: " if label else ""
@@ -115,8 +165,9 @@ def calcular_tributario_rf(
     principal: float,
     rendimento_bruto: float,
     dias: int,
+    dias_uteis: int = 0,
 ) -> ResultadoTributarioRF:
-    """Calcula IOF + IR sobre posição de RF."""
+    """Calcula IOF + IR sobre posição de RF. dias = corridos (IOF); dias_uteis = úteis (CDI)."""
     al_iof = aliquota_iof_rf(dias)
     iof    = round(rendimento_bruto * al_iof / 100, 2)
     rend_apos_iof = rendimento_bruto - iof
@@ -133,6 +184,7 @@ def calcular_tributario_rf(
         liquido=liquido,
         total_bruto=round(principal + rendimento_bruto, 2),
         dias=dias,
+        dias_uteis=dias_uteis,
     )
 
 
@@ -150,13 +202,13 @@ def calcular_rdb_nubank(
     """
     ref = datetime.strptime(data_referencia, "%Y-%m-%d").date() if data_referencia else date.today()
     dep = datetime.strptime(data_deposito, "%Y-%m-%d").date()
-    d   = max(0, (ref - dep).days)
+    d        = max(0, (ref - dep).days)           # dias corridos — para IOF
+    d_uteis  = dias_uteis_brasil(dep, ref)         # dias úteis — para CDI
 
-    # Estimativa reversa: saldo_bruto ≈ principal * (1 + taxa)^dias
-    # Para simplificar, assumimos que saldo_bruto já inclui rendimentos
+    # Estimativa reversa: saldo_bruto ≈ principal * (1 + taxa_diaria)^d_uteis
     taxa_diaria = (1 + cdi_anual * pct_cdi) ** (1 / DIAS_UTEIS_ANO) - 1
-    if d > 0 and taxa_diaria > 0:
-        fator = (1 + taxa_diaria) ** d
+    if d_uteis > 0 and taxa_diaria > 0:
+        fator = (1 + taxa_diaria) ** d_uteis
         principal_est = saldo_bruto / fator
         rendimento_est = saldo_bruto - principal_est
     else:
@@ -167,6 +219,7 @@ def calcular_rdb_nubank(
         principal=round(principal_est, 2),
         rendimento_bruto=round(rendimento_est, 2),
         dias=d,
+        dias_uteis=d_uteis,
     )
 
 
