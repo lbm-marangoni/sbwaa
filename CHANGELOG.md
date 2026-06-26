@@ -2,6 +2,18 @@
 
 ---
 
+## [2.23.0] — 2026-06-26 — MODEL ROUTING: OPUS 4.8 + EFFORT HIGH
+
+### Changed
+- **Model routing policy** atualizada em `CLAUDE.md`, `docs/GUIA-COMANDOS.md` e `docs/SBWAA-MASTER-BLUEPRINT.md`:
+  - Agentes Opus (Portfolio Manager, Model Builder, Risk Engineer): `claude-opus-4-6` → **`claude-opus-4-8`**
+  - Agentes Sonnet (Market Researcher, Earnings Reviewer, Valuation Reviewer, Quant/Data Engineer, Econometrician, Heartbeat, Comandos diários): mantêm `claude-sonnet-4-6`
+  - **Effort `medium` → `high`** em todos os agentes
+- **`.claude/agents/*/SKILL.md`** — cabeçalhos de modelo/effort sincronizados (8 agentes)
+- **`.claude/agents/portfolio-manager/run_pm.py`** e **`.claude/agents/model-builder/run_model_builder.py`** — `model="claude-opus-4-8"` em todas as chamadas
+
+---
+
 ## [2.22.0] — 2026-06-26 — DIAS ÚTEIS BRASILEIROS NO CÁLCULO DE RF/CDI
 
 ### Added

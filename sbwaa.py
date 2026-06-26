@@ -84,7 +84,7 @@ TODOS_COMANDOS = {**COMANDOS_LOCAIS, **{k: None for k in COMANDOS_IA}, "/ui": No
 def exibir_help():
     print("""
 ╔══════════════════════════════════════════════════════════════════╗
-║            SBWAA — Referência de Comandos  v2.22.0               ║
+║            SBWAA — Referência de Comandos  v2.23.0               ║
 ╚══════════════════════════════════════════════════════════════════╝
 
   Uso:  python sbwaa.py /COMANDO [argumentos]

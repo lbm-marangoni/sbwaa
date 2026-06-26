@@ -1,7 +1,7 @@
 # SBWAA — MASTER BLUEPRINT
 ## Guia Completo de Reconstrução do Sistema do Zero
 
-**Versão de referência:** v2.22.0  
+**Versão de referência:** v2.23.0  
 **Data de geração:** 2026-06-26  
 **Objetivo:** Recriar o sistema SBWAA completo a partir do zero, com todas as fases, correções e estado atual.
 
@@ -18,7 +18,7 @@
 - Interface desktop (customtkinter) + terminal (slash commands)
 - Vault Obsidian como banco de dados em markdown
 
-**Stack principal:** Python 3.11+, Claude API (claude-sonnet-4-6 / claude-opus-4-6), ChromaDB, customtkinter, yfinance, Brapi
+**Stack principal:** Python 3.11+, Claude API (claude-sonnet-4-6 / claude-opus-4-8), ChromaDB, customtkinter, yfinance, Brapi
 
 ---
 
@@ -155,15 +155,15 @@ Criar `/sbwaa/CLAUDE.md` — lido por todos os agentes no Claude Code:
 
 | Agente                  | Modelo              | Effort |
 |-------------------------|---------------------|--------|
-| Portfolio Manager       | claude-opus-4-6     | medium |
-| Model Builder (DCF)     | claude-opus-4-6     | medium |
-| Risk Engineer           | claude-opus-4-6     | medium |
-| Market Researcher       | claude-sonnet-4-6   | medium |
-| Earnings Reviewer       | claude-sonnet-4-6   | medium |
-| Valuation Reviewer      | claude-sonnet-4-6   | medium |
-| Quant / Data Engineer   | claude-sonnet-4-6   | medium |
-| Heartbeat / Alertas     | claude-sonnet-4-6   | medium |
-| Comandos diários        | claude-sonnet-4-6   | medium |
+| Portfolio Manager       | claude-opus-4-8     | high   |
+| Model Builder (DCF)     | claude-opus-4-8     | high   |
+| Risk Engineer           | claude-opus-4-8     | high   |
+| Market Researcher       | claude-sonnet-4-6   | high   |
+| Earnings Reviewer       | claude-sonnet-4-6   | high   |
+| Valuation Reviewer      | claude-sonnet-4-6   | high   |
+| Quant / Data Engineer   | claude-sonnet-4-6   | high   |
+| Heartbeat / Alertas     | claude-sonnet-4-6   | high   |
+| Comandos diários        | claude-sonnet-4-6   | high   |
 
 ---
 
@@ -724,7 +724,7 @@ trimestrais de empresas listadas na B3.
 ## 7. FASE 3 — MODEL BUILDER + VALUATION REVIEWER
 
 ### Prompt de execução no Claude Code:
-> Crie os agentes Model Builder (DCF) e Valuation Reviewer. Model Builder: constrói modelo DCF para ações ordinárias/preferenciais e modelo Gordon Growth para FIIs. Usa claude-opus-4-6. Gera XLSX com o modelo e JSON com premissas no cache. Valuation Reviewer: valida o DCF, compara com comps de mercado, produz equity research em 2 versões (curta 1 página e longa 2 páginas) em .md e .docx. Usa claude-sonnet-4-6.
+> Crie os agentes Model Builder (DCF) e Valuation Reviewer. Model Builder: constrói modelo DCF para ações ordinárias/preferenciais e modelo Gordon Growth para FIIs. Usa claude-opus-4-8. Gera XLSX com o modelo e JSON com premissas no cache. Valuation Reviewer: valida o DCF, compara com comps de mercado, produz equity research em 2 versões (curta 1 página e longa 2 páginas) em .md e .docx. Usa claude-sonnet-4-6.
 
 ### SKILL.md — Model Builder
 
@@ -839,7 +839,7 @@ wb.save(str(output_path))
 ## 8. FASE 4 — QUANT/DATA ENGINEER + RISK ENGINEER
 
 ### Prompt de execução no Claude Code:
-> Crie os agentes Quant/Data Engineer e Risk Engineer com suas calculadoras em Python puro. Quant: calcula métricas de portfólio (Sharpe, volatilidade, beta IBOV, correlação, retornos). Risk: calcula VaR 95% histórico e paramétrico, CVaR, drawdown, stress tests e circuit breakers. Ambos leem o histórico de preços do cache (Yahoo Finance) e salvam JSON no cache. Risk Engineer usa claude-opus-4-6 para gerar interpretação narrativa.
+> Crie os agentes Quant/Data Engineer e Risk Engineer com suas calculadoras em Python puro. Quant: calcula métricas de portfólio (Sharpe, volatilidade, beta IBOV, correlação, retornos). Risk: calcula VaR 95% histórico e paramétrico, CVaR, drawdown, stress tests e circuit breakers. Ambos leem o histórico de preços do cache (Yahoo Finance) e salvam JSON no cache. Risk Engineer usa claude-opus-4-8 para gerar interpretação narrativa.
 
 ### Calculadoras — Quant (`calculators/returns.py`)
 ```python
@@ -954,7 +954,7 @@ circuit_breakers = {
 ## 9. FASE 5 — PORTFOLIO MANAGER + /ANALISAR
 
 ### Prompt de execução no Claude Code:
-> Crie o Portfolio Manager e o orquestrador /analisar. O PM é o agente decisor final — ele recebe todos os outputs das fases anteriores e retorna COMPRAR/AGUARDAR/EVITAR com sizing, preço de entrada, stop e tese de investimento em 1 página. Usa claude-opus-4-6. run_analisar.py é o orquestrador que executa todos os 7 agentes em sequência para um ticker.
+> Crie o Portfolio Manager e o orquestrador /analisar. O PM é o agente decisor final — ele recebe todos os outputs das fases anteriores e retorna COMPRAR/AGUARDAR/EVITAR com sizing, preço de entrada, stop e tese de investimento em 1 página. Usa claude-opus-4-8. run_analisar.py é o orquestrador que executa todos os 7 agentes em sequência para um ticker.
 
 ### SKILL.md — Portfolio Manager
 
@@ -1580,7 +1580,7 @@ if __name__ == "__main__":
 ### O que é
 O Econometrician é o **8º agente** do pipeline `/analisar` (Etapa 6, após Quant e antes de Risk). Produz análise quantitativa avançada de um único ativo usando séries temporais e econometria aplicada. Resultado: JSON em cache (`econometria_{TICKER}_{DATA}.json`) consumido pelo PM e pelos comandos `/rebalancear` e `/revisar-carteira`.
 
-**Modelo:** `claude-sonnet-4-6` | **Effort:** medium
+**Modelo:** `claude-sonnet-4-6` | **Effort:** high
 
 ### Módulos (`.claude/agents/econometrician/modules/`)
 
@@ -2224,6 +2224,7 @@ Modo de operação: Claude Code (sem API key)
 | v2.20.0 | 2026-06-01 | cache_manager.py centralizado: TTL configurável por tipo via .env; /cache --status/--clear; fetchers migrados |
 | v2.21.0 | 2026-06-03 | Tese automático pós morning-call: tese_trigger.py + flag de autorização + banner persistente na UI + tray notification no startup |
 | v2.22.0 | 2026-06-26 | Dias úteis brasileiros na tributação de RF: dias_uteis_brasil() + feriados nacionais; RDB Nubank com CDI por dias úteis e IOF por dias corridos; refinamento do template de tese |
+| v2.23.0 | 2026-06-26 | Model routing: agentes Opus migrados para claude-opus-4-8; effort high em todos os agentes |
 
 ### Diferenças do projeto original para o atual
 

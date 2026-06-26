@@ -3,7 +3,7 @@
 > Referência completa de todos os comandos do sistema.
 > Para instalação e configuração inicial: [`README.md`](README.md)
 
-**Versão: v2.22.0**
+**Versão: v2.23.0**
 
 ---
 
@@ -706,12 +706,12 @@ python sbwaa.py /status    # versão atual, modo e data
 |--------------------|-------------------|--------------------------------------------------------------|
 | Market Researcher  | claude-sonnet-4-6 | Análise macro, setorial e posicionamento                     |
 | Earnings Reviewer  | claude-sonnet-4-6 | Revisão de resultados trimestrais                            |
-| Model Builder      | claude-opus-4-6   | Construção de DCF e modelos de valuation                     |
+| Model Builder      | claude-opus-4-8   | Construção de DCF e modelos de valuation                     |
 | Valuation Reviewer | claude-sonnet-4-6 | Revisão crítica do modelo, equity research                   |
 | Quant/Data Eng.    | claude-sonnet-4-6 | Métricas quantitativas: Sharpe, VaR, correlação              |
 | Econometrician     | claude-sonnet-4-6 | GARCH, beta dinâmico rolling, Fama-French 3F, macro BCB      |
-| Risk Engineer      | claude-opus-4-6   | VaR, CVaR, stress tests, circuit breakers, Fronteira Markowitz |
-| Portfolio Manager  | claude-opus-4-6   | Decisão final: COMPRAR / AGUARDAR / EVITAR / MANTER / SAIR  |
+| Risk Engineer      | claude-opus-4-8   | VaR, CVaR, stress tests, circuit breakers, Fronteira Markowitz |
+| Portfolio Manager  | claude-opus-4-8   | Decisão final: COMPRAR / AGUARDAR / EVITAR / MANTER / SAIR  |
 
 Cada agente tem um `SKILL.md` com seu sistema de instruções e um `run_*.py`
 que pode ser chamado diretamente ou via pipeline `/analisar`.

@@ -1,5 +1,5 @@
 # SKILL — Model Builder (DCF)
-# SBWAA | Modelo: claude-opus-4-6 | Effort: medium
+# SBWAA | Modelo: claude-opus-4-8 | Effort: high
 
 ## IDENTIDADE E FUNÇÃO
 

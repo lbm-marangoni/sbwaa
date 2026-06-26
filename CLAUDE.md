@@ -47,16 +47,16 @@ Seguir este roteamento de modelos em todas as operações:
 
 | Agente                  | Modelo              | Effort |
 |-------------------------|---------------------|--------|
-| Portfolio Manager       | claude-opus-4-6     | medium |
-| Model Builder (DCF)     | claude-opus-4-6     | medium |
-| Risk Engineer           | claude-opus-4-6     | medium |
-| Market Researcher       | claude-sonnet-4-6   | medium |
-| Earnings Reviewer       | claude-sonnet-4-6   | medium |
-| Valuation Reviewer      | claude-sonnet-4-6   | medium |
-| Quant / Data Engineer   | claude-sonnet-4-6   | medium |
-| Econometrician          | claude-sonnet-4-6   | medium |
-| Heartbeat / Alertas     | claude-sonnet-4-6   | medium |
-| Comandos diários        | claude-sonnet-4-6   | medium |
+| Portfolio Manager       | claude-opus-4-8     | high   |
+| Model Builder (DCF)     | claude-opus-4-8     | high   |
+| Risk Engineer           | claude-opus-4-8     | high   |
+| Market Researcher       | claude-sonnet-4-6   | high   |
+| Earnings Reviewer       | claude-sonnet-4-6   | high   |
+| Valuation Reviewer      | claude-sonnet-4-6   | high   |
+| Quant / Data Engineer   | claude-sonnet-4-6   | high   |
+| Econometrician          | claude-sonnet-4-6   | high   |
+| Heartbeat / Alertas     | claude-sonnet-4-6   | high   |
+| Comandos diários        | claude-sonnet-4-6   | high   |
 
 ---
 

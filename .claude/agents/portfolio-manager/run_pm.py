@@ -848,12 +848,12 @@ IPS do investidor:
 """
 
     print(f"\n{'─'*55}")
-    print("  Enviando ao Portfolio Manager (claude-opus-4-6)...")
+    print("  Enviando ao Portfolio Manager (claude-opus-4-8)...")
     print(f"{'─'*55}\n")
 
     output_pm = ""
     with client.messages.stream(
-        model="claude-opus-4-6",
+        model="claude-opus-4-8",
         max_tokens=2000,
         system=skill,
         messages=[{"role": "user", "content": prompt_aporte}],
@@ -928,7 +928,7 @@ agente: portfolio-manager
         )
         print(f"\n{'─'*55}")
         with client.messages.stream(
-            model="claude-opus-4-6",
+            model="claude-opus-4-8",
             max_tokens=1000,
             system=skill,
             messages=[
@@ -1073,11 +1073,11 @@ def main():
     if contexto_rag:
         prompt = prompt + f"\n\n{contexto_rag}"
 
-    print(f"Enviando ao Portfolio Manager (claude-opus-4-6)...\n")
+    print(f"Enviando ao Portfolio Manager (claude-opus-4-8)...\n")
     print("─" * 55)
     output_pm = ""
     with client.messages.stream(
-        model="claude-opus-4-6",
+        model="claude-opus-4-8",
         max_tokens=3000,
         system=skill,
         messages=[{"role": "user", "content": prompt}],
@@ -1178,7 +1178,7 @@ def main():
         if p_sizing:
             print(f"\n{'─'*55}")
             with client.messages.stream(
-                model="claude-opus-4-6",
+                model="claude-opus-4-8",
                 max_tokens=600,
                 system=skill,
                 messages=[
@@ -1206,7 +1206,7 @@ def main():
         p_duvida = montar_prompt_duvida(ticker, ponto)
         print(f"\n{'─'*55}")
         with client.messages.stream(
-            model="claude-opus-4-6",
+            model="claude-opus-4-8",
             max_tokens=600,
             system=skill,
             messages=[

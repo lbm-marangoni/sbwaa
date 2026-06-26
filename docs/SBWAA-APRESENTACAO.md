@@ -1,7 +1,7 @@
 ---
 tags: [apresentacao, sbwaa, sistema]
 cssclasses: [node-apresentacao]
-versao: v2.22.0
+versao: v2.23.0
 atualizado: 2026-06-26
 ---
 
@@ -372,7 +372,7 @@ Evento relevante surgiu (queda de mercado, notícia macro, resultado trimestral)
 
 ---
 
-## Estado Atual — v2.22.0
+## Estado Atual — v2.23.0
 
 - **35+ comandos** operacionais
 - **8 agentes** especializados (+ Econometrician: GARCH, beta dinâmico, Fama-French 3 fatores, macro regression)

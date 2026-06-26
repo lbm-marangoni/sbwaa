@@ -309,10 +309,10 @@ Construa o modelo DCF completo e retorne EXCLUSIVAMENTE o JSON estruturado.
 """
 
     import anthropic
-    print("Enviando ao Model Builder (claude-opus-4-6)...")
+    print("Enviando ao Model Builder (claude-opus-4-8)...")
     client = anthropic.Anthropic()
     response = client.messages.create(
-        model="claude-opus-4-6",
+        model="claude-opus-4-8",
         max_tokens=4000,
         system=skill_content,
         messages=[{"role": "user", "content": contexto}],

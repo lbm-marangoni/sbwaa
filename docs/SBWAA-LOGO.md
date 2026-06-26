@@ -13,7 +13,7 @@
 
 **Second Brain Wealth + Asset + Assessor Individual**
 
-`v2.22.0` · multi-agente · 100% local · 100% privado
+`v2.23.0` · multi-agente · 100% local · 100% privado
 
 ---
 

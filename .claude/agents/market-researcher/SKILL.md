@@ -1,5 +1,5 @@
 # SKILL — Market Researcher
-# SBWAA | Modelo: claude-sonnet-4-6 | Effort: medium
+# SBWAA | Modelo: claude-sonnet-4-6 | Effort: high
 
 ## IDENTIDADE E FUNÇÃO
 
