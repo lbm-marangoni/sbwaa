@@ -150,28 +150,28 @@ At a high level, SBWAA combines four components:
 ┌─────────────────────────────────────────────┐
 │                 DATA INPUTS                 │
 │                                             │
-│ Market data • Fundamentals • News • Macro  │
+│  Market data • Fundamentals • News • Macro  │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
 │              RESEARCH LAYER                 │
 │                                             │
-│ Company • Sector • Earnings • Valuation    │
+│  Company • Sector • Earnings • Valuation    │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
 │             PORTFOLIO LAYER                 │
 │                                             │
-│ Risk • Allocation • IPS • Stress Testing   │
+│  Risk • Allocation • IPS • Stress Testing   │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
 │              DECISION LAYER                 │
 │                                             │
-│ Thesis • Monitoring • Review • Decisions   │
+│  Thesis • Monitoring • Review • Decisions   │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
