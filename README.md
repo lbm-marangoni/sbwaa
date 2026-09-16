@@ -144,41 +144,41 @@ Research therefore becomes a continuous process rather than a collection of disc
 
 # System Architecture
 
-At a high level, SBWAA combines four components:
+At a high level, SBWAA is organized into five connected layers:
 
 ```text
 ┌─────────────────────────────────────────────┐
 │                 DATA INPUTS                 │
 │                                             │
-│  Market data • Fundamentals • News • Macro  │
+│ Market data • Fundamentals • News • Macro  │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
 │              RESEARCH LAYER                 │
 │                                             │
-│  Company • Sector • Earnings • Valuation    │
+│ Company • Sector • Earnings • Valuation    │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
 │             PORTFOLIO LAYER                 │
 │                                             │
-│  Risk • Allocation • IPS • Stress Testing   │
+│ Risk • Allocation • IPS • Stress Testing   │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
 │              DECISION LAYER                 │
 │                                             │
-│  Thesis • Monitoring • Review • Decisions   │
+│ Thesis • Monitoring • Review • Decisions   │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
 ┌─────────────────────────────────────────────┐
 │            KNOWLEDGE SYSTEM                 │
 │                                             │
-│  Obsidian • Reports • History • Research    │
+│ Obsidian • Reports • History • Research    │
 └─────────────────────────────────────────────┘
 ```
 
@@ -506,8 +506,10 @@ sbwaa/
 ├── scripts/
 │   ├── data/
 │   ├── alerts/
-│   ├── risk/
-│   └── automation/
+│   ├── automation/
+│   ├── heartbeat/
+│   ├── run_research_pipeline.py
+│   └── simulacao_carteira.py
 │
 ├── .claude/
 │   └── agents/
