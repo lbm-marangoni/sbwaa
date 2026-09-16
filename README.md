@@ -178,7 +178,7 @@ At a high level, SBWAA combines four components:
 ┌─────────────────────────────────────────────┐
 │            KNOWLEDGE SYSTEM                 │
 │                                             │
-│ Obsidian • Reports • History • Research    │
+│  Obsidian • Reports • History • Research    │
 └─────────────────────────────────────────────┘
 ```
 
