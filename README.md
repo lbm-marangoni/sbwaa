@@ -1,271 +1,136 @@
-# SBWAA — Second Brain Wealth + Asset + Assessor Individual
+# SBWAA
+### Investment Research & Portfolio Decision-Support System
 
-> Sistema multi-agente de gestão de portfólio e análise de ativos financeiros.
-> Operação 100% local. Dados 100% privados. Motor de IA: Claude Code.
-
-![Version](https://img.shields.io/badge/versão-v2.23.0-blue)
-![Python](https://img.shields.io/badge/python-3.11%2B-blue)
-![Platform](https://img.shields.io/badge/plataforma-Windows-lightgrey)
-![License](https://img.shields.io/badge/licença-privado-red)
-
----
-
-## O que é
-
-SBWAA é um **sistema operacional de investimentos pessoais** que roda inteiramente no seu computador. Combina 8 agentes de IA especializados, pipeline de dados de mercado, base de conhecimento RAG local e automação diária via Task Scheduler — sem enviar nenhum dado financeiro para fora da sua máquina.
-
-### O que resolve
-
-| Sem o SBWAA | Com o SBWAA |
-|-------------|-------------|
-| Análise de ativos esporádica, sem metodologia | Pipeline completo: macro → DCF → earnings → risco → decisão do PM |
-| Risco calculado na intuição | VaR, CVaR, Sharpe, Fronteira Eficiente Markowitz, stress tests |
-| Teses de investimento perdidas em planilhas | Vault Obsidian estruturado: teses, DCFs, earnings, decisões linkados |
-| Aporte decidido no impulso | Modo Aporte: PM distribui capital entre ativos elegíveis com justificativa |
-| Horas gastas lendo notícias | Morning call automático às 07:45 com macro, alertas e oportunidades |
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)
+![Investment Research](https://img.shields.io/badge/Investment-Research-0D1E35)
+![Portfolio Analysis](https://img.shields.io/badge/Portfolio-Analysis-0D1E35)
+![AI Assisted](https://img.shields.io/badge/AI-Assisted-0D1E35)
+![Platform](https://img.shields.io/badge/Platform-Windows-lightgrey)
 
 ---
 
-## Funcionalidades
+## Overview
 
-### 25+ comandos organizados em 6 categorias
+**SBWAA** is a personal investment research and portfolio decision-support system designed to connect:
 
-| Categoria | Comandos |
-|-----------|----------|
-| **Carteira** | `/carteira`, `/dividendos`, `/adicionar`, `/vender`, `/metas` |
-| **Risco** | `/risco-carteira`, `/snapshot`, `/stress-test`, `/simulacao`, `/otimizar-expansao` |
-| **Análise** | `/tese`, `/analisar`, `/earnings`, `/comparar`, `/investimento-do-dia` |
-| **Decisão PM** | `/pm TICKER`, `/pm 700` (modo aporte), `/revisar-carteira`, `/rebalancear` |
-| **Macro** | `/morning-call`, `/mundo-economico`, `/relatorio-semanal`, `/relatorio-mensal` |
-| **Sistema** | `/watchlist`, `/ips`, `/knowledge`, `/snapshot`, `/status` |
+**company analysis → valuation → portfolio context → decision support → monitoring**
 
-### 8 agentes especializados
+within a single structured workflow.
 
-| Agente | Modelo | Função |
-|--------|--------|--------|
-| Market Researcher | Sonnet | Macro, setor, competidores, notícias do dia |
-| Earnings Reviewer | Sonnet | Resultado trimestral: receita, margens, guidance vs consenso |
-| Model Builder | Opus | DCF, múltiplos, preço-alvo |
-| Valuation Reviewer | Sonnet | Revisão crítica do modelo, equity research |
-| Quant / Data Eng. | Sonnet | Sharpe, Beta, correlação, métricas quantitativas |
-| Econometrician | Sonnet | GARCH, beta dinâmico, Fama-French 3F, macro BCB, drawdown avançado |
-| Risk Engineer | Opus | VaR, CVaR, circuit breakers, Fronteira Eficiente |
-| Portfolio Manager | Opus | Decisão final: COMPRAR / MANTER / REDUZIR / SAIR / AGUARDAR / EVITAR |
+The project was built around a simple question:
 
-### Automação diária (v2.13.0)
+> How can an individual investor organize the different stages of an investment process — research, valuation, macro context, risk, portfolio construction and monitoring — into one coherent system?
 
-Três slots via Windows Task Scheduler — roda silenciosamente, sem abrir janela:
+Rather than treating each analysis independently, SBWAA connects different parts of the investment process through a modular architecture supported by **Python, financial data, AI-assisted research and a persistent investment knowledge base**.
 
-```
-07:45 seg–sex  →  RSS + snapshot + quant + risk + alertas + /morning-call
-17:00 seg–sex  →  snapshot EOD + alertas + /snapshot
-08:00 sáb–dom  →  /relatorio-semanal (dom) + /relatorio-mensal (1° fds do mês)
-```
+The system is not intended to replace investment judgment.
 
-- **PC em sleep**: `WakeToRun` acorda o computador automaticamente
-- **PC desligado**: `StartWhenAvailable` roda na próxima inicialização
-- **Notificação**: toast Windows ao concluir cada slot
-
-### Outputs Obsidian
-
-Cada comando gera notas `.md` estruturadas no vault com wikilinks automáticos entre teses, DCFs, earnings, snapshots de risco e notas macro.
-
-`/carteira` — barras visuais `█░`, callouts `[!warning]`/`[!danger]` por desvio do IPS  
-`/dividendos` — relatório de proventos com DY ponderado e renda mensal  
-`/risco-carteira` — métricas HF, circuit breakers, Fronteira Markowitz  
-`/stress-test` — 6 cenários de crise com ícones por severidade  
+Its purpose is to **organize information, structure analysis, challenge assumptions and improve the consistency of the decision-making process**.
 
 ---
 
-## Pré-requisitos
+# Investment Framework
 
-| Ferramenta | Versão | Obrigatório |
-|------------|--------|-------------|
-| Python | 3.11+ | ✅ |
-| Claude Code | qualquer | ✅ |
-| PowerShell | 5.1+ | ✅ |
-| Obsidian | qualquer | Recomendado |
+SBWAA is structured around three core layers.
 
-**Instalar Claude Code:**
-```powershell
-npm install -g @anthropic-ai/claude-code
-```
+## 1. Company Analysis
 
----
+The first layer focuses on understanding the underlying asset.
 
-## Instalação
+The workflow can incorporate:
 
-```powershell
-# 1. Clonar
-git clone https://github.com/lbm-marangoni/sbwaa.git
-cd sbwaa
+- financial statement analysis
+- business model and industry research
+- competitive positioning
+- earnings analysis
+- macroeconomic and sector context
+- valuation through DCF and market multiples
+- investment thesis development
+- identification of risks and catalysts
 
-# 2. Ambiente virtual
-python -m venv .venv
-.venv\Scripts\Activate.ps1
+The goal is not simply to produce a price target, but to build a structured view of:
 
-# 3. Dependências
-pip install -r requirements.txt
-
-# 4. Verificar instalação
-$env:PYTHONUTF8 = "1"
-python sbwaa.py /status
-```
-
-> Se o PowerShell bloquear scripts: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
+**what drives the business, what the market may be pricing, what could change the thesis and where the main risks lie.**
 
 ---
 
-## Configuração inicial
+## 2. Portfolio Thinking
 
-### Portfólio
+An investment idea is evaluated not only in isolation, but also in the context of the portfolio.
 
-Os arquivos de portfólio ficam em `vault/00-portfolio/` e **não vêm no repositório** (dados pessoais). São criados automaticamente ao registrar o primeiro ativo:
+SBWAA incorporates portfolio-level analysis such as:
 
-```powershell
-python sbwaa.py /adicionar --ticker PETR4 --tipo acao-on --quantidade 100 --preco-medio 38.50 --setor energia
-```
+- return and volatility
+- correlation
+- beta
+- drawdown
+- diversification
+- allocation
+- portfolio constraints
+- risk limits
+- stress scenarios
+- position sizing context
+- benchmark comparison
 
-### IPS (Investment Policy Statement)
+The portfolio layer is also connected to an **Investment Policy Statement (IPS)** containing allocation targets and risk constraints.
 
-O IPS define metas de alocação e limites de risco que o sistema respeita em todas as decisões:
+This allows the system to distinguish between:
 
-```powershell
-python sbwaa.py /ips --editar
-```
+> “Is this asset attractive?”
 
-### Automação
+and
 
-```powershell
-# Instala as 3 tarefas no Task Scheduler (WakeToRun ativado)
-python scripts/automation/setup_scheduler.py --instalar
-
-# Verificar status
-python scripts/automation/setup_scheduler.py --status
-
-# Testar agora
-python scripts/automation/setup_scheduler.py --testar morning
-```
-
-### Setup guiado (opcional)
-
-Para uma configuração completa assistida por IA, abra o projeto no Claude Code e cole:
-
-```
-Quero configurar o SBWAA do zero. Leia .env.template,
-knowledge/sources/sources.json, scripts/alerts/check_alerts.py
-e CLAUDE.md, depois conduza um formulário interativo comigo —
-uma pergunta por vez — cobrindo: modo de operação, feeds RSS,
-thresholds de alerta e IPS completo.
-```
+> “Does this asset improve the portfolio?”
 
 ---
 
-## Uso rápido
+## 3. Investment Judgment
 
-### Comandos locais (Python puro)
+The final layer focuses on structuring the decision itself.
 
-```powershell
-python sbwaa.py /carteira          # posições, P&L, alocação visual
-python sbwaa.py /risco-carteira    # VaR, Sharpe, Markowitz
-python sbwaa.py /stress-test       # 6 cenários de crise
-python sbwaa.py /dividendos        # proventos e DY
-python sbwaa.py /watchlist         # ativos monitorados com frescor
-python sbwaa.py /otimizar-expansao # quais ativos melhoram o portfólio
-python sbwaa.py /simulacao         # Monte Carlo + backtest
-python sbwaa.py /metas             # dashboard de metas financeiras
-python sbwaa.py /help              # todos os comandos
-```
+SBWAA combines research outputs, valuation, portfolio context, risk and existing investment theses to support decisions such as:
 
-### Comandos de IA (no chat do Claude Code)
+- investigate further
+- initiate or increase a position
+- maintain exposure
+- reduce exposure
+- exit
+- wait for a better entry point
 
-```
-/morning-call              # briefing pré-abertura: macro + carteira + alertas
-/analisar PETR4            # pipeline completo: 8 agentes, DCF, earnings, risco, decisão PM
-/tese VALE3                # análise rápida com veredicto
-/pm PETR4                  # decisão do PM para ativo com análise existente
-/pm 700                    # modo aporte: distribui R$ 700 entre elegíveis
-/revisar-carteira          # PM revisa todas as posições
-/rebalancear               # desvios vs IPS + sugestão de ajuste
-/earnings WEGE3            # análise de resultado trimestral
-/relatorio-semanal         # P&L + risco + outlook da semana
-```
+The purpose is not to automate conviction.
+
+Instead, the system creates a **repeatable decision process** where assumptions, evidence and previous decisions can be reviewed over time.
 
 ---
 
-## Estrutura do projeto
+# Investment Workflow
 
-```
-sbwaa/
-├── sbwaa.py                    ← ponto de entrada de todos os comandos
-├── CLAUDE.md                   ← políticas globais e roteamento de agentes
-├── requirements.txt
-│
-├── docs/
-│   ├── GUIA-COMANDOS.md        ← sintaxe, flags e exemplos de todos os comandos
-│   ├── SBWAA-WORKFLOW.md       ← cadências diária/semanal/mensal/trimestral/anual
-│   ├── SBWAA-REFERENCIA.md     ← campos, mockups de output, comportamento esperado
-│   ├── SBWAA-APRESENTACAO.md   ← visão geral do sistema para apresentações
-│   └── SBWAA-MASTER-BLUEPRINT.md
-│
-├── interface/
-│   ├── ui.py                   ← painel visual (customtkinter)
-│   └── splash.py
-│
-├── .claude/
-│   └── agents/                 ← 8 agentes (market-researcher, earnings-reviewer,
-│                                  model-builder, valuation-reviewer, quant-data-engineer,
-│                                  econometrician, risk-engineer, portfolio-manager)
-│
-├── scripts/
-│   ├── data/                   ← fetch_fundamentals, fetch_yahoo, fetch_investidor10,
-│   │                              market_snapshot, optimize_expansao, simulacao_carteira
-│   ├── alerts/                 ← check_alerts (8 tipos: VaR, drawdown, variação, dividendos...)
-│   ├── heartbeat/              ← heartbeat.py legado (execução manual)
-│   └── automation/             ← dispatcher modular: main.py, runner.py, notifier.py,
-│                                  launcher.vbs, setup_scheduler.py
-│
-├── knowledge/                  ← base RAG (ChromaDB + sentence-transformers)
-│
-└── vault/                      ← notas Obsidian (dados pessoais — não versionados)
-    ├── 00-portfolio/           ← carteira, IPS, trades, metas, decisoes
-    ├── 01-ativos/              ← teses, DCFs, earnings por ticker
-    ├── 02-relatorios/          ← morning calls, semanais, mensais, dividendos
-    ├── 03-macro/               ← notas do Market Researcher
-    ├── 04-decisoes/            ← histórico de decisões do PM
-    ├── 05-risk/                ← snapshots de risco e alertas
-    └── _templates/             ← 11 templates Obsidian
-```
-
----
-
-## Segurança e privacidade
-
-- Posições, preço médio, patrimônio e dados pessoais **nunca saem do vault local**
-- APIs externas recebem apenas: tickers públicos, datas e parâmetros de mercado
-- `vault/00-portfolio/`, `scripts/data/cache/`, `knowledge/.chromadb/` no `.gitignore`
-- Logs ficam exclusivamente em `logs/` local
-
-Política completa: [`CLAUDE.md`](CLAUDE.md) — seção Security Policy.
-
----
-
-## Documentação
-
-| Documento | Conteúdo |
-|-----------|----------|
-| [`docs/GUIA-COMANDOS.md`](docs/GUIA-COMANDOS.md) | Referência completa: sintaxe, flags, exemplos |
-| [`docs/SBWAA-WORKFLOW.md`](docs/SBWAA-WORKFLOW.md) | Workflow operacional: 6 cadências + fluxos oportunísticos |
-| [`docs/SBWAA-REFERENCIA.md`](docs/SBWAA-REFERENCIA.md) | Campos, mockups de output e comportamento esperado |
-| [`docs/SBWAA-APRESENTACAO.md`](docs/SBWAA-APRESENTACAO.md) | Visão geral do sistema: problema, solução, features |
-| [`docs/SBWAA-MASTER-BLUEPRINT.md`](docs/SBWAA-MASTER-BLUEPRINT.md) | Guia completo de reconstrução do sistema do zero |
-| [`docs/SBWAA-GLOSSARIO.md`](docs/SBWAA-GLOSSARIO.md) | ~80 termos técnicos: métricas quant, agentes, comandos |
-| [`CHANGELOG.md`](CHANGELOG.md) | Histórico completo de versões |
-
----
-
-## Compatibilidade
-
-- **Windows 10/11** — testado, PowerShell nativo
-- **macOS / Linux** — compatível (substituir comandos PowerShell por equivalentes bash; Task Scheduler → cron)
-- **Obsidian** — recomendado para visualizar o vault com graph view e templates
+```text
+                MARKET & MACRO CONTEXT
+                         │
+                         ▼
+                 COMPANY RESEARCH
+                         │
+            ┌────────────┴────────────┐
+            ▼                         ▼
+       FUNDAMENTALS                 EARNINGS
+            │                         │
+            └────────────┬────────────┘
+                         ▼
+                     VALUATION
+                         │
+                         ▼
+                 INVESTMENT THESIS
+                         │
+                         ▼
+                 PORTFOLIO CONTEXT
+          risk • allocation • correlation
+                         │
+                         ▼
+                  DECISION SUPPORT
+                         │
+                         ▼
+                MONITORING & REVIEW
+                         │
+                         ▼
+                INVESTMENT JOURNAL
